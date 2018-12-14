@@ -67,7 +67,7 @@ $ source /opt/etc/flask/venv/bin/activate
 `S89gunicornd` 스크립트에서 포트 번호를 꼭 변경해 주세요.
     
 ```shell
-$ cp /opt/etc/flask/S89gunicorn /opt/etc/init.d/S89gunicornd
+$ cp /opt/etc/flask/S89gunicornd /opt/etc/init.d/S89gunicornd
 $ chmod +x /opt/etc/init.d/S89gunicornd
 $ /opt/etc/init.d/S89gunicornd start
 ```
