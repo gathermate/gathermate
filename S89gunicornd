@@ -1,0 +1,33 @@
+#!/bin/sh
+
+PATH=/opt/sbin:/opt/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+ENABLED=yes
+PROCS=gunicorn
+DESC=$PROCS
+# 설치한 폴더명을 아래에 입력해 주세요. (기본값: /opt/etc/flask)
+ROOT=/opt/etc/flask
+ACTIVATE=$ROOT/venv/bin/activate
+PRECMD="source $ACTIVATE"
+PREARGS=
+
+APPNAME=Gathermate
+APP=app:app
+# 기본 포트 번호를 변경 후 외부 접속을 차단해주세요.
+BIND=0.0.0.0:8181
+WORKERS=1
+LOGLEVEL=DEBUG
+PIDFILE=$ROOT/gunicorn.pid
+LOGFILE=$ROOT/gunicorn.log
+SYS_LOG_ADDR=unix:///dev/log#dgram
+MAX_REQUESTS=100
+
+ARGS="$APP --daemon --chdir $ROOT --bind=$BIND --max-requests $MAX_REQUESTS --pid=$PIDFILE --workers=$WORKERS --log-file=$LOGFILE --log-level $LOGLEVEL --log-syslog-to $SYS_LOG_ADDR --log-syslog-prefix $APPNAME"
+
+# instance/config.py 에서 사용할 정보를 입력해 주세요.
+export GATHERMATE_AUTH_ID=admin
+export GATHERMATE_AUTH_PW=password
+export GATHERMATE_ETO_ID=
+export GATHERMATE_ETO_PW=
+
+source /opt/etc/init.d/rc.func

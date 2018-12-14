@@ -1,0 +1,31 @@
+{%- extends "gathermate_index.html" %}
+{%- block title %}{{ title }}{%- endblock %}
+{%- block style %}
+{%- endblock style %}
+{%- block section %}
+
+<center>
+<textarea cols="50" rows="3" id="en_target"></textarea><br />
+<button onclick="encode_it()">Encode it</button>
+<p id="encode_result"></p>
+<br />
+<br />
+<textarea cols="50" rows="3" id="de_target"></textarea><br />
+<button onclick="decode_it()">Decode it</button>
+<p id="decode_result"></p>
+</center>
+<script>
+function encode_it() {
+    var uri = document.getElementById("en_target").value;
+    var res = encodeURIComponent(uri);
+    document.getElementById("encode_result").innerHTML = res;
+}
+
+function decode_it() {
+    var uri = document.getElementById("de_target").value;
+    var res = decodeURIComponent(uri);
+    document.getElementById("decode_result").innerHTML = res;
+}
+</script>
+
+{%- endblock section %}

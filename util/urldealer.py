@@ -1,0 +1,169 @@
+# -*- coding: utf-8 -*-
+
+import urllib
+import urlparse
+
+SCHEME = 'scheme'
+NETLOC = 'netloc'
+PATH = 'path'
+QUERY = 'query'
+FRAGMENT = 'fragment'
+USERNAME = 'username'
+PASSWORD = 'password'
+HOSTNAME = 'hostname'
+PORT = 'port'
+
+
+class URL(object):
+    def __init__(self, url=''):
+        # type: (str) -> None
+        if url:
+            self.url = split(url)
+        self.scheme = self.url[SCHEME]
+        self.netloc = self.url[NETLOC]
+        self.path = self.url[PATH]
+        self.username = self.url[USERNAME]
+        self.password = self.url[PASSWORD]
+        self.hostname = self.url[HOSTNAME]
+        self.fragment = self.url[FRAGMENT]
+        self.query_dict = self.url[QUERY]
+
+    @property
+    def query(self):
+        # type: () -> str
+        return unsplit_qs(self.url[QUERY])
+
+    @query.setter
+    def query(self, v):
+        # type: (str) -> None
+        self.url[QUERY] = split_qs(v)
+
+    @property
+    def port(self):
+        # type: () -> int
+        return int(self.url[PORT])
+
+    @port.setter
+    def port(self, v):
+        # type: (int) -> None
+        self.url[PORT] = v
+
+    @property
+    def text(self):
+        # type: () -> str
+        return unsplit_dict(self.url)
+
+    @text.setter
+    def text(self, v):
+        # type: (str) -> None
+        self.url = split(v)
+
+    def update_query(self, post_dict):
+        # type: (Dict[Text, Text]) -> None
+        for k in post_dict.keys():
+            self.query_dict[k] = post_dict[k]
+
+    def update_qs(self, qs):
+        # type: (str) -> None
+        qs_dict = split_qs(qs)
+        self.update_query(qs_dict)
+
+    def __str__(self):
+        # type: () -> str
+        return self.text
+
+    def get(self, key):
+        # type: (str) -> Union[Text, None]
+        return self.url.get(key, None)
+
+def unquote(qs):
+    # type: (str) -> str
+    return urllib.unquote(qs)
+
+def quote(qs):
+    # type: (Text) -> str
+    if isinstance(qs, unicode):
+        qs = qs.encode('utf-8', 'ignore')
+    return urllib.quote(qs)
+
+def join_qs(old, new):
+    # type: (str, str) -> str
+    old_dict = split_qs(old)
+    new_dict = split_qs(new)
+    for k in new_dict.keys():
+        old_dict[k] = new_dict[k]
+    return unsplit_qs(old_dict)
+
+
+def join(old, new):
+    # type: (str, str) -> str
+    return urlparse.urljoin(old, new)
+
+
+def split_qs(qs):
+    # type: (str) -> Dict[Text, Text]
+    if not qs:
+        return {}
+    qs_dict = urlparse.parse_qs(qs, keep_blank_values=True)
+    for k in qs_dict.keys():
+        qs_dict[k] = qs_dict[k][0]
+    return qs_dict
+
+
+def unsplit_qs(qs_dict):
+    # type: (Dict[Text, Text]) -> str
+    if not qs_dict:
+        return ''
+    sorted_query = sorted(
+        (pair for pair in qs_dict.items())
+    )
+    qs = urllib.urlencode(sorted_query, False)
+    return qs
+
+
+def remove_qs(qs, key):
+    # type: (str, str) -> str
+    qs_dict = split_qs(qs)
+    qs_dict.pop(key)
+    return unsplit_qs(qs_dict)
+
+
+def split(url):
+    # type: (str) -> Dict[Text, Text]
+    url_dict = {}
+    parsed = urlparse.urlsplit(url, scheme='http')
+    url_dict[SCHEME] = parsed.scheme
+    url_dict[NETLOC] = parsed.netloc if parsed.netloc else parsed.path
+    url_dict[PATH] = parsed.path if not url_dict[NETLOC] == parsed.path else ''
+    url_dict[QUERY] = split_qs(parsed.query)
+    url_dict[FRAGMENT] = parsed.fragment
+    url_dict[USERNAME] = parsed.username
+    url_dict[PASSWORD] = parsed.password
+    url_dict[HOSTNAME] = parsed.hostname
+    url_dict[PORT] = parsed.port
+    return url_dict
+
+
+def unsplit_dict(url_dict):
+    # type: (Dict[Text, Text]) -> str
+    # <scheme>://<username>:<password>@<host>:<port>/<path>;<parameters>?<query>#<fragment>
+    # urlparse.urlunparse((scheme, netloc, path, params, query, fragment))
+    query = unsplit_qs(url_dict[QUERY])
+    url = urlparse.urlunsplit((url_dict.get(SCHEME),
+                               url_dict.get(NETLOC),
+                               url_dict.get(PATH),
+                               query,
+                               url_dict.get(FRAGMENT)))
+    return url
+
+
+def unsplit(url_tuple):
+    # type: (Tuple[Text]) -> Dict[Text, Text]
+    url_dict = {
+        SCHEME: url_tuple[0],
+        NETLOC: url_tuple[1],
+        PATH: url_tuple[2],
+        QUERY: split_qs(url_tuple[3]),
+        FRAGMENT: url_tuple[4],
+    }
+    return unsplit_dict(url_dict)

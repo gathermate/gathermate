@@ -1,0 +1,21 @@
+runtime: python27
+api_version: 1
+threadsafe: true
+
+handlers:
+  - url: .*
+    script: app.app
+    secure: always
+
+# Using a built-in third-party library bundled with the runtime
+libraries:
+  - name: lxml
+    version: "latest"
+  - name: flask
+    version: "latest"
+
+# urllib3 is using URLFetch on Google App Engine sandbox instead of sockets.
+# To use sockets directly instead of URLFetch see https://urllib3.readthedocs.io/en/latest/reference/urllib3.contrib.html.
+# Using sockets is only possible in paid GAE account.
+env_variables:
+    GAE_USE_SOCKETS_HTTPLIB : 'false'

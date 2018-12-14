@@ -1,0 +1,10 @@
+<!DOCTYPE html>
+<pre>
+{% for item in items %}
+    Author : {{ item[0] }}
+    Text : {{ item[1] }}
+    Itemtype : {{ item[2] }}
+    Link : {{ item[3] }}
+    Tags : {{ item[4] | join(', ') }}
+{% endfor %}
+</pre>

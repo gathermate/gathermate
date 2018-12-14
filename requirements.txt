@@ -1,0 +1,6 @@
+lxml
+futures
+flask
+flask-Caching
+requests
+gunicorn
