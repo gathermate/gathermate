@@ -55,6 +55,7 @@ $ source /opt/etc/flask/venv/bin/activate
 가상환경 내에서 `python` 추가 패키지를 설치합니다. 또한 `opkg`로 설치한 `lxml` 패키지도 가상환경 폴더에 복사해 주세요.
    
 ```shell 
+(venv) $ cd /opt/etc/flask
 (venv) $ pip install -r requirements_entware.txt
 (venv) $ cp -r /opt/lib/python2.7/site-packages/lxml* /opt/etc/flask/venv/lib/python2.7/site-packages/ 
 ```
@@ -117,6 +118,7 @@ $ source ~/flask/venv/bin/activate
 #### 파이썬 패키지 설치
 
 ```shell
+(venv) $ cd ~/flask
 (venv) $ pip install -r requirements.txt
 ```
 
