@@ -128,7 +128,7 @@ $ source ~/flask/venv/bin/activate
     
 ```shell
 $ chmod +x ~/flask/gunicornd
-$ ~/flask/gunicorn start
+$ ~/flask/gunicornd start
 ```
 
 ---
@@ -140,9 +140,18 @@ $ ~/flask/gunicorn start
 
 먼저 `config.py`를 `instance`폴더로 복사해 주세요.
 
+Entware
 ```shell
-$ cp 앱_설치_경로/config.py 앱_설치_경로/instance/config.py
+$ mkdir /opt/etc/flask/instance
+$ cp /opt/etc/flask/config.py /opt/etc/flask/instance/config.py
 ```
+
+Debian
+```shell
+$ mkdir /opt/etc/flask/instance
+$ cp ~/flask/config.py ~/flask/instance/config.py
+```
+
  그런 다음 `instance/config.py` 내의 민감한 정보를 즉시 변경해 주세요. 이제부터 `config.py`가 아닌 `instance/config.py`의 설정을 사용하게 됩니다.
 
 #### 꼭 변경해야 하는 값들
