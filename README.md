@@ -87,6 +87,17 @@ iptables -I INPUT -p tcp -s 192.168.0.0/16 --dport 8181 -j ACCEPT # 2. 내부 �
 iptables -I INPUT -p tcp -s localhost --dport 8181 -j ACCEPT # 1. localhost의 접속 허용
 ```
 
+firewall 서비스 재실행
+
+```shell
+$ service restart_firewall
+```
+
+확인
+```shell
+$ iptables -L
+```
+
 ### Debian @ WSL
 Debian은 `Windows Subsystem for Linux`에서 테스트 했습니다.
 
