@@ -136,6 +136,8 @@ $ source ~/flask/venv/bin/activate
 #### 실행하기
 
 **설정하기를 읽어본 후 실행하기를 권장합니다.**
+
+`gunicornd` 스크립트에서 포트 번호를 꼭 변경해 주세요.
     
 ```shell
 $ chmod +x ~/flask/gunicornd
