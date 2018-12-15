@@ -43,7 +43,7 @@ $ opkg install python python-pip python-lxml
 
 ```shell
 $ pip install virtualenv
-$ virtualenv /opt/etc/flask/venv
+$ virtualenv -p python2 /opt/etc/flask/venv
 $ source /opt/etc/flask/venv/bin/activate
 (venv) $ 
 ```
@@ -119,7 +119,7 @@ $ apt install python python-pip
 
 ```shell
 $ pip install virtualenv
-$ virtualenv ~/flask/venv
+$ virtualenv -p python2 ~/flask/venv
 $ source ~/flask/venv/bin/activate
 (venv) $ 
 ```
