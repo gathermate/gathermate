@@ -1,15 +1,12 @@
 # -*- coding: utf-8 -*-
-
 import re
-import logging as log
-
-from lxml import etree
 
 from gathermate.gatherer import Gatherer
 from util import urldealer as ud
 
 def register():
     return 'Gatherer'
+
 
 class Etoland(Gatherer):
     URL = "http://www.etoland.co.kr"
@@ -36,9 +33,9 @@ class Etoland(Gatherer):
     def handle_search(self, url, keyword):
         url.update_qs(self.SEARCH_QUERY % keyword.encode(self.encoding))
 
-    list_xpath = r'//td[contains(@class, "mw_basic_list_subject")]/a/span[not(@class)]/..'
     def get_list(self, r):
-        for e in self.etree(r, encoding=self.encoding).xpath(self.list_xpath):
+        list_xpath = r'//td[contains(@class, "mw_basic_list_subject")]/a/span[not(@class)]/..'
+        for e in self.etree(r, encoding=self.encoding).xpath(list_xpath):
             try:
                 title = e.xpath('string()')
                 link = e.get('href').strip()
@@ -48,13 +45,13 @@ class Etoland(Gatherer):
             except:
                 self.trace_error()
 
-    item_xpath = r'//td[@class="mw_basic_view_file"]/a[contains(@onclick, "file_download")]'
-    onclick_regexp = re.compile(r'file_download\(\'\.(.*)\',\s\'(.*)\',\s\'(.*)\'\);')
     def get_item(self, r):
+        item_xpath = r'//td[@class="mw_basic_view_file"]/a[contains(@onclick, "file_download")]'
+        onclick_regexp = re.compile(r'file_download\(\'\.(.*)\',\s\'(.*)\',\s\'(.*)\'\);')
         root = self.etree(r, encoding=self.encoding)
-        for e in root.xpath(self.item_xpath):
+        for e in root.xpath(item_xpath):
             try:
-                matches = self.onclick_regexp.search(e.get('onclick'))
+                matches = onclick_regexp.search(e.get('onclick'))
                 name = matches.group(2)
                 link = 'http://www.etoland.co.kr/bbs{}'.format(matches.group(1))
                 link_type = self.is_magnet(link)

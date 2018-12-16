@@ -19,12 +19,13 @@ class Torrenthaja(Gatherer):
     PAGE_QUERY = u'page=%d'
     ID_REGEXP = re.compile(r'(\d{2,8})\.html')
 
-    list_xpath = r'//div[contains(@class, "td-subject")]/a'
+
     def get_list(self, r):
         # type: (fetchers.Response) -> Generator
+        list_xpath = r'//div[contains(@class, "td-subject")]/a'
         root = self.etree(r, encoding=self.encoding)
 
-        for e in root.xpath(self.list_xpath):
+        for e in root.xpath(list_xpath):
             try:
                 link = e.get('href')
                 id_ = self.get_id_num(link)
@@ -34,15 +35,16 @@ class Torrenthaja(Gatherer):
             except:
                 self.trace_error()
 
-    form_xpath = r'//form[contains(@action, "download.php")]'
-    magnet_xpath = r'//button[contains(@onclick, "magnet_link")]'
-    attached_xpath = r'//a[contains(@class, "view_file_download")]'
-    magnet_regex = re.compile(r'magnet_link\(\'(.*)\'\);')
     def get_item(self, r):
         # type: (fetchers.Response) -> Generator
+        form_xpath = r'//form[contains(@action, "download.php")]'
+        magnet_xpath = r'//button[contains(@onclick, "magnet_link")]'
+        attached_xpath = r'//a[contains(@class, "view_file_download")]'
+        magnet_regex = re.compile(r'magnet_link\(\'(.*)\'\);')
+
         root = self.etree(r, encoding=self.encoding)
 
-        for e in root.xpath(self.form_xpath):
+        for e in root.xpath(form_xpath):
             try:
                 ticket = {}
                 link = e.get('action')
@@ -66,18 +68,18 @@ class Torrenthaja(Gatherer):
             except:
                 self.trace_error()
 
-        for idx, e in enumerate(root.xpath(self.magnet_xpath)):
+        for idx, e in enumerate(root.xpath(magnet_xpath)):
             try:
                 onclick = e.get('onclick')
-                magnet_name = root.xpath(r'{}/ancestor::table//th[@class="title"]'.format(self.magnet_xpath))[idx].text
-                link = u'magnet:?xt=urn:btih:{}'.format(self.magnet_regex.search(onclick).group(1))
+                magnet_name = root.xpath(r'{}/ancestor::table//th[@class="title"]'.format(magnet_xpath))[idx].text
+                link = u'magnet:?xt=urn:btih:{}'.format(magnet_regex.search(onclick).group(1))
                 if not magnet_name:
                     magnet_name = link
                 yield {'name': magnet_name, 'link': link, 'type': 'magnet'}
             except:
                 self.trace_error()
 
-        for e in root.xpath(self.attached_xpath):
+        for e in root.xpath(attached_xpath):
             try:
                 fname = e[0].text
                 flink = e.get('href')
@@ -86,7 +88,7 @@ class Torrenthaja(Gatherer):
                 self.trace_error()
 
     def get_file(self, url, ticket):
-        # type: Dict[str, object] -> fetchers.Response
+        # type: (urldealer.Url, Dict[Text, object]) -> fetchers.Response
         payload = ticket.get('payload', None)
         method = ticket.get('method', 'GET')
         if payload:
