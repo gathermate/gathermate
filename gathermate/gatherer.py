@@ -85,7 +85,6 @@ class Gatherer(object):
 
     def _paginate(self, url, content):
         # type: (urldealer.URL, str) -> None
-        #https://torrentwal.net/torrent_variety/torrent5.htm
         PAGE_REGEXP = re.compile(re.sub('%d', '(\d{1,5})', self.PAGE_QUERY))
         match = PAGE_REGEXP.search(url.text)
         self.current_page = int(match.group(1)) if match else 1
