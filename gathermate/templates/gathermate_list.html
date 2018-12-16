@@ -49,13 +49,15 @@
   <ul class="w3-ul w3-hoverable">
     {%- for id_num, article in articles %}
     <li class="w3-bar" style="padding: 0px; margin: 2px;">
+      <div class="info" style="font-size:12px">
       {{ id_num }}
       {% if article['date'] %}
       {{ article['date'] }}
       {% endif %}
       <a href="{{ article['link'] }}" target="_blank"><i class="fa fa-external-link" aria-hidden="true" style="font-size:12px;"></i></a>
-        <p class="w3-text-dark-grey" style="padding: 0px; margin: 0px;"><a id="file_link_{{ id_num }}" style="text-decoration: none;" url="{{ url_for('.order', order='item', url=article['link']) }}" href="javascript:show_files('{{ id_num }}');">{{ article['title'] }}</a>
-        </p>
+      </div>
+        <div class="w3-text-dark-grey" style="padding: 0px; margin: 0px;"><a id="file_link_{{ id_num }}" style="text-decoration: none;" url="{{ url_for('.order', order='item', url=article['link']) }}" href="javascript:show_files('{{ id_num }}');">{{ article['title'] }}</a>
+        </div>
       <div id="file_div_{{ id_num }}" class="w3-container w3-small w3-codespan w3-hide" style="padding: 0px; margin: 0px;">
         <p style="padding: 0px; margin: 0px;" class="loading" id="view_loading">Loading</p>
       </div>

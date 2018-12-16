@@ -172,10 +172,7 @@ class Manager(object):
 
         log.info('%s mode', order.upper())
 
-        try:
-            data = getattr(self, '_order_{}'.format(order))(target, query_dict)
-        except AttributeError:
-            raise AttributeError('Your request order is wrong : %s' % order)
+        data = getattr(self, '_order_{}'.format(order))(target, query_dict)
 
         if not data or (order == 'list' and not data['articles']):
             return None

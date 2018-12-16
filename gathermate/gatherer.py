@@ -83,16 +83,14 @@ class Gatherer(object):
             'max_page': self.max_page,
         }
 
-
     def _paginate(self, url, content):
         # type: (urldealer.URL, str) -> None
-
-        page_key = self.PAGE_QUERY.replace('=%d', '')
-        self.current_page = url.query_dict.get(page_key, 1)
-        self.current_page = int(self.current_page)
+        #https://torrentwal.net/torrent_variety/torrent5.htm
+        PAGE_REGEXP = re.compile(re.sub('%d', '(\d{1,5})', self.PAGE_QUERY))
+        match = PAGE_REGEXP.search(url.text)
+        self.current_page = int(match.group(1)) if match else 1
         log.debug('Current page number is %d' % self.current_page)
-        regexp = re.compile(r'{}={}'.format(page_key, '(\d{1,5})'))
-        result = regexp.findall(content)
+        result = PAGE_REGEXP.findall(content)
         pages = set([int(x) for x in result])
         if len(pages) > 0:
             self.max_page = max(pages)
@@ -115,22 +113,22 @@ class Gatherer(object):
             return
 
         if current < 1:
-            log.warning('Current article list is empty. : %s', url.text)
+            log.warning('Current page is empty. : %s', url.text)
             return
 
-        log.debug("Current article list length : %d", current)
+        log.debug("Articles of current page : %d", current)
 
         if not self.isRSS:
             return
 
         if total > self.length:
             log.debug(
-                'Shorten article list length from %s to %s', total, self.length)
+                'Shorten articles from %s to %s', total, self.length)
             self._remove_list(articles, current_ids, total - self.length)
-            log.debug("Current article list length : %d", len(articles))
+            log.debug("Total articles : %d", len(articles))
         elif total < self.length:
             log.debug(
-                'Extend article list length from %s to %s', total, self.length)
+                'Extend articles from %s to %s', total, self.length)
             self._add_list(url)
 
     def _remove_list(self, articles, current_ids, target):
@@ -139,18 +137,16 @@ class Gatherer(object):
         del current_ids[target:]
         for key in current_ids:
             articles.pop(key, None)
-        log.debug('%d items were deleted.', len(current_ids))
+        log.debug('%d articles were deleted.', len(current_ids))
 
     def _add_list(self, url):
         # type: (urldealer.URL) -> None
         if not self.max_page > self.next_page:
             log.debug('There is no more pages.')
             return
-        extra_url = ud.URL(url.text)
-        extra_url.update_query(ud.split_qs(self.PAGE_QUERY % self.next_page))
+        self.handle_page(url, self.next_page)
         self.next_page += 1
-        self.parse_list(extra_url)
-
+        self.parse_list(url)
 
     def parse_items(self, articles):
         # type: (Dict[Text, Dict[Text, Text]]) -> Iterable

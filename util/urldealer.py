@@ -19,14 +19,70 @@ class URL(object):
         # type: (str) -> None
         if url:
             self.url = split(url)
-        self.scheme = self.url[SCHEME]
-        self.netloc = self.url[NETLOC]
-        self.path = self.url[PATH]
-        self.username = self.url[USERNAME]
-        self.password = self.url[PASSWORD]
-        self.hostname = self.url[HOSTNAME]
-        self.fragment = self.url[FRAGMENT]
-        self.query_dict = self.url[QUERY]
+
+    @property
+    def scheme(self):
+        return self.url[SCHEME]
+
+    @scheme.setter
+    def scheme(self, v):
+        self.url[SCHEME] = v
+
+    @property
+    def netloc(self):
+        return self.url[NETLOC]
+
+    @netloc.setter
+    def netloc(self, v):
+        self.url[NETLOC] = v
+
+    @property
+    def username(self):
+        return self.url[USERNAME]
+
+    @username.setter
+    def username(self, v):
+        self.url[USERNAME] = v
+
+    @property
+    def password(self):
+        return self.url[PASSWORD]
+
+    @password.setter
+    def password(self, v):
+        self.url[PASSWORD] = v
+
+    @property
+    def hostname(self):
+        return self.url[HOSTNAME]
+
+    @hostname.setter
+    def hostname(self, v):
+        self.url[HOSTNAME] = v
+
+    @property
+    def fragment(self):
+        return self.url[FRAGMENT]
+
+    @fragment.setter
+    def fragment(self, v):
+        self.url[FRAGMENT] = v
+
+    @property
+    def query_dict(self):
+        return self.url[QUERY]
+
+    @query_dict.setter
+    def query_dict(self, v):
+        self.url[QUERY] = v
+
+    @property
+    def path(self):
+        return self.url[PATH]
+
+    @path.setter
+    def path(self, v):
+        self.url[PATH] = v
 
     @property
     def query(self):
