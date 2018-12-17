@@ -47,19 +47,22 @@ class Fetcher(object):
         self.counter = 0
         log.debug('Using {} for Fetcher.'.format(type(self).__name__))
 
+    def _create_key(self, url, payload):
+        # type: (urldealer.URL, Dict[Text, Text]) -> Text
+        key_suffix = '{}?{}'.format(url.text, ud.unsplit_qs(payload)) if payload else url.text
+        return '{}-{}'.format(self.SECRET_KEY, key_suffix)
+
     def fetch(self, url, referer=None, method='GET', payload=None, forced_update=False):
         # type: (urldealer.URL, str, str, Dict[Text, Text], bool) -> Response
         self.counter += 1
         if self.counter > self.THRESHOLD:
-            log.error('Fetching counter exceeds threshold with a request. : %d of %d', self.counter, self.THRESHOLD)
+            log.error('Fetching counter exceeds threshold by a request. : %d of %d', self.counter, self.THRESHOLD)
             raise Exception('Too many fetchings by a request.')
 
-        key_suffix = '{}?{}'.format(url.text, ud.unsplit_qs(payload)) if payload else url.text
-        key = '{}-{}'.format(self.SECRET_KEY, key_suffix)
+        key = self._create_key(url, payload)
         @cache.cached(timeout=self.timeout, key_prefix=key, forced_update=lambda:forced_update)
         def cached_fetch():
             # type: () -> Response
-
             log.debug('This fetching will update its cache.')
 
             log.debug('Fetching [...{0}{1}]'

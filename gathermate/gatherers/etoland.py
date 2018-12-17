@@ -41,7 +41,7 @@ class Etoland(Gatherer):
                 link = e.get('href').strip()
                 id_ = self.get_id_num(link)
                 date = e.getparent().getparent().findall('td')[3].text
-                yield {'id': id_, 'title': title, 'link': link, 'date': date}
+                yield {'id': id_, 'title': title, 'link': link, 'etc': date}
             except:
                 self.trace_error()
 
@@ -55,7 +55,7 @@ class Etoland(Gatherer):
                 name = matches.group(2)
                 link = 'http://www.etoland.co.kr/bbs{}'.format(matches.group(1))
                 link_type = self.is_magnet(link)
-                yield {'name': name, 'link': link, 'type': link_type, 'extra': 'etoeto'}
+                yield {'name': name, 'link': link, 'type': link_type, 'etc': 'test'}
             except:
                 self.trace_error()
 

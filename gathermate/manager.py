@@ -65,7 +65,7 @@ class Manager(object):
                 continue
             if type_ == 'Gatherer':
                 for name, class_ in self._get_class_of(module, gtr.Gatherer):
-                    modules[ud.URL(class_.URL).netloc.lower()] = class_
+                    modules[ud.URL(class_.URL).hostname] = class_
                     log.debug("%s class is registered as %s.", name, type_)
             elif type_ == 'Plugin':
                 # Plugin was not implemented yet.
@@ -83,14 +83,19 @@ class Manager(object):
 
     def _hire_gatherer(self, target):
         # type: (urldealer.URL) -> gatherer.Gatherer
-        target.netloc = target.netloc.lower()
-        class_ = self.gatherer_classes[target.netloc]
+        host = target.hostname
+        try:
+            class_ = self.gatherer_classes[host]
+        except KeyError as ke:
+            log.error('KeyError : [%s]', ke.message)
+            class_ = self._find_gatherer(host)
+
         log.debug("%s class matches with [%s].", class_.__name__, target.text)
         return self._train_gatherer(class_, self.config.get('GATHERERS'))
 
     def _find_gatherer(self, alias):
-        for netloc, class_ in self.gatherer_classes.items():
-            if alias in netloc:
+        for host, class_ in self.gatherer_classes.items():
+            if alias in host:
                 log.debug("%s class matches with [%s].", class_.__name__, alias)
                 return class_
         raise Exception('There is no class associate with the alias : {}'.format(alias))

@@ -36,7 +36,20 @@ class Wal(Gatherer):
                 link = e.get('href')
                 id_ = self.get_id_num(link)
                 date = e.getparent().getnext().find('a').text.strip()
-                yield {'id': id_, 'title': title, 'link': link, 'date': date}
+                yield {'id': id_, 'title': title, 'link': link, 'etc': date}
+            except:
+                self.trace_error()
+
+        pop_xpath = r'//div[@id="m_list"]/ul/li/a'
+        root = self.etree(r, encoding=self.encoding).xpath(pop_xpath)
+        length = len(root)
+        for idx, e in enumerate(root):
+            try:
+                title = e.text.strip()
+                link = e.get('href')
+                id_ = length - idx
+                real_id =  self.get_id_num(link)
+                yield {'id': id_, 'title': title, 'link': link, 'etc': real_id}
             except:
                 self.trace_error()
 

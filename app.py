@@ -127,11 +127,12 @@ def unhandled_exception(e):
     path = request.path.split('/')
 
     if target:
-        url = ud.URL(target)
-        key = '{}-{}'.format(app.config['SECRET_KEY'], url.text)
+        url = ud.URL(ud.unquote(target))
+        key = app.mgr.fetcher._create_key(url, request.form)
         r = cache.get(key)
-        content = toolbox.decode(r.content) if r else None
-        logging.debug('Loaded response content for handling exception.')
+        if r:
+            content = toolbox.decode(r.content)
+            logging.debug('Loaded response content for handling exception.')
 
     if len(path) > 2 and path[2] in ['item']:
         return render_template_string(error_template,
