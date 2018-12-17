@@ -159,7 +159,7 @@ $ cp /opt/etc/flask/config.py /opt/etc/flask/instance/config.py
 
 Debian
 ```shell
-$ mkdir /opt/etc/flask/instance
+$ mkdir ~/flask/instance
 $ cp ~/flask/config.py ~/flask/instance/config.py
 ```
 
