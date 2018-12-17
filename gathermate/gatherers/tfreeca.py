@@ -25,6 +25,7 @@ class Tfreeca(Gatherer):
         for e in tree.xpath(list_xpath):
             try:
                 title = e.xpath('string()').strip()
+                if title == '': continue
                 link = e.get('href').strip()
                 id_ = self.get_id_num(link)
                 yield {'id': id_, 'title': title, 'link': link}
@@ -35,6 +36,7 @@ class Tfreeca(Gatherer):
         for e in tree.xpath(caption_xpath):
             try:
                 title = e.text.strip()
+                if title == '': continue
                 link = e.get('href')
                 id_ = self.get_id_num(link)
                 yield {'id': id_, 'title': title, 'link': link}
@@ -56,7 +58,7 @@ class Tfreeca(Gatherer):
                 self.trace_error()
 
         url = ud.URL(r.url)
-        if not url.query_dict.get('b_id') == 'captions':
+        if not url.query_dict.get('bo_table') == 'captions':
             iframe_xpath = r'//iframe[contains(@src, "info.php")]/@src'
             iframe_url = tree.xpath(iframe_xpath)[0]
             iframe_url = ud.join(self.URL, iframe_url)
@@ -80,9 +82,8 @@ class Tfreeca(Gatherer):
             try:
                 match = script_regexp.search(e.get('href'))
                 name = match.group(2)
-                link = match.group(1)
-                link_type = self.is_magnet(link)
-                yield {'name': name, 'link': link, 'type': link_type}
+                link = ud.join(self.URL, match.group(1))
+                yield {'name': name, 'link': link, 'type': 'file'}
             except:
                 self.trace_error()
 
