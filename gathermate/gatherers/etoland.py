@@ -34,6 +34,7 @@ class Etoland(Gatherer):
         url.update_qs(self.SEARCH_QUERY % keyword.encode(self.encoding))
 
     def get_list(self, r):
+        # type: (fetchers.Response) -> Generator
         list_xpath = r'//td[contains(@class, "mw_basic_list_subject")]/a/span[not(@class)]/..'
         for e in self.etree(r, encoding=self.encoding).xpath(list_xpath):
             try:
@@ -46,9 +47,11 @@ class Etoland(Gatherer):
                 self.trace_error()
 
     def get_item(self, r):
+        # type: (fetchers.Response) -> Generator
+        root = self.etree(r, encoding=self.encoding)
+
         item_xpath = r'//td[@class="mw_basic_view_file"]/a[contains(@onclick, "file_download")]'
         onclick_regexp = re.compile(r'file_download\(\'\.(.*)\',\s\'(.*)\',\s\'(.*)\'\);')
-        root = self.etree(r, encoding=self.encoding)
         for e in root.xpath(item_xpath):
             try:
                 matches = onclick_regexp.search(e.get('onclick'))
@@ -78,4 +81,5 @@ class Etoland(Gatherer):
                 self.trace_error()
 
     def get_file(self, url, ticket):
+        # type: (urldealer.Url, Dict[Text, object]) -> fetchers.Response
         return self.fetch(url, referer=ticket['referer'])

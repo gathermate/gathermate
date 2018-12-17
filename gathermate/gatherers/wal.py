@@ -29,8 +29,10 @@ class Wal(Gatherer):
 
     def get_list(self, r):
         # type: (fetchers.Response) -> Generator
+        tree = self.etree(r, encoding=self.encoding)
+
         list_xpath = r'//a[@class="list_subject"]'
-        for e in self.etree(r, encoding=self.encoding).xpath(list_xpath):
+        for e in tree.xpath(list_xpath):
             try:
                 title = e.text.strip()
                 link = e.get('href')
@@ -41,7 +43,7 @@ class Wal(Gatherer):
                 self.trace_error()
 
         pop_xpath = r'//div[@id="m_list"]/ul/li/a'
-        root = self.etree(r, encoding=self.encoding).xpath(pop_xpath)
+        root = tree.xpath(pop_xpath)
         length = len(root)
         for idx, e in enumerate(root):
             try:
@@ -55,12 +57,10 @@ class Wal(Gatherer):
 
     def get_item(self, r):
         # type: (fetchers.Response) -> Generator
-        item_xpath = r'//a[contains(@href, "file_download")]'
-        script_regexp = re.compile(r'javascript:file_download\([\'"](.*)[\'"]\,\s[\'"](.*)[\'"]\);')
-        magnet_xpath = r'//input[contains(@value, "magnet:?xt")]'
-
         root = self.etree(r, encoding=self.encoding)
 
+        item_xpath = r'//a[contains(@href, "file_download")]'
+        script_regexp = re.compile(r'javascript:file_download\([\'"](.*)[\'"]\,\s[\'"](.*)[\'"]\);')
         for e in root.xpath(item_xpath):
             try:
                 href = e.get('href')
@@ -73,6 +73,7 @@ class Wal(Gatherer):
             except:
                 self.trace_error()
 
+        magnet_xpath = r'//input[contains(@value, "magnet:?xt")]'
         for e in root.xpath(magnet_xpath):
             try:
                 value = e.get('value')

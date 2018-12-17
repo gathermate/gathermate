@@ -22,9 +22,9 @@ class Torrenthaja(Gatherer):
 
     def get_list(self, r):
         # type: (fetchers.Response) -> Generator
-        list_xpath = r'//div[contains(@class, "td-subject")]/a'
         root = self.etree(r, encoding=self.encoding)
 
+        list_xpath = r'//div[contains(@class, "td-subject")]/a'
         for e in root.xpath(list_xpath):
             try:
                 link = e.get('href')
@@ -37,13 +37,9 @@ class Torrenthaja(Gatherer):
 
     def get_item(self, r):
         # type: (fetchers.Response) -> Generator
-        form_xpath = r'//form[contains(@action, "download.php")]'
-        magnet_xpath = r'//button[contains(@onclick, "magnet_link")]'
-        attached_xpath = r'//a[contains(@class, "view_file_download")]'
-        magnet_regex = re.compile(r'magnet_link\(\'(.*)\'\);')
-
         root = self.etree(r, encoding=self.encoding)
 
+        form_xpath = r'//form[contains(@action, "download.php")]'
         for e in root.xpath(form_xpath):
             try:
                 ticket = {}
@@ -68,6 +64,8 @@ class Torrenthaja(Gatherer):
             except:
                 self.trace_error()
 
+        magnet_xpath = r'//button[contains(@onclick, "magnet_link")]'
+        magnet_regex = re.compile(r'magnet_link\(\'(.*)\'\);')
         for idx, e in enumerate(root.xpath(magnet_xpath)):
             try:
                 onclick = e.get('onclick')
@@ -79,6 +77,7 @@ class Torrenthaja(Gatherer):
             except:
                 self.trace_error()
 
+        attached_xpath = r'//a[contains(@class, "view_file_download")]'
         for e in root.xpath(attached_xpath):
             try:
                 fname = e[0].text

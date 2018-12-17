@@ -1,9 +1,5 @@
 # -*- coding: utf-8 -*-
-
 import re
-import logging as log
-
-from lxml import etree
 
 from gathermate.gatherer import Gatherer
 from util import urldealer as ud
@@ -20,8 +16,9 @@ class Boza(Gatherer):
 
     def get_list(self, r):
         # type: (fetchers.Response) -> Generator
-        list_xpath = r'//ul[@class="list-body"]//li[@class="list-item"]//a[@class="item-subject"]'
         root = self.etree(r, encoding=self.encoding)
+
+        list_xpath = r'//ul[@class="list-body"]//li[@class="list-item"]//a[@class="item-subject"]'
         for e in root.xpath(list_xpath):
             try:
                 link = e.get('href')
@@ -33,10 +30,10 @@ class Boza(Gatherer):
 
     def get_item(self, r):
         # type: (fetchers.Response) -> Generator
-        item_xpath = r'//a[contains(@class, "list-group-item") and contains(@href, "http")]'
-        magnet_xpath = r'//a[contains(@href, "magnet:?xt=")]'
-        title_regexp = re.compile(r'\s\(\d+.*\)$')
         root = self.etree(r, encoding=self.encoding)
+
+        title_regexp = re.compile(r'\s\(\d+.*\)$')
+        item_xpath = r'//a[contains(@class, "list-group-item") and contains(@href, "http")]'
         for e in root.xpath(item_xpath):
             try:
                 name = title_regexp.sub('', e.find('i[@class="fa fa-download"]').tail.strip())
@@ -45,6 +42,7 @@ class Boza(Gatherer):
             except:
                 self.trace_error()
 
+        magnet_xpath = r'//a[contains(@href, "magnet:?xt=")]'
         for e in root.xpath(magnet_xpath):
             try:
                 name = e.getparent().getparent().xpath('div/h3/i')[0].tail.strip()

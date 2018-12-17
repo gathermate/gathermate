@@ -19,9 +19,9 @@ class Torrentmi(Gatherer):
 
     def get_list(self, r):
         # type: (fetchers.Response) -> Generator
-        list_xpath = r'//div[@class="sub_list"]//table//tbody//td[2]/a'
         root = self.etree(r, encoding=self.encoding)
 
+        list_xpath = r'//div[@class="sub_list"]//table//tbody//td[2]/a'
         for e in root.xpath(list_xpath):
             try:
                 link = e.get('href')
@@ -33,11 +33,9 @@ class Torrentmi(Gatherer):
 
     def get_item(self, r):
         # type: (fetchers.Response) -> Generator
-        item_xpath = r'//div[@class="downLoad"]/a[1]'
-        iframe_xpath = r'//iframe[contains(@src, "info.php")]/@src'
-        magnet_xpath = r'//div[contains(@class, "torrent_file")]'
         root = self.etree(r, encoding=self.encoding)
 
+        item_xpath = r'//div[@class="downLoad"]/a[1]'
         for e in root.xpath(item_xpath):
             try:
                 name = e.text.strip()
@@ -46,8 +44,9 @@ class Torrentmi(Gatherer):
             except:
                 self.trace_error()
 
+        iframe_xpath = r'//iframe[contains(@src, "info.php")]/@src'
+        magnet_xpath = r'//div[contains(@class, "torrent_file")]'
         iframe_url = self.etree(r, encoding=self.encoding).xpath(iframe_xpath)[0]
-
         root = self.fetch_and_etree(iframe_url,
                                     referer=r.url,
                                     encoding=self.encoding).xpath(magnet_xpath)
@@ -63,11 +62,11 @@ class Torrentmi(Gatherer):
 
     def get_file(self, url, ticket):
         # type: (urldealer.Url, Dict[Text, object]) -> fetchers.Response
-        key_xpath = r'//form/input[@name="key"]/@value'
-
         root = self.fetch_and_etree(url,
                                     referer=ticket['referer'],
                                     encoding='utf-8')
+
+        key_xpath = r'//form/input[@name="key"]/@value'
         key = root.xpath(key_xpath)
         log.info("Wait for Linktender's countdown...")
         time.sleep(3)

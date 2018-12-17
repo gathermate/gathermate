@@ -19,8 +19,9 @@ class Tfreeca(Gatherer):
 
     def get_list(self, r):
         # type: (fetchers.Response) -> Generator
-        list_xpath = r'//td[normalize-space(@class)="subject"]//a[contains(@href, "mode=view")]'
         tree = self.etree(r, self.encoding)
+
+        list_xpath = r'//td[normalize-space(@class)="subject"]//a[contains(@href, "mode=view")]'
         for e in tree.xpath(list_xpath):
             try:
                 title = e.xpath('string()').strip()
@@ -30,14 +31,21 @@ class Tfreeca(Gatherer):
             except:
                 self.trace_error()
 
+        caption_xpath = r'//td[normalize-space(@class)="subject"]//a[contains(@href, "wr_id")]/text()/..'
+        for e in tree.xpath(caption_xpath):
+            try:
+                title = e.text.strip()
+                link = e.get('href')
+                id_ = self.get_id_num(link)
+                yield {'id': id_, 'title': title, 'link': link}
+            except:
+                self.trace_error()
 
     def get_item(self, r):
         # type: (fetchers.Response) -> Generator
-        item_xpath = r'//a[contains(@href, "filetender.com")]/text()/..'
-        iframe_xpath = r'//iframe[contains(@src, "info.php")]/@src'
-        magnet_xpath = r'//div[contains(@class, "torrent_file")]'
         tree = self.etree(r, self.encoding)
 
+        item_xpath = r'//a[contains(@href, "filetender.com")]/text()/..'
         for e in tree.xpath(item_xpath):
             try:
                 name = e.text.strip()
@@ -47,21 +55,36 @@ class Tfreeca(Gatherer):
             except:
                 self.trace_error()
 
-        iframe_url = self.etree(r, encoding=self.encoding).xpath(iframe_xpath)[0]
-        iframe_url = ud.join(self.URL, iframe_url)
-        iframe_tree = self.fetch_and_etree(iframe_url,
-                                           referer=r.url,
-                                           encoding=self.encoding)
+        url = ud.URL(r.url)
+        if not url.query_dict.get('b_id') == 'captions':
+            iframe_xpath = r'//iframe[contains(@src, "info.php")]/@src'
+            iframe_url = tree.xpath(iframe_xpath)[0]
+            iframe_url = ud.join(self.URL, iframe_url)
+            iframe_tree = self.fetch_and_etree(iframe_url,
+                                               referer=r.url,
+                                               encoding=self.encoding)
 
-        for e in iframe_tree.xpath(magnet_xpath):
+            magnet_xpath = r'//div[contains(@class, "torrent_file")]'
+            for e in iframe_tree.xpath(magnet_xpath):
+                try:
+                    name = e.text.strip()
+                    link = e.getnext()[0].get('href').strip()
+                    link_type = self.is_magnet(link)
+                    yield {'name': name, 'link': link, 'type': link_type}
+                except:
+                    self.trace_error()
+
+        caption_xpath = r'//a[contains(@href, "file_download")]'
+        script_regexp = re.compile(r'javascript:file_download\([\'"](.*)[\'"]\,\s[\'"](.*)[\'"]\);')
+        for e in tree.xpath(caption_xpath):
             try:
-                name = e.text.strip()
-                link = e.getnext()[0].get('href').strip()
+                match = script_regexp.search(e.get('href'))
+                name = match.group(2)
+                link = match.group(1)
                 link_type = self.is_magnet(link)
                 yield {'name': name, 'link': link, 'type': link_type}
             except:
                 self.trace_error()
-
 
     def get_file(self, url, ticket):
         # type: (urldealer.Url, Dict[Text, object]) -> fetchers.Response

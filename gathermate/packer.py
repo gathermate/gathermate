@@ -76,7 +76,6 @@ def pack_item(items):
             item['link'] = ud.unquote(item['link'])
             continue
         if not tb.get_ext(item['name'])[1] in ACCEPTED_EXT:
-            log.debug(ACCEPTED_EXT)
             log.warning('%s does not have accepted extension.', item['name'])
             items.pop(idx)
             continue
