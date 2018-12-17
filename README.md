@@ -217,8 +217,8 @@ Google App Engine에서 운영한다면 `GoogleAppEngine` 클래스를 수정해
 **RSS**|gather/**사이트**/**게시판**/rss?search=**검색어**&page=**3**&length=**5**
 
 
-- `Gatherer`의 `URL` 속성에 **`사이트`**의 문자가 포함되어 있다면 해당 클래스로 작업하게 됩니다. 예를 들어 `ple-1`은 `https://www.sample-1.co.kr`, `https://www.samplesample.com` 중에서 첫번째와 매치됩니다.
-- **`게시판`**은 해당 사이트에서 사용하는 게시판 아이디를 그대로 입력해 주세요.
+- `Gatherer`의 `URL` 속성에 `사이트`의 문자가 포함되어 있다면 해당 클래스로 작업하게 됩니다. 예를 들어 `ple-1`은 `https://www.sample-1.co.kr`, `https://www.samplesample.com` 중에서 첫번째와 매치됩니다.
+- `게시판`은 해당 사이트에서 사용하는 게시판 아이디를 그대로 입력해 주세요.
 
 
 유형|인코딩 된 URL로 요청 
