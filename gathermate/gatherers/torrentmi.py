@@ -21,13 +21,16 @@ class Torrentmi(Gatherer):
         # type: (fetchers.Response) -> Generator
         root = self.etree(r, encoding=self.encoding)
 
-        list_xpath = r'//div[@class="sub_list"]//table//tbody//td[2]/a'
+        list_xpath = r'//div[@class="sub_list"]/div/table/tbody/tr/td[2]/a'
         for e in root.xpath(list_xpath):
             try:
                 link = e.get('href')
-                title = e.xpath('string()').strip()
+                title = e.find('span[1]').text.strip()
                 id_ = self.get_id_num(link)
-                yield {'id': id_, 'title': title, 'link': link}
+                date = e.getparent().getparent().find('td[3]').text
+                category = e.find('em').text
+                etc = '{} {}'.format(category, date)
+                yield {'id': id_, 'title': title, 'link': link, 'etc': etc}
             except:
                 self.trace_error()
 

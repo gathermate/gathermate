@@ -31,7 +31,11 @@ class Torrenthaja(Gatherer):
                 id_ = self.get_id_num(link)
                 if id_:
                     title = e.xpath('string()').strip()
-                    yield {'id': id_, 'title': title, 'link': link}
+                    tr = e.getparent().getparent().getparent()
+                    date = tr.find('td[4]').text
+                    size = tr.find('td[3]').text
+                    etc = '{} {}'.format(size, date)
+                    yield {'id': id_, 'title': title, 'link': link, 'etc': etc}
             except:
                 self.trace_error()
 

@@ -18,13 +18,14 @@ class Boza(Gatherer):
         # type: (fetchers.Response) -> Generator
         root = self.etree(r, encoding=self.encoding)
 
-        list_xpath = r'//ul[@class="list-body"]//li[@class="list-item"]//a[@class="item-subject"]'
+        list_xpath = r'//ul[@class="list-body"]/li/div/a'
         for e in root.xpath(list_xpath):
             try:
                 link = e.get('href')
                 title = e.xpath('string()')
                 id_ = self.get_id_num(link)
-                yield {'id': id_, 'title': title, 'link': link}
+                date = e.getparent().xpath('div/span[2]')[0].xpath('string()')
+                yield {'id': id_, 'title': title, 'link': link, 'etc': date}
             except:
                 self.trace_error()
 

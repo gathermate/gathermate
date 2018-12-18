@@ -50,7 +50,7 @@ class Manager(object):
         self.fetcher = fetcher
 
     def _register_modules(self, package):
-        # type: (Text) -> Union[Dict[Text, Type[gatherer.Gatherer]], None]
+        # type: (Text) -> Dict[Text, Type[gatherer.Gatherer]]
         modules = {}
         root = os.path.dirname(os.path.abspath(__file__))
         modules_path = '{}/'.format(os.path.join(root, package))
@@ -75,14 +75,14 @@ class Manager(object):
         return modules
 
     def _get_class_of(self, module, class_):
-        # type: (module, class) -> Generator[Tuple[Text, Type[class_]]]
+        # type: (module, class) -> Generator[Tuple[Text, Type[Any]]]
         for tuple_ in inspect.getmembers(module, inspect.isclass):
             for base in tuple_[1].__bases__:
-                if repr(base) == repr(class_):
+                if base is class_:
                     yield tuple_[1].__name__, tuple_[1]
 
     def _hire_gatherer(self, target):
-        # type: (urldealer.URL) -> gatherer.Gatherer
+        # type: (urldealer.URL) -> Type[gatherer.Gatherer]
         host = target.hostname
         try:
             class_ = self.gatherer_classes[host]
@@ -90,17 +90,19 @@ class Manager(object):
             log.error('KeyError : [%s]', ke.message)
             class_ = self._find_gatherer(host)
 
-        log.debug("%s class matches with [%s].", class_.__name__, target.text)
+        log.info("%s class matches with [%s].", class_.__name__, target.text)
         return self._train_gatherer(class_, self.config.get('GATHERERS'))
 
     def _find_gatherer(self, alias):
+        # type: (Text) -> Type[gatherer.Gatherer]
         for host, class_ in self.gatherer_classes.items():
             if alias in host:
-                log.debug("%s class matches with [%s].", class_.__name__, alias)
+                log.info("%s class matches with [%s].", class_.__name__, alias)
                 return class_
-        raise Exception('There is no class associate with the alias : {}'.format(alias))
+        raise Exception('There is no class associate with : {}'.format(alias))
 
     def _train_gatherer(self, class_, config):
+        # type: (Type[gatherer.Gatherer], Dict[Text, object]) -> Type[gatherer.Gatherer]
         instance_config = self._get_default_config(class_.__name__, config)
         gatherer = class_(instance_config, self.fetcher)
         log.debug("%s instance has been created.", type(gatherer).__name__)
@@ -145,7 +147,6 @@ class Manager(object):
 
     def _order_down(self, target, query_dict):
         # type: (urldealer.URL, Dict[Text, Union[Text, int]]) -> Response
-
         ticket = query_dict.get('ticket', None)
         if ticket:
             ticket = ud.split_qs(ud.unquote(query_dict.get('ticket')))
@@ -166,7 +167,7 @@ class Manager(object):
         return gatherer.get_page(gatherer.fetch(target))
 
     def _get_data(self, order, target, query_dict):
-        # type: (Text, urldealer.URL, Union[Dict, ImmutableMultiDict]) -> Union[Text, Response, Iterable]
+        # type: (Text, urldealer.URL, Union[Dict, ImmutableMultiDict]) -> Optional[Text, Response, Iterable]
         search_key = query_dict.get('search', None)
         if search_key:
             target.update_qs('search={}'.format(search_key))
@@ -178,9 +179,6 @@ class Manager(object):
         log.info('%s mode', order.upper())
 
         data = getattr(self, '_order_{}'.format(order))(target, query_dict)
-
-        if not data or (order == 'list' and not data['articles']):
-            return None
 
         return data
 
@@ -196,7 +194,7 @@ class FlaskManager(Manager):
     @tb.timeit
     @log_traffic
     def request(self, order, request_url):
-        # type: (Text, Text) -> Union[Text, Response, Iterable, None]
+        # type: (Text, Text) -> Optional[Text, Response, Iterable]
         request = ud.URL(request_url)
 
         try:
@@ -209,7 +207,10 @@ class FlaskManager(Manager):
     @tb.timeit
     @log_traffic
     def request_by_alias(self, order, site, board, query):
-        # type: (Text, Text, Text, ImmutableMultiDict) -> Union[Text, Response, Iterable, None]
+        # type: (Text, Text, Text, ImmutableMultiDict) -> Optional[Text, Response, Iterable]
         class_ = self._find_gatherer(site)
-        target = ud.URL(class_.LIST_URL % board)
+        if order == 'list':
+            target = ud.URL(class_.LIST_URL % board)
+        else:
+            target = None
         return self._get_data(order, target, query)

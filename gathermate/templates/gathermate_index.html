@@ -1,7 +1,6 @@
 {%- extends "gathermate_base_layout.html" %}
 {%- block title %}Gathermate{% endblock %}
 {%- block sidebaritem %}
-
       <a id="torrentmi_tmovie" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='torrentmi_tmovie', site='torrentmi', board='tmovie') }}">토x트미 영화</a>
       <a id="torrentmi_tdrama" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='torrentmi_tdrama', site='torrentmi', board='tdrama') }}">토x트미 드라마</a>
       <a id="torrentmi_tent" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='torrentmi_tent', site='torrentmi', board='tent') }}">토x트미 예능프로</a>
@@ -16,7 +15,9 @@
       <a id="tfreeca_tent" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='tfreeca_tent', site='tfreeca', board='tent') }}">티프리x 예능</a>
       <a id="tfreeca_tdrama" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='tfreeca_tdrama', site='tfreeca', board='tdrama') }}">티프리x 드라마</a>
       <a id="tfreeca_tv" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='tfreeca_tv', site='tfreeca', board='tv') }}">티프리x TV</a>
+      <a id="tfreeca_tani" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='tfreeca_tani', site='tfreeca', board='tani') }}">티프리x 애니</a>
       <a id="tfreeca_tmusic" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='tfreeca_tmusic', site='tfreeca', board='tmusic') }}">티프리x 음악</a>
+      <a id="tfreeca_util" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='tfreeca_util', site='tfreeca', board='util') }}">티프리x 유틸</a>
       <!--
       <a id="tfreeca_captions" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.order', order='list', index='tfreeca_captions', url='http%3A%2F%2Fwww.tfreeca22.com%2Fbbs%2Fboard.php%3Fbo_table%3Dcaptions') }}">티프리x 자막</a>
       -->
@@ -26,8 +27,15 @@
       <a id="etoland_data_movie" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='etoland_data_movie', site='etoland', board='data_movie') }}">이x랜드 영화</a>
       <a id="etoland_data_kortv" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='etoland_data_kortv', site='etoland', board='data_kortv') }}">이x랜드 국내TV</a>
       <a id="etoland_data_worldtv" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='etoland_data_worldtv', site='etoland', board='data_worldtv') }}">이x랜드 해외TV</a>
+      <a id="etoland_data_any" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='etoland_data_any', site='etoland', board='data_any') }}">이x랜드 애니</a>
       <a id="etoland_data_sub" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='etoland_data_sub', site='etoland', board='data_sub') }}">이x랜드 자막</a>
       <a id="etoland_data_spot" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='etoland_data_spot', site='etoland', board='data_spot') }}">이x랜드 스포츠</a>
+      <a id="etoland_data_video" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='etoland_data_video', site='etoland', board='data_video') }}">이x랜드 동영상</a>
+      <a id="etoland_data_game" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='etoland_data_game', site='etoland', board='data_game') }}">이x랜드 게임</a>
+      <a id="etoland_data_util" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='etoland_data_util', site='etoland', board='data_util') }}">이x랜드 유틸</a>
+      <a id="etoland_data_etc" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='etoland_data_etc', site='etoland', board='data_etc') }}">이x랜드 기타</a>
+      <a id="etoland_data_smart" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='etoland_data_smart', site='etoland', board='data_smart') }}">이x랜드 휴대기기</a>
+      <a id="etoland_data_worldmusic" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='etoland_data_worldmusic', site='etoland', board='data_worldmusic') }}">이x랜드 해외음원</a>
       <hr />
 
       <a id="wal_torrent_popular" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.order', order='list', index='wal_torrent_popular', url='https%3A%2F%2Fm.torrentwal.net%2Fbbs%2Fpopular.html') }}">토x트왈 인기</a>
@@ -76,6 +84,15 @@
       <a id="boza_game" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='boza_game', site='boza', board='game') }}">토x트보자 게임</a>
       <a id="boza_mo_game" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='boza_mo_game', site='boza', board='mo_game') }}">토x트보자 모바일게임</a>
       <hr />
+      <script>
+        {% set index = request.args.get('index') %}
+        {% if index %}
+        if (!isScrolledIntoView(document.getElementById('{{ index }}'))){
+          location.href = "#";
+          location.href = "#{{ index }}";
+        }
+        {% endif %}
+      </script>
 {%- endblock sidebaritem %}
 {%- block section %}
       <div class="w3-container w3-rest" >
@@ -95,11 +112,6 @@
 {%- if response %}
       <hr />
         <div class="w3-container w3-rest">
-        <!--
-          <div>
-            <iframe name="main_iframe" id="main_iframe" src="data:text/html,{{ response }}" frameborder="1" border="0" cellspacing="0" width="100%" height="50%"></iframe>
-          </div>
-        -->
           <div>
             <pre>
               {{- response }}

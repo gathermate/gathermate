@@ -94,3 +94,14 @@ function toastbar(msg) {
     // After 5 seconds, remove the show class from DIV
     setTimeout(function(){ x.className = x.className.replace("show", ""); }, 5000);
 }
+
+function isScrolledIntoView(elem){
+    var docViewTop = $(window).scrollTop();
+    var docViewBottom = docViewTop + $(window).height();
+
+    var elemTop = $(elem).offset().top;
+    var elemBottom = elemTop + $(elem).height();
+
+    return ((elemBottom >= docViewTop) && (elemTop <= docViewBottom)
+      && (elemBottom <= docViewBottom) &&  (elemTop >= docViewTop) );
+}

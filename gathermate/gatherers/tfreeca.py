@@ -11,7 +11,7 @@ def register():
     return 'Gatherer'
 
 class Tfreeca(Gatherer):
-    URL = 'http://www.tfreeca22.com/main.php'
+    URL = 'https://www.tfreeca3.com/home.php'
     LIST_URL = ud.join(URL, '/board.php?mode=list&b_id=%s')
     ID_REGEXP = re.compile(r'.*id=(\d{2,7})')
     SEARCH_QUERY = 'x=0&y=0&sc=%s'
@@ -21,14 +21,18 @@ class Tfreeca(Gatherer):
         # type: (fetchers.Response) -> Generator
         tree = self.etree(r, self.encoding)
 
-        list_xpath = r'//td[normalize-space(@class)="subject"]//a[contains(@href, "mode=view")]'
+        list_xpath = r'//td[@class="subject"]/div/a[contains(@class, "stitle")]'
         for e in tree.xpath(list_xpath):
             try:
                 title = e.xpath('string()').strip()
                 if title == '': continue
                 link = e.get('href').strip()
                 id_ = self.get_id_num(link)
-                yield {'id': id_, 'title': title, 'link': link}
+                # extra info
+                category = e.getparent().find('a[1]/span').text
+                date = e.getparent().getparent().getparent().find('td[3]').text
+                etc = '{} {}'.format(category, date)
+                yield {'id': id_, 'title': title, 'link': link, 'etc': etc}
             except:
                 self.trace_error()
 
