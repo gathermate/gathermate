@@ -19,10 +19,7 @@
   </style>
   <script>
     $(function(){
-      var index = '{{ index }}'
-      if (index != ''){
-        $('#'+index).addClass("w3-red");
-      }
+      markIndex('{{ index }}');
     });
 {%- block script %}
 {%- endblock script %}
@@ -36,7 +33,7 @@
   <nav class="w3-top">
 {%- block nav %}
     <div class="w3-bar w3-theme w3-top w3-left-align w3-large">
-      <a class="w3-bar-item w3-button w3-left w3-hide-large w3-hover-white w3-large w3-theme-l1" href="javascript:void(0)" id="menu"><i class=" fa fa-bars"></i></a>
+      <a class="w3-bar-item w3-button w3-left w3-hide-large w3-hover-white w3-large w3-theme-l1" href="javascript:scrollTo('{{ index }}');" id="menu"><i class=" fa fa-bars"></i></a>
       <a class="w3-bar-item w3-button w3-theme-l1" href="{{ url_for('.index') }}"><i class="fa fa-home"></i></a>
 {%- block search %}
 {%- endblock search %}

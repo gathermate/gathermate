@@ -84,15 +84,6 @@
       <a id="boza_game" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='boza_game', site='boza', board='game') }}">토x트보자 게임</a>
       <a id="boza_mo_game" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='boza_mo_game', site='boza', board='mo_game') }}">토x트보자 모바일게임</a>
       <hr />
-      <script>
-        {% set index = request.args.get('index') %}
-        {% if index %}
-        if (!isScrolledIntoView(document.getElementById('{{ index }}'))){
-          location.href = "#";
-          location.href = "#{{ index }}";
-        }
-        {% endif %}
-      </script>
 {%- endblock sidebaritem %}
 {%- block section %}
       <div class="w3-container w3-rest" >

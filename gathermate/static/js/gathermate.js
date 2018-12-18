@@ -37,6 +37,23 @@ $(function(){
 
 });
 
+function markIndex(index){
+  if (index != ''){
+    var current = $('#'+index);
+    current.addClass("w3-red");
+    scrollTo(index);
+  }
+}
+
+function scrollTo(index){
+  if (index != ''){
+    var current = $('#'+index);
+    if (!isScrolledIntoView(current)){
+      location.href = "#";
+      location.href = "#" + index;
+    }
+  }
+}
 
 function show_files(num){
   $(document).ready(function(){

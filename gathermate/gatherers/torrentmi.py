@@ -25,7 +25,7 @@ class Torrentmi(Gatherer):
         for e in root.xpath(list_xpath):
             try:
                 link = e.get('href')
-                title = e.find('span[1]').text.strip()
+                title = e.find('span[1]').xpath('string()').strip()
                 id_ = self.get_id_num(link)
                 date = e.getparent().getparent().find('td[3]').text
                 category = e.find('em').text
