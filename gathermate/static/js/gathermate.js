@@ -73,6 +73,12 @@ function show_files(num){
   });
 }
 
+function list(url){
+  $(document).ready(function(){
+
+  });
+}
+
 function toggle(target){
   $(function(){
     if (target.hasClass("w3-show")){

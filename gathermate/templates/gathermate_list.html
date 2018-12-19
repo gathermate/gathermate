@@ -1,103 +1,103 @@
 {%- extends "gathermate_index.html" %}
-
-{% set path = request.path.split('/') %}
-{% set remote_url = request.args.get('url') %}
-
+{%- set path = request.path.split('/') %}
+{%- set remote_url = request.args.get('url') %}
 {% macro render_pagination(pagination) %}
-  {% if pagination.has_prev %}
-    {% set href = url_for('.list_by_alias', index=index, page=pagination.page - 1, site=path[2], board=path[3], search=search) %}
-    {% if remote_url %}
-      {% set href = url_for('.order', order='list', index=index, page=pagination.page - 1, search=search, url=remote_url) %}
-    {% endif %}
-      <a class="w3-button w3-big" href="{{ href }}"><i class="fa fa-angle-left"></i></a>
-  {% endif %}
+  {%- if pagination.has_prev %}
+    {%- set href = url_for('.list_by_alias', index=index, page=pagination.page - 1, site=path[2], board=path[3], search=search) %}
+    {%- if remote_url %}
+      {%- set href = url_for('.order', order='list', index=index, page=pagination.page - 1, search=search, url=remote_url) %}
+    {%- endif %}
+          <a class="w3-button w3-big" href="{{ href }}"><i class="fa fa-angle-left"></i></a>
+  {%- endif %}
   {%- for page in pagination.iter_pages() %}
     {%- if page %}
-      {% if page != pagination.page %}
-        {% set href = url_for('.list_by_alias', index=index, page=page, site=path[2], board=path[3], search=search) %}
-        {% if remote_url %}
+      {%- if page != pagination.page %}
+        {%- set href = url_for('.list_by_alias', index=index, page=page, site=path[2], board=path[3], search=search) %}
+        {%- if remote_url %}
           {% set href = url_for('.order', order='list', index=index, page=page, search=search, url=remote_url) %}
-        {% endif %}
-      <a class="w3-button w3-black w3-small" href="{{ href }}">{{ page }}</a>
-      {% else %}
-      <strong class="w3-button w3-red w3-small">{{ page }}</strong>
-      {% endif %}
-    {% else %}
-      <span class=ellipsis>…</span>
-    {% endif %}
+        {%- endif %}
+          <a class="w3-button w3-black w3-small" href="{{ href }}">{{ page }}</a>
+      {%- else %}
+          <strong class="w3-button w3-red w3-small">{{ page }}</strong>
+      {%- endif %}
+    {%- else %}
+          <span class=ellipsis>…</span>
+    {%- endif %}
   {%- endfor %}
-  {% if pagination.has_next %}
-    {% set href = url_for('.list_by_alias', index=index, page=pagination.page + 1, site=path[2], board=path[3], search=search) %}
-    {% if remote_url %}
-      {% set href = url_for('.order', order='list', index=index, page=pagination.page + 1, search=search, url=remote_url) %}
-    {% endif %}
-    <a class="w3-button w3-big" href="{{ href }}"><i class="fa fa-angle-right"></i></a>
-  {% endif %}
+  {%- if pagination.has_next %}
+    {%- set href = url_for('.list_by_alias', index=index, page=pagination.page + 1, site=path[2], board=path[3], search=search) %}
+    {%- if remote_url %}
+      {%- set href = url_for('.order', order='list', index=index, page=pagination.page + 1, search=search, url=remote_url) %}
+    {%- endif %}
+          <a class="w3-button w3-big" href="{{ href }}"><i class="fa fa-angle-right"></i></a>
+  {%- endif -%}
 {% endmacro %}
-
 {%- block title %}{{ title }}{%- endblock %}
-{%- block style %}
-{%- endblock style %}
+{%- block style %}{%- endblock style %}
 {%- block search %}
-<button class="openBtn w3-bar-item w3-button w3-theme-l1" id="searchOpen"><i class="fa fa-search"></i></button>
-<div id="searchOverlay" class="overlay">
-  <div id="searchOverlayContent" class="overlay-content">
-  {% set action = url_for('.list_by_alias', site=path[2], board=path[3]) %}
-  {% if remote_url %}
-    {% set action = url_for('.order', order='list', url=remote_url) %}
-  {% endif %}
-    <form action="{{ action }}" method="get">
-      <input type="text" placeholder="Search.." name="search" id="searchInput" />
-      <input type="text" style="display:none;" hidden="true" name="index" value="{{ index }}" />
-      <button type="submit"><i class="fa fa-search"></i></button>
-    </form>
-  </div>
-</div>
+      <button class="openBtn w3-bar-item w3-button w3-theme-l1" id="searchOpen"><i class="fa fa-search"></i></button>
+      <div id="searchOverlay" class="overlay">
+        <div id="searchOverlayContent" class="overlay-content">
+{%- set action = url_for('.list_by_alias', site=path[2], board=path[3]) %}
+{%- if remote_url %}
+  {%- set action = url_for('.order', order='list', url=remote_url) %}
+{%- endif %}
+          <form action="{{ action }}" method="get">
+            <input type="text" placeholder="Search.." name="search" id="searchInput" />
+            <input type="text" style="display:none;" hidden="true" name="index" value="{{ index }}" />
+            <button type="submit"><i class="fa fa-search"></i></button>
+          </form>
+        </div>
+      </div>
 {%- endblock search %}
 {%- block section %}
-<div class="w3-container w3-rest">
-  <div id="forms">
-    <form target="_self" autocomplete="off" id="down_form" name="down_form" action="{{ url_for('.order', order='down') }}" method="get">
-      <input style="display:none;" hidden="true" id="down_url" name="url" />
-      <input style="display:none;" hidden="true" id="down_ticket" name="ticket" />
-    </form>
-  </div>
-  {%- if articles %}
-  <ul class="w3-ul w3-hoverable">
-    {%- for id_num, article in articles %}
-    <li class="w3-bar" style="padding: 0px; margin: 2px;">
-      <div class="info" style="font-size:12px;color:#999;">
-      {{ id_num }}
-      {% if article['etc'] %}
-        {{ article['etc'] }}
-      {% endif %}
-      <a href="{{ article['link'] }}" target="_blank"><i class="fa fa-external-link" aria-hidden="true" style="font-size:14px;"></i></a>
-      </div>
-        <div class="w3-text-dark-grey" style="padding: 0px; margin: 0px;"><a id="file_link_{{ id_num }}" style="text-decoration: none;" url="{{ url_for('.order', order='item', url=article['link']) }}" href="javascript:show_files('{{ id_num }}');">{{ article['title'] }}</a>
+      <div class="w3-container w3-rest">
+        <div id="forms">
+          <form target="_self" autocomplete="off" id="down_form" name="down_form" action="{{ url_for('.order', order='down') }}" method="get">
+            <input style="display:none;" hidden="true" id="down_url" name="url" />
+            <input style="display:none;" hidden="true" id="down_ticket" name="ticket" />
+          </form>
         </div>
-      <div id="file_div_{{ id_num }}" class="w3-container w3-small w3-codespan w3-hide" style="padding: 0px; margin: 0px;">
-        <p style="padding: 0px; margin: 0px;" class="loading" id="view_loading">Loading</p>
-      </div>
-    </li>
+  {%- if articles %}
+        <ul class="w3-ul w3-hoverable">
+    {%- for id_num, article in articles %}
+          <li class="w3-bar" style="padding: 0px; margin: 2px;">
+            <div class="info" style="font-size:12px;color:#999;">
+              {{ id_num }}
+      {%- if article['etc'] %}
+              {{ article['etc'] }}
+      {%- endif %}
+              <a href="{{ article['link'] }}" target="_blank">
+                <i class="fa fa-external-link" aria-hidden="true" style="font-size:14px;"></i>
+              </a>
+            </div>
+            <div class="w3-text-dark-grey" style="padding: 0px; margin: 0px;">
+              <a id="file_link_{{ id_num }}" style="text-decoration: none;" url="{{ url_for('.order', order='item', url=article['link']) }}" href="javascript:show_files('{{ id_num }}');">{{ article['title'] }}</a>
+            </div>
+            <div id="file_div_{{ id_num }}" class="w3-container w3-small w3-codespan w3-hide" style="padding: 0px; margin: 0px;">
+              <p style="padding: 0px; margin: 0px;" class="loading" id="view_loading">Loading</p>
+            </div>
+          </li>
     {%- endfor %}
-  </ul>
+        </ul>
   {%- else %}
-  <center><i class="fa fa-exclamation-triangle" style="font-size:64px;" aria-hidden="true"></i></center>
-  <center>Oops, there is no data here.</center>
-
+        <center>
+          <i class="fa fa-exclamation-triangle" style="font-size:64px;" aria-hidden="true"></i>
+        </center>
+        <center>Oops, there is no data here.</center>
   {%- endif %}
-</div>
+      </div>
 <!-- Pagination -->
-<div class="w3-center w3-padding-32">
-  <div class="w3-bar">
-    {{ render_pagination(pagination) }}
-  </div>
-</div>
-<div class="w3-center w3-padding-32">
-  {% set href = url_for('.rss_by_alias', site=path[2], board=path[3], search=search, length=5, page=pagination.page) %}
-  {% if remote_url %}
-    {% set href = url_for('.order', order='rss', search=search, length=5, page=pagination.page, url=remote_url) %}
-  {% endif %}
-  <a href="{{ href }}"><i class="fa fa-rss-square" style="color:red"></i> RSS</a>
-</div>
+      <div class="w3-center w3-padding-32">
+        <div class="w3-bar">
+          {{- render_pagination(pagination) }}
+        </div>
+      </div>
+      <div class="w3-center w3-padding-32">
+  {%- set href = url_for('.rss_by_alias', site=path[2], board=path[3], search=search, length=5, page=pagination.page) %}
+  {%- if remote_url %}
+    {%- set href = url_for('.order', order='rss', search=search, length=5, page=pagination.page, url=remote_url) %}
+  {%- endif %}
+        <a href="{{ href }}"><i class="fa fa-rss-square" style="color:red"></i> RSS</a>
+      </div>
 {%- endblock section %}

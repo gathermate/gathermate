@@ -209,7 +209,7 @@ class FlaskManager(Manager):
     def request_by_alias(self, order, site, board, query):
         # type: (Text, Text, Text, ImmutableMultiDict) -> Optional[Text, Response, Iterable]
         class_ = self._find_gatherer(site)
-        if order == 'list':
+        if order in ['list', 'rss']:
             target = ud.URL(class_.LIST_URL % board)
         else:
             target = None
