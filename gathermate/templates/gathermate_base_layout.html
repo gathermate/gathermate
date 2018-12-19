@@ -31,7 +31,7 @@
   </header>
   <nav class="w3-top">
     {%- block nav %}
-    <div class="w3-bar w3-theme w3-top w3-left-align w3-large">
+    <div class="w3-bar w3-theme w3-card w3-top w3-left-align w3-large">
       <a class="w3-bar-item w3-button w3-left w3-hide-large w3-hover-white w3-large" href="javascript:scrollTo('{{ index }}');" id="menu"><i class=" fa fa-bars"></i></a>
       <a class="w3-bar-item w3-button" href="{{ url_for('.index') }}"><i class="fa fa-home"></i></a>
       {%- block search %}{% endblock search %}
@@ -39,11 +39,9 @@
     {%- endblock nav %}
   </nav>
   <!-- Sidebar -->
-  <div class="w3-sidebar w3-collapse w3-theme-l5" id="mySidebar">
+  <div class="w3-sidebar w3-bar-block w3-collapse w3-theme-l5 w3-card" id="mySidebar">
     {%- block sidebar %}
-    <div class="w3-bar-block" id="sidebarBlock">
       {%- block sidebaritem %}{% endblock sidebaritem %}
-    </div>
     {%- endblock sidebar %}
   </div>
   <!-- Overlay effect when opening sidebar on small screens -->

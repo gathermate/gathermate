@@ -32,8 +32,8 @@ class Torrenthaja(Gatherer):
                 if id_:
                     title = e.xpath('string()').strip()
                     tr = e.getparent().getparent().getparent()
-                    date = tr.find('td[4]').text
-                    size = tr.find('td[3]').text
+                    date = tr.find('td[4]').text.strip()
+                    size = tr.find('td[3]').text.strip()
                     etc = '{} {}'.format(size, date)
                     yield {'id': id_, 'title': title, 'link': link, 'etc': etc}
             except:

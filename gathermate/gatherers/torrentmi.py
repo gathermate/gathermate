@@ -11,7 +11,7 @@ def register():
 
 
 class Torrentmi(Gatherer):
-    URL = "http://www.torrentmi.com"
+    URL = "https://www.torrentmi.com"
     LIST_URL = ud.join(URL, '/list.php?b_id=%s')
     SEARCH_QUERY = 'sc=%s'
     PAGE_QUERY = 'page=%d'

@@ -11,7 +11,7 @@
         </div>
     {% else %}
         <div>
-          <a class="li:hover" href="javascript:void(0);" onclick="down(this, '{{ item['link'] }}', '{{ item['ticket'] }}');" title="{{ item['name'] }}"><i class="fa fa-download"></i> {{ item['name'] }}</a>
+          <a class="li:hover" href="javascript:void(0);" onclick="down(this, '{{ item['link']|safe }}', '{{ item['ticket'] }}');" title="{{ item['name'] }}"><i class="fa fa-download"></i> {{ item['name'] }}</a>
         </div>
     {% endif %}
   {%- endfor %}

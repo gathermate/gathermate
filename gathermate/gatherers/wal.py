@@ -22,8 +22,9 @@ class Wal(Gatherer):
     def handle_page(self, url, num):
         if url.path == 's.php':
             url.update_qs(self.PAGE_QUERY % int(num))
+        elif len(url.path) < 1:
+            pass
         else:
-            self.PAGE_QUERY = 'torrent%d.htm'
             path = url.path.split('/')
             url.path = '/{}/{}'.format(path[1], self.PAGE_QUERY % int(num))
 
