@@ -2,24 +2,31 @@
 {%- if items %}
   {%- for item in items %}
     {% if item['type'] == 'magnet' %}
-        <div><a class="li:hover" href="{{ item['link'] }}" title="{{ item['name'] }}"><i class="fa fa-magnet"></i> {{ item['name'] }}</a></div>
+        <div>
+          <a class="li:hover" href="{{ item['link'] }}" title="{{ item['name'] }}"><i class="fa fa-magnet"></i> {{ item['name'] }}</a>
+        </div>
     {% elif item['type'] == 'link' %}
-        <div><a class="li:hover" href="{{ item['link'] }}" title="{{ item['name'] }}" target="_blank"><i class="fa fa-link"></i> {{ item['name'] }}</a></div>
+        <div>
+          <a class="li:hover" href="{{ item['link'] }}" title="{{ item['name'] }}" target="_blank"><i class="fa fa-link"></i> {{ item['name'] }}</a>
+        </div>
     {% else %}
-        <div><a class="li:hover" href="javascript:void(0);" onclick="down(this, '{{ item['link'] }}', '{{ item['ticket'] }}');" title="{{ item['name'] }}"><i class="fa fa-download"></i> {{ item['name'] }}</a></div>
+        <div>
+          <a class="li:hover" href="javascript:void(0);" onclick="down(this, '{{ item['link'] }}', '{{ item['ticket'] }}');" title="{{ item['name'] }}"><i class="fa fa-download"></i> {{ item['name'] }}</a>
+        </div>
     {% endif %}
   {%- endfor %}
-{% else %}
-        <div><i class="fa fa-exclamation-triangle" aria-hidden="true"></i> Oops, there is no data here.</div>
-{% endif %}
+{%- else %}
+        <div>
+          <i class="fa fa-exclamation-triangle" aria-hidden="true"></i> Oops, there is no data here.
+        </div>
+{%- endif %}
     </div>
-
-{% with messages = get_flashed_messages() %}
-    {% if messages %}
-        {% for message in messages %}
-            <script>
-                toastbar('{{ message }}');
-            </script>
-        {% endfor %}
-    {% endif %}
-{% endwith %}
+{%- with messages = get_flashed_messages() %}
+    {%- if messages %}
+        {%- for message in messages %}
+    <script>
+        toastbar('{{ message }}');
+    </script>
+        {%- endfor %}
+    {%- endif %}
+{%- endwith %}

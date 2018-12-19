@@ -1,81 +1,227 @@
 {%- extends "gathermate_base_layout.html" %}
 {%- block title %}Gathermate{% endblock %}
 {%- block sidebaritem %}
-      <a id="tfreeca_tmovie" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='tfreeca_tmovie', site='tfreeca', board='tmovie') }}">티프리x 영화</a>
-      <a id="tfreeca_tent" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='tfreeca_tent', site='tfreeca', board='tent') }}">티프리x 예능</a>
-      <a id="tfreeca_tdrama" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='tfreeca_tdrama', site='tfreeca', board='tdrama') }}">티프리x 드라마</a>
-      <a id="tfreeca_tv" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='tfreeca_tv', site='tfreeca', board='tv') }}">티프리x TV</a>
-      <a id="tfreeca_tani" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='tfreeca_tani', site='tfreeca', board='tani') }}">티프리x 애니</a>
-      <a id="tfreeca_tmusic" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='tfreeca_tmusic', site='tfreeca', board='tmusic') }}">티프리x 음악</a>
-      <a id="tfreeca_util" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='tfreeca_util', site='tfreeca', board='util') }}">티프리x 유틸</a>
-      <!--
-      <a id="tfreeca_captions" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.order', order='list', index='tfreeca_captions', url='http%3A%2F%2Fwww.tfreeca22.com%2Fbbs%2Fboard.php%3Fbo_table%3Dcaptions') }}">티프리x 자막</a>
-      -->
-      <hr />
-      <a id="etoland_data_movie" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='etoland_data_movie', site='etoland', board='data_movie') }}">이x랜드 영화</a>
-      <a id="etoland_data_kortv" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='etoland_data_kortv', site='etoland', board='data_kortv') }}">이x랜드 국내TV</a>
-      <a id="etoland_data_worldtv" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='etoland_data_worldtv', site='etoland', board='data_worldtv') }}">이x랜드 해외TV</a>
-      <a id="etoland_data_any" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='etoland_data_any', site='etoland', board='data_any') }}">이x랜드 애니</a>
-      <a id="etoland_data_sub" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='etoland_data_sub', site='etoland', board='data_sub') }}">이x랜드 자막</a>
-      <a id="etoland_data_spot" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='etoland_data_spot', site='etoland', board='data_spot') }}">이x랜드 스포츠</a>
-      <a id="etoland_data_video" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='etoland_data_video', site='etoland', board='data_video') }}">이x랜드 동영상</a>
-      <a id="etoland_data_game" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='etoland_data_game', site='etoland', board='data_game') }}">이x랜드 게임</a>
-      <a id="etoland_data_util" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='etoland_data_util', site='etoland', board='data_util') }}">이x랜드 유틸</a>
-      <a id="etoland_data_etc" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='etoland_data_etc', site='etoland', board='data_etc') }}">이x랜드 기타</a>
-      <a id="etoland_data_smart" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='etoland_data_smart', site='etoland', board='data_smart') }}">이x랜드 휴대기기</a>
-      <a id="etoland_data_worldmusic" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='etoland_data_worldmusic', site='etoland', board='data_worldmusic') }}">이x랜드 해외음원</a>
-      <hr />
-      <a id="wal_torrent_popular" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.order', order='list', index='wal_torrent_popular', url='https%3A%2F%2Fm.torrentwal.net%2Fbbs%2Fpopular.html') }}">토x트왈 인기</a>
-      <a id="wal_torrent_movie" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='wal_torrent_movie', site='wal', board='torrent_movie') }}">토x트왈 영화</a>
-      <a id="wal_torrent_variety" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='wal_torrent_variety', site='wal', board='torrent_variety') }}">토x트왈 TV예능</a>
-      <a id="wal_torrent_tv" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='wal_torrent_tv', site='wal', board='torrent_tv') }}">토x트왈 TV드라마</a>
-      <a id="wal_torrent_docu" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='wal_torrent_docu', site='wal', board='torrent_docu') }}">토x트왈 다큐</a>
-      <a id="wal_torrent_sports" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='wal_torrent_sports', site='wal', board='torrent_sports') }}">토x트왈 스포츠</a>
-      <a id="wal_torrent_util" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='wal_torrent_util', site='wal', board='torrent_util') }}">토x트왈 유틸</a>
-      <a id="wal_torrent_ani" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='wal_torrent_ani', site='wal', board='torrent_ani') }}">토x트왈 애니</a>
-      <a id="wal_torrent_song" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='wal_torrent_song', site='wal', board='torrent_song') }}">토x트왈 음원</a>
-      <a id="wal_torrent_game" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='wal_torrent_game', site='wal', board='torrent_game') }}">토x트왈 게임</a>
-      <a id="wal_torrent_mid" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='wal_torrent_mid', site='wal', board='torrent_mid') }}">토x트왈 해외TV</a>
-      <a id="wal_torrent_child" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='wal_torrent_child', site='wal', board='torrent_child') }}">토x트왈 어린이</a>
-      <a id="wal_torrent_etc" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='wal_torrent_etc', site='wal', board='torrent_etc') }}">토x트왈 기타</a>
-      <a id="wal_torrent_iphone" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='wal_torrent_iphone', site='wal', board='torrent_iphone') }}">토x트왈 휴대기기</a>
-      <a id="wal_torrent_book" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='wal_torrent_book', site='wal', board='torrent_book') }}">토x트왈 도서</a>
-      <hr />
-      <a id="haja_torrent_movie" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='haja_torrent_movie', site='haja', board='torrent_movie') }}">토x트하자 외국영화</a>
-      <a id="haja_torrent_kmovie" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='haja_torrent_kmovie', site='haja', board='torrent_kmovie') }}">토x트하자 한국영화</a>
-      <a id="haja_torrent_drama" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='haja_torrent_drama', site='haja', board='torrent_drama') }}">토x트하자 드라마</a>
-      <a id="haja_torrent_ent" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='haja_torrent_ent', site='haja', board='torrent_ent') }}">토x트하자 예능/오락</a>
-      <a id="haja_torrent_docu" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='haja_torrent_docu', site='haja', board='torrent_docu') }}">토x트하자 다큐/교양</a>
-      <a id="haja_torrent_video" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='haja_torrent_video', site='haja', board='torrent_video') }}">토x트하자 뮤비/공연</a>
-      <a id="haja_torrent_sports" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='haja_torrent_sports', site='haja', board='torrent_sports') }}">토x트하자 스포츠</a>
-      <a id="haja_torrent_ani" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='haja_torrent_ani', site='haja', board='torrent_ani') }}">토x트하자 애니</a>
-      <a id="haja_torrent_music" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='haja_torrent_music', site='haja', board='torrent_music') }}">토x트하자 음악</a>
-      <a id="haja_torrent_game" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='haja_torrent_game', site='haja', board='torrent_game') }}">토x트하자 게임</a>
-      <a id="haja_torrent_mobile" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='haja_torrent_mobile', site='haja', board='torrent_mobile') }}">토x트하자 모바일</a>
-      <a id="haja_torrent_util" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='haja_torrent_util', site='haja', board='torrent_util') }}">토x트하자 유틸</a>
-      <a id="haja_torrent_toon" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='haja_torrent_toon', site='haja', board='torrent_toon') }}">토x트하자 만화</a>
-      <a id="haja_torrent_book" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='haja_torrent_book', site='haja', board='torrent_book') }}">토x트하자 강좌/E북</a>
-      <a id="haja_torrent_kids" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='haja_torrent_kids', site='haja', board='torrent_kids') }}">토x트하자 어린이</a>
-      <hr />
-      <a id="boza_ko_movie" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='boza_ko_movie', site='boza', board='ko_movie') }}">토x트보자 한국영화</a>
-      <a id="boza_movie" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='boza_movie', site='boza', board='movie') }}">토x트보자 외국영화</a>
-      <a id="boza_drama" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='boza_drama', site='boza', board='drama') }}">토x트보자 한국드라마</a>
-      <a id="boza_ent" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='boza_ent', site='boza', board='ent') }}">토x트보자 한국예능</a>
-      <a id="boza_daq" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='boza_daq', site='boza', board='daq') }}">토x트보자 시사/다큐</a>
-      <a id="boza_ani" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='boza_ani', site='boza', board='ani') }}">토x트보자 애니메이션</a>
-      <a id="boza_kids" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='boza_kids', site='boza', board='kids') }}">토x트보자 어린이</a>
-      <a id="boza_toon" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='boza_toon', site='boza', board='toon') }}">토x트보자 만화</a>
-      <a id="boza_game" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='boza_game', site='boza', board='game') }}">토x트보자 게임</a>
-      <a id="boza_mo_game" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='boza_mo_game', site='boza', board='mo_game') }}">토x트보자 모바일게임</a>
-      <hr />
-      <a id="torrentmi_tmovie" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='torrentmi_tmovie', site='torrentmi', board='tmovie') }}">토x트미 영화</a>
-      <a id="torrentmi_tdrama" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='torrentmi_tdrama', site='torrentmi', board='tdrama') }}">토x트미 드라마</a>
-      <a id="torrentmi_tent" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='torrentmi_tent', site='torrentmi', board='tent') }}">토x트미 예능프로</a>
-      <a id="torrentmi_tv" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='torrentmi_tv', site='torrentmi', board='tv') }}">토x트미 TV프로</a>
-      <a id="torrentmi_tani" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='torrentmi_tani', site='torrentmi', board='tani') }}">토x트미 애니메이션</a>
-      <a id="torrentmi_tmusic" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='torrentmi_tmusic', site='torrentmi', board='tmusic') }}">토x트미 음악</a>
-      <a id="torrentmi_util" class="w3-bar-item w3-button w3-hover-black" href="{{ url_for('.list_by_alias', index='torrentmi_util', site='torrentmi', board='util') }}">토x트미 유틸</a>
-      <hr />
+      <h6 class="w3-gray w3-bar-item">티프리x</h6>
+      <ul class="index-list">
+        <li>
+          <a id="tfreeca_tmovie" class="w3-hover-black" href="{{ url_for('.list_by_alias', index='tfreeca_tmovie', site='tfreeca', board='tmovie') }}">영화</a>
+        </li>
+        <li>
+          <a id="tfreeca_tent" class="w3-hover-black" href="{{ url_for('.list_by_alias', index='tfreeca_tent', site='tfreeca', board='tent') }}">예능</a>
+        </li>
+        <li>
+          <a id="tfreeca_tdrama" class="w3-hover-black" href="{{ url_for('.list_by_alias', index='tfreeca_tdrama', site='tfreeca', board='tdrama') }}">드라마</a>
+        </li>
+        <li>
+          <a id="tfreeca_tv" class="w3-hover-black" href="{{ url_for('.list_by_alias', index='tfreeca_tv', site='tfreeca', board='tv') }}">TV</a>
+        </li>
+        <li>
+          <a id="tfreeca_tani" class="w3-hover-black" href="{{ url_for('.list_by_alias', index='tfreeca_tani', site='tfreeca', board='tani') }}">애니</a>
+        </li>
+        <li>
+          <a id="tfreeca_tmusic" class="w3-hover-black" href="{{ url_for('.list_by_alias', index='tfreeca_tmusic', site='tfreeca', board='tmusic') }}">음악</a>
+        </li>
+        <li>
+          <a id="tfreeca_util" class="w3-hover-black" href="{{ url_for('.list_by_alias', index='tfreeca_util', site='tfreeca', board='util') }}">유틸</a>
+        </li>
+        <li>
+          <!--
+          <a id="tfreeca_captions" class="w3-hover-black" href="{{ url_for('.order', order='list', index='tfreeca_captions', url='http%3A%2F%2Fwww.tfreeca22.com%2Fbbs%2Fboard.php%3Fbo_table%3Dcaptions') }}">티프리x 자막</a>
+          -->
+        </li>
+      </ul>
+      <h6 class="w3-gray w3-bar-item">이x랜드</h6>
+      <ul class="index-list">
+        <li>
+          <a id="etoland_data_movie" class="w3-hover-black" href="{{ url_for('.list_by_alias', index='etoland_data_movie', site='etoland', board='data_movie') }}">영화</a>
+        </li>
+        <li>
+          <a id="etoland_data_kortv" class="w3-hover-black" href="{{ url_for('.list_by_alias', index='etoland_data_kortv', site='etoland', board='data_kortv') }}">국내TV</a>
+        </li>
+        <li>
+          <a id="etoland_data_worldtv" class="w3-hover-black" href="{{ url_for('.list_by_alias', index='etoland_data_worldtv', site='etoland', board='data_worldtv') }}">해외TV</a>
+        </li>
+        <li>
+          <a id="etoland_data_any" class="w3-hover-black" href="{{ url_for('.list_by_alias', index='etoland_data_any', site='etoland', board='data_any') }}">애니</a>
+        </li>
+        <li>
+          <a id="etoland_data_sub" class="w3-hover-black" href="{{ url_for('.list_by_alias', index='etoland_data_sub', site='etoland', board='data_sub') }}">자막</a>
+        </li>
+        <li>
+          <a id="etoland_data_spot" class="w3-hover-black" href="{{ url_for('.list_by_alias', index='etoland_data_spot', site='etoland', board='data_spot') }}">스포츠</a>
+        </li>
+        <li>
+          <a id="etoland_data_video" class="w3-hover-black" href="{{ url_for('.list_by_alias', index='etoland_data_video', site='etoland', board='data_video') }}">동영상</a>
+        </li>
+        <li>
+          <a id="etoland_data_game" class="w3-hover-black" href="{{ url_for('.list_by_alias', index='etoland_data_game', site='etoland', board='data_game') }}">게임</a>
+        </li>
+        <li>
+          <a id="etoland_data_util" class="w3-hover-black" href="{{ url_for('.list_by_alias', index='etoland_data_util', site='etoland', board='data_util') }}">유틸</a>
+        </li>
+        <li>
+          <a id="etoland_data_etc" class="w3-hover-black" href="{{ url_for('.list_by_alias', index='etoland_data_etc', site='etoland', board='data_etc') }}">기타</a>
+        </li>
+        <li>
+          <a id="etoland_data_smart" class="w3-hover-black" href="{{ url_for('.list_by_alias', index='etoland_data_smart', site='etoland', board='data_smart') }}">휴대기기</a>
+        </li>
+        <li>
+          <a id="etoland_data_worldmusic" class="w3-hover-black" href="{{ url_for('.list_by_alias', index='etoland_data_worldmusic', site='etoland', board='data_worldmusic') }}">해외음원</a>
+        </li>
+      </ul>
+      <h6 class="w3-gray w3-bar-item">토x트왈</h6>
+      <ul class="index-list">
+        <li>
+          <a id="wal_torrent_popular" class="w3-hover-black" href="{{ url_for('.order', order='list', index='wal_torrent_popular', url='https%3A%2F%2Fm.torrentwal.net%2Fbbs%2Fpopular.html') }}">인기</a>
+        </li>
+        <li>
+          <a id="wal_torrent_movie" class="w3-hover-black" href="{{ url_for('.list_by_alias', index='wal_torrent_movie', site='wal', board='torrent_movie') }}">영화</a>
+        </li>
+        <li>
+          <a id="wal_torrent_variety" class="w3-hover-black" href="{{ url_for('.list_by_alias', index='wal_torrent_variety', site='wal', board='torrent_variety') }}">TV예능</a>
+        </li>
+        <li>
+          <a id="wal_torrent_tv" class="w3-hover-black" href="{{ url_for('.list_by_alias', index='wal_torrent_tv', site='wal', board='torrent_tv') }}">TV드라마</a>
+        </li>
+        <li>
+          <a id="wal_torrent_docu" class="w3-hover-black" href="{{ url_for('.list_by_alias', index='wal_torrent_docu', site='wal', board='torrent_docu') }}">다큐</a>
+        </li>
+        <li>
+          <a id="wal_torrent_sports" class="w3-hover-black" href="{{ url_for('.list_by_alias', index='wal_torrent_sports', site='wal', board='torrent_sports') }}">스포츠</a>
+        </li>
+        <li>
+          <a id="wal_torrent_util" class="w3-hover-black" href="{{ url_for('.list_by_alias', index='wal_torrent_util', site='wal', board='torrent_util') }}">유틸</a>
+        </li>
+        <li>
+          <a id="wal_torrent_ani" class="w3-hover-black" href="{{ url_for('.list_by_alias', index='wal_torrent_ani', site='wal', board='torrent_ani') }}">애니</a>
+        </li>
+        <li>
+          <a id="wal_torrent_song" class="w3-hover-black" href="{{ url_for('.list_by_alias', index='wal_torrent_song', site='wal', board='torrent_song') }}">음원</a>
+        </li>
+        <li>
+          <a id="wal_torrent_game" class="w3-hover-black" href="{{ url_for('.list_by_alias', index='wal_torrent_game', site='wal', board='torrent_game') }}">게임</a>
+        </li>
+        <li>
+          <a id="wal_torrent_mid" class="w3-hover-black" href="{{ url_for('.list_by_alias', index='wal_torrent_mid', site='wal', board='torrent_mid') }}">해외TV</a>
+        </li>
+        <li>
+          <a id="wal_torrent_child" class="w3-hover-black" href="{{ url_for('.list_by_alias', index='wal_torrent_child', site='wal', board='torrent_child') }}">어린이</a>
+        </li>
+        <li>
+          <a id="wal_torrent_etc" class="w3-hover-black" href="{{ url_for('.list_by_alias', index='wal_torrent_etc', site='wal', board='torrent_etc') }}">기타</a>
+        </li>
+        <li>
+          <a id="wal_torrent_iphone" class="w3-hover-black" href="{{ url_for('.list_by_alias', index='wal_torrent_iphone', site='wal', board='torrent_iphone') }}">휴대기기</a>
+        </li>
+        <li>
+          <a id="wal_torrent_book" class="w3-hover-black" href="{{ url_for('.list_by_alias', index='wal_torrent_book', site='wal', board='torrent_book') }}">도서</a>
+        </li>
+      </ul>
+      <h6 class="w3-gray w3-bar-item">토x트하자</h6>
+      <ul class="index-list">
+        <li>
+          <a id="haja_torrent_movie" class="w3-hover-black" href="{{ url_for('.list_by_alias', index='haja_torrent_movie', site='haja', board='torrent_movie') }}">외국영화</a>
+        </li>
+        <li>
+          <a id="haja_torrent_kmovie" class="w3-hover-black" href="{{ url_for('.list_by_alias', index='haja_torrent_kmovie', site='haja', board='torrent_kmovie') }}">한국영화</a>
+        </li>
+        <li>
+          <a id="haja_torrent_drama" class="w3-hover-black" href="{{ url_for('.list_by_alias', index='haja_torrent_drama', site='haja', board='torrent_drama') }}">드라마</a>
+        </li>
+        <li>
+          <a id="haja_torrent_ent" class="w3-hover-black" href="{{ url_for('.list_by_alias', index='haja_torrent_ent', site='haja', board='torrent_ent') }}">예능/오락</a>
+        </li>
+        <li>
+          <a id="haja_torrent_docu" class="w3-hover-black" href="{{ url_for('.list_by_alias', index='haja_torrent_docu', site='haja', board='torrent_docu') }}">다큐/교양</a>
+        </li>
+        <li>
+          <a id="haja_torrent_video" class="w3-hover-black" href="{{ url_for('.list_by_alias', index='haja_torrent_video', site='haja', board='torrent_video') }}">뮤비/공연</a>
+        </li>
+        <li>
+          <a id="haja_torrent_sports" class="w3-hover-black" href="{{ url_for('.list_by_alias', index='haja_torrent_sports', site='haja', board='torrent_sports') }}">스포츠</a>
+        </li>
+        <li>
+          <a id="haja_torrent_ani" class="w3-hover-black" href="{{ url_for('.list_by_alias', index='haja_torrent_ani', site='haja', board='torrent_ani') }}">애니</a>
+        </li>
+        <li>
+          <a id="haja_torrent_music" class="w3-hover-black" href="{{ url_for('.list_by_alias', index='haja_torrent_music', site='haja', board='torrent_music') }}">음악</a>
+        </li>
+        <li>
+          <a id="haja_torrent_game" class="w3-hover-black" href="{{ url_for('.list_by_alias', index='haja_torrent_game', site='haja', board='torrent_game') }}">게임</a>
+        </li>
+        <li>
+          <a id="haja_torrent_mobile" class="w3-hover-black" href="{{ url_for('.list_by_alias', index='haja_torrent_mobile', site='haja', board='torrent_mobile') }}">모바일</a>
+        </li>
+        <li>
+          <a id="haja_torrent_util" class="w3-hover-black" href="{{ url_for('.list_by_alias', index='haja_torrent_util', site='haja', board='torrent_util') }}">유틸</a>
+        </li>
+        <li>
+          <a id="haja_torrent_toon" class="w3-hover-black" href="{{ url_for('.list_by_alias', index='haja_torrent_toon', site='haja', board='torrent_toon') }}">만화</a>
+        </li>
+        <li>
+          <a id="haja_torrent_book" class="w3-hover-black" href="{{ url_for('.list_by_alias', index='haja_torrent_book', site='haja', board='torrent_book') }}">강좌/E북</a>
+        </li>
+        <li>
+          <a id="haja_torrent_kids" class="w3-hover-black" href="{{ url_for('.list_by_alias', index='haja_torrent_kids', site='haja', board='torrent_kids') }}">어린이</a>
+        </li>
+      </ul>
+      <h6 class="w3-gray w3-bar-item">토x트보자</h6>
+      <ul class="index-list">
+        <li>
+          <a id="boza_ko_movie" class="w3-hover-black" href="{{ url_for('.list_by_alias', index='boza_ko_movie', site='boza', board='ko_movie') }}">한국영화</a>
+        </li>
+        <li>
+          <a id="boza_movie" class="w3-hover-black" href="{{ url_for('.list_by_alias', index='boza_movie', site='boza', board='movie') }}">외국영화</a>
+        </li>
+        <li>
+          <a id="boza_drama" class="w3-hover-black" href="{{ url_for('.list_by_alias', index='boza_drama', site='boza', board='drama') }}">한국드라마</a>
+        </li>
+        <li>
+          <a id="boza_ent" class="w3-hover-black" href="{{ url_for('.list_by_alias', index='boza_ent', site='boza', board='ent') }}">한국예능</a>
+        </li>
+        <li>
+          <a id="boza_daq" class="w3-hover-black" href="{{ url_for('.list_by_alias', index='boza_daq', site='boza', board='daq') }}">시사/다큐</a>
+        </li>
+        <li>
+          <a id="boza_ani" class="w3-hover-black" href="{{ url_for('.list_by_alias', index='boza_ani', site='boza', board='ani') }}">애니메이션</a>
+        </li>
+        <li>
+          <a id="boza_kids" class="w3-hover-black" href="{{ url_for('.list_by_alias', index='boza_kids', site='boza', board='kids') }}">어린이</a>
+        </li>
+        <li>
+          <a id="boza_toon" class="w3-hover-black" href="{{ url_for('.list_by_alias', index='boza_toon', site='boza', board='toon') }}">만화</a>
+        </li>
+        <li>
+          <a id="boza_game" class="w3-hover-black" href="{{ url_for('.list_by_alias', index='boza_game', site='boza', board='game') }}">게임</a>
+        </li>
+        <li>
+          <a id="boza_mo_game" class="w3-hover-black" href="{{ url_for('.list_by_alias', index='boza_mo_game', site='boza', board='mo_game') }}">모바일게임</a>
+        </li>
+      </ul>
+      <h6 class="w3-gray w3-bar-item">토x트미</h6>
+      <ul class="index-list">
+        <li>
+          <a id="torrentmi_tmovie" class="w3-hover-black" href="{{ url_for('.list_by_alias', index='torrentmi_tmovie', site='torrentmi', board='tmovie') }}">영화</a>
+        </li>
+        <li>
+          <a id="torrentmi_tdrama" class="w3-hover-black" href="{{ url_for('.list_by_alias', index='torrentmi_tdrama', site='torrentmi', board='tdrama') }}">드라마</a>
+        </li>
+        <li>
+          <a id="torrentmi_tent" class="w3-hover-black" href="{{ url_for('.list_by_alias', index='torrentmi_tent', site='torrentmi', board='tent') }}">예능프로</a>
+        </li>
+        <li>
+          <a id="torrentmi_tv" class="w3-hover-black" href="{{ url_for('.list_by_alias', index='torrentmi_tv', site='torrentmi', board='tv') }}">TV프로</a>
+        </li>
+        <li>
+          <a id="torrentmi_tani" class="w3-hover-black" href="{{ url_for('.list_by_alias', index='torrentmi_tani', site='torrentmi', board='tani') }}">애니메이션</a>
+        </li>
+        <li>
+          <a id="torrentmi_tmusic" class="w3-hover-black" href="{{ url_for('.list_by_alias', index='torrentmi_tmusic', site='torrentmi', board='tmusic') }}">음악</a>
+        </li>
+        <li>
+          <a id="torrentmi_util" class="w3-hover-black" href="{{ url_for('.list_by_alias', index='torrentmi_util', site='torrentmi', board='util') }}">유틸</a>
+        </li>
+      </ul>
 {%- endblock sidebaritem %}
 {%- block section %}
       <div class="w3-container w3-rest" >

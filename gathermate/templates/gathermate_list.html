@@ -44,7 +44,7 @@
 {%- endif %}
           <form action="{{ action }}" method="get">
             <input type="text" placeholder="Search.." name="search" id="searchInput" />
-            <input type="text" style="display:none;" hidden="true" name="index" value="{{ index }}" />
+            <input type="text" hidden="true" name="index" value="{{ index }}" />
             <button type="submit"><i class="fa fa-search"></i></button>
           </form>
         </div>
@@ -54,15 +54,15 @@
       <div class="w3-container w3-rest">
         <div id="forms">
           <form target="_self" autocomplete="off" id="down_form" name="down_form" action="{{ url_for('.order', order='down') }}" method="get">
-            <input style="display:none;" hidden="true" id="down_url" name="url" />
-            <input style="display:none;" hidden="true" id="down_ticket" name="ticket" />
+            <input hidden="true" id="down_url" name="url" />
+            <input hidden="true" id="down_ticket" name="ticket" />
           </form>
         </div>
   {%- if articles %}
-        <ul class="w3-ul w3-hoverable">
+        <ul class="item-list w3-ul w3-hoverable">
     {%- for id_num, article in articles %}
-          <li class="w3-bar" style="padding: 0px; margin: 2px;">
-            <div class="info" style="font-size:12px;color:#999;">
+          <li class="w3-bar">
+            <div class="info">
               {{ id_num }}
       {%- if article['etc'] %}
               {{ article['etc'] }}
@@ -71,11 +71,11 @@
                 <i class="fa fa-external-link" aria-hidden="true" style="font-size:14px;"></i>
               </a>
             </div>
-            <div class="w3-text-dark-grey" style="padding: 0px; margin: 0px;">
-              <a id="file_link_{{ id_num }}" style="text-decoration: none;" url="{{ url_for('.order', order='item', url=article['link']) }}" href="javascript:show_files('{{ id_num }}');">{{ article['title'] }}</a>
+            <div class="w3-text-dark-grey">
+              <a id="file_link_{{ id_num }}" url="{{ url_for('.order', order='item', url=article['link']) }}" href="javascript:show_files('{{ id_num }}');">{{ article['title'] }}</a>
             </div>
-            <div id="file_div_{{ id_num }}" class="w3-container w3-small w3-codespan w3-hide" style="padding: 0px; margin: 0px;">
-              <p style="padding: 0px; margin: 0px;" class="loading" id="view_loading">Loading</p>
+            <div id="file_div_{{ id_num }}" class="w3-container w3-small w3-codespan w3-hide">
+              <p class="loading" id="view_loading">Loading</p>
             </div>
           </li>
     {%- endfor %}

@@ -10,7 +10,7 @@ from util import urldealer as ud
 
 class Response(object):
     '''
-    for avoid cache error : PicklingError: Can't pickle httplib.HTTPMessage: it's not the same object as httplib.HTTPMessage
+    This class is just to avoid cache error : PicklingError
     '''
     def __init__(self, headers, content, code, url, final_url):
         # type: (Dict[Text, Text], str, int, Text, Text) -> None
@@ -117,7 +117,6 @@ class Fetcher(object):
                 Headers: %s''' % (len(r.content), r.status_code, r.headers))
 
         self.url = url.text
-        #self.final_url = r.final_url
 
         set_cookie = r.headers.get('set-cookie')
         if set_cookie:

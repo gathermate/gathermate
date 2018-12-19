@@ -41,13 +41,13 @@
   <!-- Sidebar -->
   <div class="w3-sidebar w3-collapse w3-theme-l5" id="mySidebar">
     {%- block sidebar %}
-    <div class="w3-bar-block" style="padding-bottom:64px" id="sidebarBlock">
+    <div class="w3-bar-block" id="sidebarBlock">
       {%- block sidebaritem %}{% endblock sidebaritem %}
     </div>
     {%- endblock sidebar %}
   </div>
   <!-- Overlay effect when opening sidebar on small screens -->
-  <div class="w3-overlay w3-hide-large" style="cursor:pointer" title="close side menu" id="myOverlay"></div>
+  <div class="w3-overlay w3-hide-large" title="close side menu" id="myOverlay"></div>
   <!-- Main content: shift it to the right by 250 pixels when the sidebar is visible -->
   <section class="w3-main wrapper">
     <div class="w3-row">
