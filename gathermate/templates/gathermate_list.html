@@ -35,7 +35,7 @@
 {%- block title %}{{ title }}{%- endblock %}
 {%- block style %}{%- endblock style %}
 {%- block search %}
-      <button class="openBtn w3-bar-item w3-button w3-theme-l1" id="searchOpen"><i class="fa fa-search"></i></button>
+      <button class="openBtn w3-bar-item w3-button" id="searchOpen"><i class="fa fa-search"></i></button>
       <div id="searchOverlay" class="overlay">
         <div id="searchOverlayContent" class="overlay-content">
 {%- set action = url_for('.list_by_alias', site=path[2], board=path[3]) %}
@@ -71,7 +71,7 @@
                 <i class="fa fa-external-link" aria-hidden="true" style="font-size:14px;"></i>
               </a>
             </div>
-            <div class="w3-text-dark-grey">
+            <div>
               <a id="file_link_{{ id_num }}" url="{{ url_for('.order', order='item', url=article['link']) }}" href="javascript:show_files('{{ id_num }}');">{{ article['title'] }}</a>
             </div>
             <div id="file_div_{{ id_num }}" class="w3-container w3-small w3-codespan w3-hide">
