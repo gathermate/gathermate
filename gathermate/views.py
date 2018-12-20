@@ -15,6 +15,7 @@ from flask import flash
 
 from util.cache import cache
 from util.auth import auth
+from util import urldealer as ud
 from gathermate.exception import GathermateException as GE
 
 gathermate = Blueprint(
@@ -24,13 +25,13 @@ gathermate = Blueprint(
     static_folder='static')
 
 def make_cache_key():
-    return '{}-{}'.format(app.config.get('SECURE_KEY'), request.full_path)
+    # type: () -> Text
+    return app.mgr.fetcher._create_key(ud.URL(request.url), request.form)
 
 def cache_option(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         f.cache_timeout = app.config.get('TIMEOUT')
-        f.make_cache_key = make_cache_key
         return f(*args, **kwargs)
     return decorated
 
@@ -48,7 +49,7 @@ def quote():
 
 @gathermate.route('/<string:site>/<string:board>/rss', methods=['GET'])
 @cache_option
-@cache.cached(query_string=True)
+@cache.cached(key_prefix=make_cache_key)
 @auth.requires_auth
 def rss_by_alias(site, board):
     # type: (Text, Text) -> Text
@@ -57,7 +58,7 @@ def rss_by_alias(site, board):
 
 @gathermate.route('/<string:site>/<string:board>', methods=['GET'])
 @cache_option
-@cache.cached(query_string=True)
+@cache.cached(key_prefix=make_cache_key)
 @auth.requires_auth
 def list_by_alias(site, board):
     # type: (Text, Text) -> Text
@@ -66,7 +67,7 @@ def list_by_alias(site, board):
 
 @gathermate.route('/<string:order>', methods=['GET'])
 @cache_option
-@cache.cached(query_string=True)
+@cache.cached(key_prefix=make_cache_key)
 @auth.requires_auth
 def order(order):
     # type: (Text) -> Union[unicode, flask.wrappers.Response]

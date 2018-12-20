@@ -106,14 +106,13 @@ class Gatherer(object):
                      response=self.fetcher.current_response)
 
         current = len(current_ids)
+        if current < 1:
+            log.warning('Current page is empty. : %s', url.text)
+            return
 
         self.check_length_count += 1
         if self.check_length_count > 5:
             log.error('Too many loops...')
-            return
-
-        if current < 1:
-            log.warning('Current page is empty. : %s', url.text)
             return
 
         log.debug("Articles of current page : %d", current)
@@ -122,13 +121,11 @@ class Gatherer(object):
             return
 
         if total > self.length:
-            log.debug(
-                'Shorten articles from %s to %s', total, self.length)
+            log.debug('Shorten articles from %s to %s', total, self.length)
             self._remove_list(articles, current_ids, total - self.length)
             log.debug("Total articles : %d", len(articles))
         elif total < self.length:
-            log.debug(
-                'Extend articles from %s to %s', total, self.length)
+            log.debug('Extend articles from %s to %s', total, self.length)
             self._add_list(url)
 
     def _remove_list(self, articles, current_ids, target):
@@ -253,10 +250,10 @@ class Gatherer(object):
         result = self.ID_REGEXP.search(text)
         return int(result.group(1)) if result else -1
 
-    magnet_regexp = re.compile(r'^magnet:\?xt=urn:btih:.*')
+    MAGNET_REGEXP = re.compile(r'^magnet:\?xt=urn:btih:.*')
     def is_magnet(self, link):
         # type: (Text) -> Text
-        return 'magnet' if self.magnet_regexp.search(link) else 'file'
+        return 'magnet' if self.MAGNET_REGEXP.search(link) else 'file'
 
     def _log_result(self, url):
         # type: (urldealer.URL) -> None
@@ -271,8 +268,7 @@ class Gatherer(object):
         referer = '{}://{}'.format(url.scheme, url.netloc)
         r = self.fetcher.fetch(url, referer=referer, method='POST', payload=payload, forced_update=True)
 
-        regexp = re.compile(self.login_info.get('done'))
-        if regexp.search(r.content):
+        if self.login_info.get('done').search(r.content):
             log.info('Login succeeded on {}://{}'.format(url.scheme, url.netloc))
         else:
             raise GE('Could not login to [{}]'.format(url.netloc),
@@ -283,13 +279,11 @@ class Gatherer(object):
         url = ud.URL(url) if not type(url) is ud.URL else url
         r = self.fetcher.fetch(url, **kwargs)
 
-        if self.login_info:
-            denied = re.compile(self.login_info.get('denied'))
-            if denied.search(r.content):
-                log.info('Login required with {}://{}'.format(url.scheme, url.netloc))
-                self._credential()
-                log.debug('Refetching [{}]'.format(url.text))
-                r = self.fetcher.fetch(url, forced_update=True, **kwargs)
+        if self.login_info and self.login_info.get('denied').search(r.content):
+            log.info('Login required with {}://{}'.format(url.scheme, url.netloc))
+            self._credential()
+            log.debug('Refetching [{}]'.format(url.text))
+            r = self.fetcher.fetch(url, forced_update=True, **kwargs)
 
         return r
 

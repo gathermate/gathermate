@@ -52,7 +52,8 @@ class Fetcher(object):
     def _create_key(self, url, payload):
         # type: (urldealer.URL, Dict[Text, Text]) -> Text
         key_suffix = '{}?{}'.format(url.text, ud.unsplit_qs(payload)) if payload else url.text
-        return '{}-{}'.format(self.SECRET_KEY, key_suffix)
+        key = '{}|{}'.format(self.SECRET_KEY, key_suffix)
+        return key
 
     def fetch(self, url, referer=None, method='GET', payload=None, forced_update=False):
         # type: (urldealer.URL, str, str, Dict[Text, Text], bool) -> Response

@@ -27,8 +27,8 @@ class Etoland(Gatherer):
                 'y': 0,
             },
             'url': 'https://www.etoland.co.kr/bbs/login_check2.php',
-            'done': r'location\.replace\(\'.*\'\)\;',
-            'denied': r'<script language=[\'"]javascript[\'"]>alert\(\'.*?\'\);<\/script>'
+            'done': re.compile(r'location\.replace\(\'.*\'\)\;'),
+            'denied': re.compile(r'<script language=[\'"]javascript[\'"]>alert\(\'.*?\'\);<\/script>'),
         }
 
     def handle_search(self, url, keyword):
