@@ -117,7 +117,7 @@ class Manager(object):
             'ENCODING': 'utf-8',
             'RSS_WANT': self.config.get('RSS_WANT', []),
             'RSS_AGGRESSIVE': self.config.get('RSS_AGGRESSIVE', False),
-            'RSS_ASYNC': self.config.get('RSS,ASYNC', False),
+            'RSS_ASYNC': self.config.get('RSS_ASYNC', False),
             'RSS_WORKERS': self.config.get('RSS_WORKERS', 1),
             'RSS_LENGTH': self.config.get('RSS_LENGTH', 5),
         }
