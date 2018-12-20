@@ -2,12 +2,12 @@
 
 import re
 import logging as log
-import traceback
 from functools import wraps
 
 from lxml import etree
 import concurrent.futures as futures
 
+from gathermate.exception import GathermateException as GE
 from util import urldealer as ud
 from util import toolbox as tb
 
@@ -66,7 +66,7 @@ class Gatherer(object):
                 article['link'] = ud.join(url.text, article['link'])
                 self.articles[id_num] = article
         except:
-            self.trace_error()
+            GE.trace_error()
 
         self._log_result(url)
         self._paginate(url, response.content)
@@ -102,7 +102,8 @@ class Gatherer(object):
         # type: (urldealer.URL, Dict[Text, Dict[Text, Text]], List[Text]) -> None
         total = len(articles)
         if total < 1:
-            raise Exception('There are no articles that could be parsed : {}'.format(url.text))
+            raise GE('There are no articles that could be parsed : {}'.format(url.text),
+                     response=self.fetcher.current_response)
 
         current = len(current_ids)
 
@@ -189,13 +190,12 @@ class Gatherer(object):
                 if item['type'] == 'file' and not ud.URL(item['link']).netloc:
                     item['link'] = unicode(ud.join(article_url.text, item['link']))
         except:
-            self.trace_error()
+            GE.trace_error()
 
         self._log_result(article_url)
 
         if len(items) == 0:
-            log.warning('No items found : %s', article_url)
-            return items
+            raise GE('No items found : %s' % article_url, response=self.fetcher.current_response)
 
         if self.isRSS and not self.config.get('RSS_AGGRESSIVE'):
             items = self._want(items)
@@ -226,7 +226,8 @@ class Gatherer(object):
 
         if not down_response or not down_response.headers.get('Content-Disposition'):
             log.error('HEADERS : %s', down_response.headers)
-            raise Exception('Could not download : {}', url.text)
+            raise GE('Could not download : {}'.format(url.text),
+                     response=self.fetcher.current_response)
 
         filename = tb.filename_from_headers(down_response.headers)
 
@@ -274,7 +275,8 @@ class Gatherer(object):
         if regexp.search(r.content):
             log.info('Login succeeded on {}://{}'.format(url.scheme, url.netloc))
         else:
-            raise Exception('Could not login to [{}]'.format(url.netloc))
+            raise GE('Could not login to [{}]'.format(url.netloc),
+                     response=self.fetcher.current_response)
 
     def fetch(self, url, **kwargs):
         # type: (Union[urldealer.URL, Text], Optional[Dict[Text, object]]) -> Response
@@ -304,13 +306,9 @@ class Gatherer(object):
                         if item:
                             yield item
                     except:
-                        self.trace_error()
+                        GE.trace_error()
             return decorate
         return handle_element
-
-    def trace_error(self):
-        # type: () -> None
-        log.error('\n{}'.format(traceback.format_exc()))
 
     def get_list(self, response):
         # type: (Response) -> Generator

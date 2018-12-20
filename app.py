@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import os
-import traceback
 import logging
 import sys
 import importlib
@@ -9,15 +8,12 @@ from flask import Flask
 from flask import request
 from flask import send_from_directory
 from flask import render_template
-from flask import render_template_string
-from flask import flash
-from flask import redirect
 
+from gathermate.exception import GathermateException as GE
 from util.cache import cache
 from util.auth import auth
 from util import logger
-from util import toolbox
-from util import urldealer as ud
+
 
 reload(sys)
 sys.setdefaultencoding('utf-8')
@@ -59,7 +55,7 @@ def create_app(config_instance, cache_type, backend):
             logging.debug(
                 '{} has been registered as Blueprint.'.format(blueprint.name))
         except:
-            logging.error('\n{}'.format(traceback.format_exc()))
+            GE.trace_error()
 
     # Register a manager from config.
     manager = importlib.import_module(app.config['MANAGER'])
@@ -115,56 +111,6 @@ def teardown_requst_to_do(exception):
         logging.error(exception.message)
     logging.debug('%(line)s End of the request', {'line': '-'*30})
 
-
 @app.errorhandler(Exception)
-@auth.requires_auth
 def unhandled_exception(e):
-    # type: (Type[Exception]) -> Text
-    logging.error('\n{}'.format(traceback.format_exc()))
-    flash(e.message)
-    target = request.args.get('url')
-    content = ''
-    path = request.path.split('/')
-
-    if target:
-        url = ud.URL(ud.unquote(target))
-        key = app.mgr.fetcher._create_key(url, request.form)
-        r = cache.get(key)
-        if r:
-            content = toolbox.decode(r.content)
-            logging.debug('Loaded response content for handling exception.')
-
-    if len(path) > 2 and path[2] in ['item']:
-        return render_template_string(error_template,
-                                      msg=e.message,
-                                      response=content)
-    return render_template('gathermate_index.html',
-                           error_msg=e.message,
-                           response=content)
-
-error_template = '''
-<i class="fa fa-exclamation-triangle" aria-hidden="true"></i> {{ msg }}
-{% if response %}
-<script>
-  $(".view_response").off("click");
-  $(".view_response").on("click", function(e){
-    toggle($(this).children().first());
-  });
-</script>
-<div class="view_response" style="cursor:pointer;">
-  >>Toggle Response<<
-  <div style="display:none;">
-    <pre>{{ response }}</pre>
-  </div>
-</div>
-{% endif %}
-{% with messages = get_flashed_messages() %}
-    {% if messages %}
-        {% for message in messages %}
-            <script>
-                toastbar('{{ message }}');
-            </script>
-        {% endfor %}
-    {% endif %}
-{% endwith %}
-'''
+    return e.message

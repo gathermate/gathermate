@@ -4,6 +4,7 @@ import logging as log
 import re
 
 from gathermate.gatherer import Gatherer
+from gathermate.exception import GathermateException as GE
 from util import urldealer as ud
 
 def register():
@@ -32,7 +33,7 @@ class Torrentmi(Gatherer):
                 etc = '{} {}'.format(category, date)
                 yield {'id': id_, 'title': title, 'link': link, 'etc': etc}
             except:
-                self.trace_error()
+                GE.trace_error()
 
     def get_item(self, r):
         # type: (fetchers.Response) -> Generator
@@ -45,7 +46,7 @@ class Torrentmi(Gatherer):
                 link = e.get('href')
                 yield {'name': name, 'link': link, 'type': self.is_magnet(link)}
             except:
-                self.trace_error()
+                GE.trace_error()
 
         iframe_xpath = r'//iframe[contains(@src, "info.php")]/@src'
         magnet_xpath = r'//div[contains(@class, "torrent_file")]'
@@ -60,7 +61,7 @@ class Torrentmi(Gatherer):
                 link_type = self.is_magnet(link)
                 yield {'name': name, 'link': link, 'type': link_type}
             except:
-                self.trace_error()
+                GE.trace_error()
 
 
     def get_file(self, url, ticket):

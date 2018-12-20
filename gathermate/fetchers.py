@@ -5,6 +5,7 @@ import json
 import logging as log
 import httplib
 
+from gathermate.exception import GathermateException as GE
 from util.cache import cache
 from util import urldealer as ud
 
@@ -45,6 +46,7 @@ class Fetcher(object):
         self.cookie_timeout = config.get('COOKIE_TIMEOUT')
         self.deadline = config.get('DEAD_LINE', 30)
         self.counter = 0
+        self.current_response = None
         log.debug('Using {} for Fetcher.'.format(type(self).__name__))
 
     def _create_key(self, url, payload):
@@ -57,7 +59,7 @@ class Fetcher(object):
         self.counter += 1
         if self.counter > self.THRESHOLD:
             log.error('Fetching counter exceeds threshold by a request. : %d of %d', self.counter, self.THRESHOLD)
-            raise Exception('Too many fetchings by a request.')
+            raise GE('Too many fetchings by a request.')
 
         key = self._create_key(url, payload)
         @cache.cached(timeout=self.timeout, key_prefix=key, forced_update=lambda:forced_update)
@@ -75,6 +77,8 @@ class Fetcher(object):
                             headers=self._get_headers(url, referer),
                             follow_redirects=True)
 
+            r.key = key
+            self.current_response = r
             current_size = len(r.content)
             self.cum_size += current_size
             log.debug('Fetched {0:s} from [...{1}{2}]'
@@ -110,11 +114,11 @@ class Fetcher(object):
         # type: (urldealer.URL, Response) -> None
         status_code = str(r.status_code)
         if status_code[0] in ['4', '5']:
-            raise Exception('''
+            raise GE('''
                 Destination URL not working.
                 Content size: %d,
                 Status Code: %d,
-                Headers: %s''' % (len(r.content), r.status_code, r.headers))
+                Headers: %s''' % (len(r.content), r.status_code, r.headers), response=r)
 
         self.url = url.text
 
@@ -191,9 +195,8 @@ class Urlfetch(Fetcher):
                 method='POST' if method.upper() == 'JSON' else method,
                 headers=headers,
                 follow_redirects=follow_redirects)
-        except httplib.BadStatusLine as e:
-            log.error('{}'.format(e.message))
-
+        except httplib.BadStatusLine:
+            GE.trace_error()
 
         r.url = r.final_url if r.final_url else url.text
         return Response(r.headers, r.content, r.status_code, url.text, r.url)

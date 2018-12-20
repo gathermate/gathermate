@@ -5,6 +5,7 @@ from lxml.builder import E
 from lxml import etree
 
 from gathermate.gatherer import Gatherer
+from gathermate.exception import GathermateException as GE
 
 def register():
     return 'Gatherer'
@@ -41,7 +42,7 @@ class Quotes(Gatherer):
                     )
                 )
 
-            except Exception as e:
-                log.error(e.message)
+            except:
+                GE.trace_error()
 
         return etree.tostring(html, pretty_print=True,)

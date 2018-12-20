@@ -8,12 +8,14 @@ from flask import render_template
 from flask import send_file
 from flask import request
 from flask import Response
-from flask import make_response
 from flask import current_app as app
 from flask import redirect
+from flask import render_template_string
+from flask import flash
 
 from util.cache import cache
 from util.auth import auth
+from gathermate.exception import GathermateException as GE
 
 gathermate = Blueprint(
     'Gathermate',
@@ -104,6 +106,27 @@ def order_item(data):
 def order_page(data):
     # type: (Iterable) -> Text
     return data
+
+@gathermate.errorhandler(Exception)
+@auth.requires_auth
+def unhandled_exception(e):
+    # type: (Type[Exception]) -> Text
+    GE.trace_error()
+    flash(e.message)
+    path = request.path.split('/')
+    content = None
+    if type(e) is GE and e.response:
+        content = e.content
+        logging.debug('Loaded response content for handling exception.')
+
+    if len(path) > 2 and path[2] in ['item']:
+        return render_template_string(GE.VIEW_ERROR_TEMPLATE,
+                                      msg=e.message,
+                                      response=content)
+    return render_template('gathermate_index.html',
+                           error_msg=e.message,
+                           response=content)
+
 
 class Pagination(object):
 

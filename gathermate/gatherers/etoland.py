@@ -2,6 +2,7 @@
 import re
 
 from gathermate.gatherer import Gatherer
+from gathermate.exception import GathermateException as GE
 from util import urldealer as ud
 
 def register():
@@ -46,7 +47,7 @@ class Etoland(Gatherer):
                 etc = '{} {}'.format(category, date)
                 yield {'id': id_, 'title': title, 'link': link, 'etc': etc}
             except:
-                self.trace_error()
+                GE.trace_error()
 
     def get_item(self, r):
         # type: (fetchers.Response) -> Generator
@@ -62,7 +63,7 @@ class Etoland(Gatherer):
                 link_type = self.is_magnet(link)
                 yield {'name': name, 'link': link, 'type': link_type, 'etc': 'test'}
             except:
-                self.trace_error()
+                GE.trace_error()
 
         for e in root.xpath(r'//a[contains(@href, "magnet")]'):
             try:
@@ -71,7 +72,7 @@ class Etoland(Gatherer):
                 link_type = self.is_magnet(link)
                 yield {'name': name, 'link': link, 'type': link_type}
             except:
-                self.trace_error()
+                GE.trace_error()
 
         for e in root.xpath(r'//td[@class="mw_basic_view_link"]/a'):
             try:
@@ -80,7 +81,7 @@ class Etoland(Gatherer):
                 link_type = 'link'
                 yield {'name': name, 'link': link, 'type': link_type}
             except:
-                self.trace_error()
+                GE.trace_error()
 
     def get_file(self, url, ticket):
         # type: (urldealer.Url, Dict[Text, object]) -> fetchers.Response

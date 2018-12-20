@@ -10,6 +10,7 @@ from functools import wraps
 import packer
 import gatherer as gtr
 import fetchers
+from gathermate.exception import GathermateException as GE
 from util import toolbox as tb
 from util import urldealer as ud
 
@@ -45,7 +46,7 @@ class Manager(object):
         # type: (flask.config.Config) -> None
         self.config = config
         if not self.config:
-            raise Exception('Config is not set.')
+            raise GE('Config is not set.')
         self.gatherer_classes = self._register_modules('gatherers')
         self.fetcher = fetcher
 
@@ -59,8 +60,8 @@ class Manager(object):
             module = importlib.import_module('gathermate.{}.{}'.format(package, fname))
             try:
                 type_ = module.register()
-            except AttributeError as e:
-                log.error(e.message)
+            except AttributeError:
+                GE.trace_error()
                 log.warning('[%s%s] has not register() function.', fname, fext)
                 continue
             if type_ == 'Gatherer':
@@ -83,11 +84,13 @@ class Manager(object):
 
     def _hire_gatherer(self, target):
         # type: (urldealer.URL) -> Type[gatherer.Gatherer]
-        host = target.hostname
+        host = target.hostname if target.hostname else target.netloc
+        if not host:
+            raise GE('Target URL is wrong : %s' % target.text)
         try:
             class_ = self.gatherer_classes[host]
-        except KeyError as ke:
-            log.error('KeyError : [%s]', ke.message)
+        except KeyError:
+            GE.trace_error()
             class_ = self._find_gatherer(host)
 
         log.info("%s class matches with [%s].", class_.__name__, target.text)
@@ -99,7 +102,7 @@ class Manager(object):
             if alias in host:
                 log.info("%s class matches with [%s].", class_.__name__, alias)
                 return class_
-        raise Exception('There is no class associate with : {}'.format(alias))
+        raise GE('There is no class associate with : {}'.format(alias))
 
     def _train_gatherer(self, class_, config):
         # type: (Type[gatherer.Gatherer], Dict[Text, object]) -> Type[gatherer.Gatherer]
@@ -198,7 +201,11 @@ class FlaskManager(Manager):
         request = ud.URL(request_url)
 
         try:
-            target = ud.URL(ud.unquote(request.query_dict['url']))
+            url = request.query_dict['url']
+            if url:
+                target = ud.URL(ud.unquote(url))
+            else:
+                raise GE('There is no target page')
         except KeyError:
             raise KeyError('There is no target page : {}'.format(request.query))
 
