@@ -42,6 +42,7 @@ function markIndex(index){
     var current = $('#'+index);
     current.addClass("w3-red");
     scrollTo(index);
+    current.parent().parent().show();
   }
 }
 
@@ -57,11 +58,11 @@ function scrollTo(index){
 
 function show_files(num){
   $(document).ready(function(){
-    var file_div = $("#file_div_"+num);
-    var file_a = $("#file_link_"+num);
-    toggle(file_div);
+    var file_div = $("#file_div_" + num);
+    var file_a = $("#file_link_" + num);
+    file_div.toggle();
     var remote_url = file_a.attr('url');
-    if (!file_div.hasClass("w3-show") && typeof remote_url !== typeof undefined && remote_url !== false) {
+    if (file_div.is(":visible") && typeof remote_url !== typeof undefined && remote_url !== false) {
       $.get(remote_url, function(data, status){
         if (status == 'success'){
           file_div.html(data);
@@ -73,39 +74,21 @@ function show_files(num){
   });
 }
 
-function list(url){
-  $(document).ready(function(){
-
-  });
-}
-
-function toggle(target){
-  $(function(){
-    if (target.hasClass("w3-show")){
-      target.removeClass("w3-show");
-    }else{
-      target.addClass("w3-show");
-    }
-  });
-}
-
 function down(a, link, ticket){
-  $(function(){
-    var input_down_url = $("#down_url");
-    var input_down_ticket = $("#down_ticket");
-    var form_down = $("#down_form");
-    input_down_url.val('');
-    input_down_ticket.val('');
+  var input_down_url = $("#down_url");
+  var input_down_ticket = $("#down_ticket");
+  var form_down = $("#down_form");
+  input_down_url.val('');
+  input_down_ticket.val('');
 
-    input_down_url.val(link);
-    input_down_ticket.val(ticket);
+  input_down_url.val(link);
+  input_down_ticket.val(ticket);
 
-    form_down.submit();
-    input_down_url.val('');
-    input_down_ticket.val('');
+  form_down.submit();
+  input_down_url.val('');
+  input_down_ticket.val('');
 
-    $(a).css('color', 'Gray');
-  });
+  $(a).css('color', 'Gray');
 }
 
 function toastbar(msg) {
@@ -128,3 +111,4 @@ function isScrolledIntoView(elem){
     return ((elemBottom >= docViewTop) && (elemTop <= docViewBottom)
       && (elemBottom <= docViewBottom) &&  (elemTop >= docViewTop) );
 }
+

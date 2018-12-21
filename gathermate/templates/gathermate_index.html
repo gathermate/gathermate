@@ -3,8 +3,8 @@
 {%- block sidebaritem %}
 
 {%- macro render_index(url, site, name, menu) %}
-      <h6 class="w3-theme-l1 w3-bar-item w3-card w3-hover-grey"><a href="{{ url|safe }}" target="_blank">{{ name }}</a></h6>
-      <ul class="index-list w3-padding-small">
+      <h6 class="w3-theme-l1 w3-bar-item w3-card w3-hover-grey" onclick="$('.{{ site }}').toggle()"><a href="{{ url|safe }}" target="_blank" rel="noopener noreferrer external" onclick="event.stopPropagation()">{{ name }}</a></h6>
+      <ul class="index-list w3-padding-small {{ site }}">
   {%- for item in menu %}
     {%- if item[2] %}
         <li>

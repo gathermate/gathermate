@@ -64,14 +64,14 @@
           <li class="w3-bar">
             <div class="info">
               {{ id_num }} {% if article['etc'] %}{{ article['etc'] }}{%- endif %}
-              <a href="{{ article['link']|safe }}" target="_blank">
+              <a href="{{ article['link']|safe }}" target="_blank" rel="noopener noreferrer external">
                 <i class="fa fa-external-link" aria-hidden="true" style="font-size:14px;"></i>
               </a>
             </div>
             <div>
               <a id="file_link_{{ id_num }}" url="{{ url_for('.order', order='item', url=article['link']) }}" href="javascript:show_files('{{ id_num }}');">{{ article['title'] }}</a>
             </div>
-            <div id="file_div_{{ id_num }}" class="w3-container w3-small w3-codespan w3-hide">
+            <div id="file_div_{{ id_num }}" class="w3-container w3-small w3-codespan" style="display:none;">
               <p class="loading" id="view_loading">Loading</p>
             </div>
           </li>
@@ -95,6 +95,6 @@
   {%- if remote_url %}
     {%- set href = url_for('.order', order='rss', search=search, length=5, page=pagination.page, url=remote_url) %}
   {%- endif %}
-        <a href="{{ href|safe }}"><i class="fa fa-rss-square" style="color:red"></i> RSS</a>
+        <a href="{{ href|safe }}" target="_blank" rel="noopener noreferrer"><i class="fa fa-rss-square" style="color:red"></i> RSS</a>
       </div>
 {%- endblock section %}

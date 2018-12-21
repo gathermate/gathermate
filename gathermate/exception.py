@@ -30,7 +30,7 @@ class GathermateException(Exception):
         <script>
           $(".view_response").off("click");
           $(".view_response").on("click", function(e){
-            toggle($(this).children().first());
+            $(this).children().first().toggle();
           });
         </script>
         <div class="view_response" style="cursor:pointer;">
