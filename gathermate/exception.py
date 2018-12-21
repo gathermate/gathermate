@@ -8,16 +8,16 @@ from util.cache import cache
 
 class GathermateException(Exception):
 
-    def __init__(self, message, response=None):
-        # type: (Text, fetchers.Response) -> None
-        self.message = message
-        self.response = response
-        if response:
-            if response.content:
-                self.content = toolbox.decode(response.content)
+    def __init__(self, *args, **kwargs):
+        # type: (*str, Optional[fetcher.Response]) -> None
+        super(GathermateException, self).__init__(*args)
+        self.response = kwargs.get('response', None)
+        if self.response:
+            if self.response.content:
+                self.content = toolbox.decode(self.response.content)
             else:
                 self.content = 'The response has no content.'
-            cache.delete(response.key)
+            cache.delete(self.response.key)
 
     @staticmethod
     def trace_error():
