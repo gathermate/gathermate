@@ -17,8 +17,8 @@ APP=app:app
 BIND=0.0.0.0:8181
 WORKERS=1
 LOGLEVEL=DEBUG
-PIDFILE=$ROOT/gunicorn.pid
-LOGFILE=$ROOT/gunicorn.log
+PIDFILE=/opt/var/run/gunicorn.pid
+LOGFILE=/opt/var/log/gunicorn.log
 SYS_LOG_ADDR=unix:///dev/log#dgram
 MAX_REQUESTS=100
 
