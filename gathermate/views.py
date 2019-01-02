@@ -26,7 +26,7 @@ gathermate = Blueprint(
 
 def make_cache_key():
     # type: () -> Text
-    return app.mgr.fetcher._create_key(ud.URL(request.url), request.form)
+    return app.mgr.create_key(request.url, payload=request.form)
 
 def cache_option(f):
     @wraps(f)

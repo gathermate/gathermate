@@ -4,10 +4,24 @@ import Cookie
 import json
 import logging as log
 import httplib
+import importlib
 
 from gathermate.exception import GathermateException as GE
 from util.cache import cache
 from util import urldealer as ud
+
+create_key = None
+
+def hire_fetcher(config):
+    backend = config.get('BACKEND', '')
+    if backend == 'GoogleAppEngine':
+        fetcher = Urlfetch(config.get('FETCHER'),
+                           importlib.import_module('google.appengine.api.urlfetch'))
+    else:
+        fetcher = Requests(config.get('FETCHER'),
+                           importlib.import_module('requests'))
+    return fetcher
+
 
 class Response(object):
     '''
@@ -41,19 +55,16 @@ class Fetcher(object):
         # type : (Dict[Text, Union[Text, str, int]], Callable) -> None
         self.config = config
         self.module = module
-        self.SECRET_KEY = config.get('SECRET_KEY')
-        self.timeout = config.get('CACHE_TIMEOUT')
-        self.cookie_timeout = config.get('COOKIE_TIMEOUT')
+        self.timeout = config.get('CACHE_TIMEOUT', 30)
+        self.cookie_timeout = config.get('COOKIE_TIMEOUT', 60)
         self.deadline = config.get('DEAD_LINE', 30)
         self.counter = 0
         self.current_response = None
         log.debug('Using {} for Fetcher.'.format(type(self).__name__))
+        log.debug('$$$$$$$ %s was created.', repr(self))
 
-    def _create_key(self, url, payload):
-        # type: (urldealer.URL, Dict[Text, Text]) -> Text
-        key_suffix = '{}?{}'.format(url.text, ud.unsplit_qs(payload)) if payload else url.text
-        key = '{}|{}'.format(self.SECRET_KEY, key_suffix)
-        return key
+    def __del__(self):
+        log.debug('####### %s was deleted.', repr(self))
 
     def fetch(self, url, referer=None, method='GET', payload=None, forced_update=False):
         # type: (urldealer.URL, str, str, Dict[Text, Text], bool) -> Response
@@ -62,7 +73,7 @@ class Fetcher(object):
             log.error('Fetching counter exceeds threshold by a request. : %d of %d', self.counter, self.THRESHOLD)
             raise GE('Too many fetchings by a request.')
 
-        key = self._create_key(url, payload)
+        key = create_key(url.text, payload=payload)
         @cache.cached(timeout=self.timeout, key_prefix=key, forced_update=lambda:forced_update)
         def cached_fetch():
             # type: () -> Response
@@ -125,13 +136,12 @@ class Fetcher(object):
 
         set_cookie = r.headers.get('set-cookie')
         if set_cookie:
-            key = u'{}-{}-cookies'.format(self.SECRET_KEY, url.netloc)
-            self._set_cookie(key, set_cookie)
+            self._set_cookie(create_key(url.netloc) + '-cookies',
+                             set_cookie)
 
     def _get_cookie(self, url):
         # type: (urldealer.URL) -> Text
-        key = u'{}-{}-cookies'.format(self.SECRET_KEY, url.netloc)
-        cookie = cache.get(key)
+        cookie = cache.get(create_key(url.netloc) + '-cookies')
         if cookie:
             return cookie
         return Cookie.SimpleCookie().output(self.COOKIE_ATTRS, header='', sep=';')

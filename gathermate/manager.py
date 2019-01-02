@@ -16,39 +16,35 @@ from util import urldealer as ud
 
 def hire_manager(config):
     # type: (flask.config.Config, Text) -> gathermate.Manager
-    backend = config.get('BACKEND', '')
-    config.get('FETCHER')['SECRET_KEY'] = config.get('SECRET_KEY')
-    if backend == 'GoogleAppEngine':
-        fetcher = fetchers.Urlfetch(config.get('FETCHER'),
-                                    importlib.import_module('google.appengine.api.urlfetch'))
-    else:
-        fetcher = fetchers.Requests(config.get('FETCHER'),
-                                    importlib.import_module('requests'))
-
+    manager = FlaskManager(config)
     packer.ACCEPTED_EXT = config.get('ACCEPTED_EXT', [])
-
-    return FlaskManager(config, fetcher)
+    fetchers.create_key = manager.create_key
+    return manager
 
 def log_traffic(f):
     @wraps(f)
     def decorator(self, *args, **kwargs):
         result = f(self, *args, **kwargs)
         log.info('Cumulative fetching size : %s', self.fetcher.size_text(self.fetcher.cum_size))
-        self.fetcher.cum_size = 0.0
-        self.fetcher.counter = 0
         return result
     return decorator
 
 
 class Manager(object):
 
-    def __init__(self, config, fetcher):
+    def __init__(self, config):
         # type: (flask.config.Config) -> None
-        self.config = config
-        if not self.config:
+        if not config:
             raise GE('Config is not set.')
+        self.config = config
+        self.SECRET_KEY = config.get('SECRET_KEY')
         self.gatherer_classes = self._register_modules('gatherers')
-        self.fetcher = fetcher
+        self.fetcher = None
+
+    def create_key(self, url_text, payload=None):
+        # type: (Text, Dict[Text, Text]) -> Text
+        key_suffix = '{}?{}'.format(url_text, ud.unsplit_qs(payload)) if payload else url_text
+        return '{}-{}'.format(self.SECRET_KEY, key_suffix)
 
     def _register_modules(self, package):
         # type: (Text) -> Dict[Text, Type[gatherer.Gatherer]]
@@ -107,6 +103,7 @@ class Manager(object):
     def _train_gatherer(self, class_, config):
         # type: (Type[gatherer.Gatherer], Dict[Text, object]) -> Type[gatherer.Gatherer]
         instance_config = self._get_default_config(class_.__name__, config)
+        self.fetcher = fetchers.hire_fetcher(self.config)
         gatherer = class_(instance_config, self.fetcher)
         log.debug("%s instance has been created.", type(gatherer).__name__)
         return gatherer

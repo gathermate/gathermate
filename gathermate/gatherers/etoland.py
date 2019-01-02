@@ -18,7 +18,7 @@ class Etoland(Gatherer):
 
     def set_login(self, config):
         self.login_info = {
-            'fields': {
+            'payload': {
                 'mb_id': config.get('mb_id'),
                 'mb_password': config.get('mb_password'),
                 'url': 'http://www.etoland.co.kr',

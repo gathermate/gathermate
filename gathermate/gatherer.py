@@ -260,31 +260,36 @@ class Gatherer(object):
         log.debug('Parsing [...%s%s] is done.',
                   url.path, '?%s' % url.query if url.query else '')
 
-    def _credential(self):
-        # type: () -> None
+    def credential(self):
+        # type: () -> Optional(re.MatchObject, boolean)
         # Override if it is necessary.
-        payload = self.login_info.get('fields')
         url = ud.URL(self.login_info.get('url'))
-        referer = '{}://{}'.format(url.scheme, url.netloc)
-        r = self.fetcher.fetch(url, referer=referer, method='POST', payload=payload, forced_update=True)
+        r = self.fetcher.fetch(url,
+                               referer='{}://{}'.format(url.scheme, url.netloc),
+                               method=self.login_info.get('method', 'POST').upper(),
+                               payload=self.login_info.get('payload'),
+                               forced_update=True)
+        return self.login_info.get('done').search(r.content) or False
 
-        if self.login_info.get('done').search(r.content):
-            log.info('Login succeeded on {}://{}'.format(url.scheme, url.netloc))
-        else:
-            raise GE('Could not login to [{}]'.format(url.netloc),
-                     response=self.fetcher.current_response)
+    def check_login(self, r):
+        # type: (Response) -> boolean
+        if self.login_info.get('denied').search(r.content):
+            log.info('Login required.')
+            if self.credential():
+                log.info('Login succeeded.')
+                return False
+            else:
+                raise GE('Could not login.',
+                         response=self.fetcher.current_response)
+        return True
 
     def fetch(self, url, **kwargs):
         # type: (Union[urldealer.URL, Text], Optional[Dict[Text, object]]) -> Response
         url = ud.URL(url) if not type(url) is ud.URL else url
         r = self.fetcher.fetch(url, **kwargs)
-
-        if self.login_info and self.login_info.get('denied').search(r.content):
-            log.info('Login required with {}://{}'.format(url.scheme, url.netloc))
-            self._credential()
-            log.debug('Refetching [{}]'.format(url.text))
-            r = self.fetcher.fetch(url, forced_update=True, **kwargs)
-
+        if self.login_info and not self.check_login(r):
+            log.debug('Refetching [%s]', url.text)
+            r = self.fetch(url, forced_update=True, **kwargs)
         return r
 
     def safe_loop(self, elements, **kwargs):
