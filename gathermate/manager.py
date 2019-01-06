@@ -22,6 +22,7 @@ def hire_manager(config):
     return manager
 
 def log_traffic(f):
+    # type: (Callable) -> Callable
     @wraps(f)
     def decorator(self, *args, **kwargs):
         result = f(self, *args, **kwargs)

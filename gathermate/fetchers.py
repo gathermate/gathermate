@@ -36,20 +36,18 @@ class Response(object):
         self.final_url = final_url
 
 class Fetcher(object):
-    headers = {
+    HEADERS = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.102 Safari/537.36',
     }
-
-    cum_size = 0.0
     UNITS = {
         'byte': 1.0,
         'KB': 1024.0,
         'MB': 1024.0 ** 2,
         'GB': 1024.0 ** 3,
     }
-
     COOKIE_ATTRS = ['expires', 'path', 'comment', 'domain', 'max-age', 'secure', 'version', 'httponly']
     THRESHOLD = 50
+    cum_size = 0.0
 
     def __init__(self, config, module):
         # type : (Dict[Text, Union[Text, str, int]], Callable) -> None
@@ -61,10 +59,9 @@ class Fetcher(object):
         self.counter = 0
         self.current_response = None
         log.debug('Using {} for Fetcher.'.format(type(self).__name__))
-        log.debug('$$$$$$$ %s was created.', repr(self))
 
     def __del__(self):
-        log.debug('####### %s was deleted.', repr(self))
+        pass
 
     def fetch(self, url, referer=None, method='GET', payload=None, forced_update=False):
         # type: (urldealer.URL, str, str, Dict[Text, Text], bool) -> Response
@@ -101,19 +98,17 @@ class Fetcher(object):
             self._handle_response(url, r)
 
             return r
-
         return cached_fetch()
 
     def _get_headers(self, url, referer):
         # type: (urldealer.URL, Text) -> Dict[Text, Text]
         headers = {}
-        for k, v in self.headers.items():
+        for k, v in self.HEADERS.items():
             headers[k] = v
         headers['referer'] = referer
         cookie = self._get_cookie(url)
         if cookie:
             headers['cookie'] = cookie
-
         return headers
 
     def size_text(self, byte):
@@ -131,9 +126,7 @@ class Fetcher(object):
                 Content size: %d,
                 Status Code: %d,
                 Headers: %s''' % (len(r.content), r.status_code, r.headers), response=r)
-
         self.url = url.text
-
         set_cookie = r.headers.get('set-cookie')
         if set_cookie:
             self._set_cookie(create_key(url.netloc) + '-cookies',
