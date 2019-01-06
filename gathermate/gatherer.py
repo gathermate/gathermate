@@ -261,35 +261,30 @@ class Gatherer(object):
                   url.path, '?%s' % url.query if url.query else '')
 
     def credential(self):
-        # type: () -> Optional(re.MatchObject, boolean)
-        # Override if it is necessary.
+        # type: () -> None
         url = ud.URL(self.login_info.get('url'))
-        r = self.fetcher.fetch(url,
-                               referer='{}://{}'.format(url.scheme, url.netloc),
-                               method=self.login_info.get('method', 'POST').upper(),
-                               payload=self.login_info.get('payload'),
-                               forced_update=True)
-        return self.login_info.get('done').search(r.content) or False
+        self.fetcher.fetch(url,
+                           referer=self.login_info.get('referer', self.URL),
+                           method=self.login_info.get('method', 'POST').upper(),
+                           payload=self.login_info.get('payload', None),
+                           forced_update=True)
 
     def check_login(self, r):
-        # type: (Response) -> boolean
-        if self.login_info.get('denied').search(r.content):
-            log.info('Login required.')
-            if self.credential():
-                log.info('Login succeeded.')
-                return False
-            else:
-                raise GE('Could not login.',
-                         response=self.fetcher.current_response)
-        return True
+        # type: (Response) -> Optional(re.MatchObject, boolean)
+        return self.login_info['denied'].search(r.content) or False
 
     def fetch(self, url, **kwargs):
         # type: (Union[urldealer.URL, Text], Optional[Dict[Text, object]]) -> Response
         url = ud.URL(url) if not type(url) is ud.URL else url
         r = self.fetcher.fetch(url, **kwargs)
-        if self.login_info and not self.check_login(r):
+        if self.login_info and self.check_login(r):
+            log.debug('Login is required.')
+            self.credential()
             log.debug('Refetching [%s]', url.text)
-            r = self.fetch(url, forced_update=True, **kwargs)
+            r = self.fetcher.fetch(url, forced_update=True, **kwargs)
+            if self.check_login(r):
+                raise GE('Could not login.',
+                         response=self.fetcher.current_response)
         return r
 
     def safe_loop(self, elements, **kwargs):

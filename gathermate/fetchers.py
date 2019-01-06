@@ -63,29 +63,28 @@ class Fetcher(object):
     def __del__(self):
         pass
 
-    def fetch(self, url, referer=None, method='GET', payload=None, forced_update=False):
+    def fetch(self, url, referer=None, method='GET', payload=None, forced_update=False, follow_redirects=False):
         # type: (urldealer.URL, str, str, Dict[Text, Text], bool) -> Response
         self.counter += 1
         if self.counter > self.THRESHOLD:
             log.error('Fetching counter exceeds threshold by a request. : %d of %d', self.counter, self.THRESHOLD)
             raise GE('Too many fetchings by a request.')
-
         key = create_key(url.text, payload=payload)
         @cache.cached(timeout=self.timeout, key_prefix=key, forced_update=lambda:forced_update)
         def cached_fetch():
             # type: () -> Response
             log.debug('This fetching will update its cache.')
-
             log.debug('Fetching [...{0}{1}]'
                       .format(url.path, '?%s' % url.query if url.query else ''))
-
-            r = self._fetch(url,
-                            deadline=self.deadline,
-                            payload=payload,
-                            method=method,
-                            headers=self._get_headers(url, referer),
-                            follow_redirects=True)
-
+            try:
+                r = self._fetch(url,
+                                deadline=self.deadline,
+                                payload=payload,
+                                method=method,
+                                headers=self._get_headers(url, referer),
+                                follow_redirects=follow_redirects)
+            except httplib.BadStatusLine:
+                GE.trace_error()
             r.key = key
             self.current_response = r
             current_size = len(r.content)
@@ -94,9 +93,7 @@ class Fetcher(object):
                       .format(self.size_text(current_size),
                               url.path,
                               '?%s' % url.query if url.query else ''))
-
             self._handle_response(url, r)
-
             return r
         return cached_fetch()
 
@@ -105,7 +102,7 @@ class Fetcher(object):
         headers = {}
         for k, v in self.HEADERS.items():
             headers[k] = v
-        headers['referer'] = referer
+        headers['referer'] = referer if referer else ''
         cookie = self._get_cookie(url)
         if cookie:
             headers['cookie'] = cookie
@@ -129,12 +126,12 @@ class Fetcher(object):
         self.url = url.text
         set_cookie = r.headers.get('set-cookie')
         if set_cookie:
-            self._set_cookie(create_key(url.netloc) + '-cookies',
+            self._set_cookie(create_key(url.hostname) + '-cookies',
                              set_cookie)
 
     def _get_cookie(self, url):
         # type: (urldealer.URL) -> Text
-        cookie = cache.get(create_key(url.netloc) + '-cookies')
+        cookie = cache.get(create_key(url.hostname) + '-cookies')
         if cookie:
             return cookie
         return Cookie.SimpleCookie().output(self.COOKIE_ATTRS, header='', sep=';')
@@ -159,7 +156,6 @@ class Requests(Fetcher):
     # Override
     def _fetch(self, url, deadline=30, method='GET', payload=None, headers=None, follow_redirects=False):
         # type: (urldealer.URL, int, str, Dict[Text, Text], Dict[Text, Text], bool) -> Response
-
         r = self.module.request(
             method.upper(),
             url.text,
@@ -169,17 +165,6 @@ class Requests(Fetcher):
             json=self.json_dump(payload) if method.upper() == 'JSON' and payload else None,
             headers=headers,
             allow_redirects=follow_redirects)
-
-        '''
-        When calling response.text() and no encoding was set or determined,
-        requests relies on chardet to detect the encoding.
-        Unfortunately, chardet can be pathologically slow and memory-hungry to do its job.
-
-        The encoding of the response content is determined based solely on HTTP headers,
-        following RFC 2616 to the letter. If you can take advantage of non-HTTP knowledge to
-        make a better guess at the encoding, you should set r.encoding appropriately
-        before accessing this property.
-        '''
         return Response(r.headers, r.content, r.status_code, url.text, r.url)
 
 class Urlfetch(Fetcher):
@@ -187,20 +172,14 @@ class Urlfetch(Fetcher):
     # Override
     def _fetch(self, url, deadline=30, method='GET', payload=None, headers=None, follow_redirects=False):
         # type: (urldealer.URL, int, str, Dict[Text, Text], Dict[Text, Text], bool) -> Response
-
         if payload:
             payload = ud.unsplit_qs(payload)
-
-        try:
-            r = self.module.fetch(
-                url.text,
-                deadline=deadline,
-                payload=payload,
-                method='POST' if method.upper() == 'JSON' else method,
-                headers=headers,
-                follow_redirects=follow_redirects)
-        except httplib.BadStatusLine:
-            GE.trace_error()
-
+        r = self.module.fetch(
+            url.text,
+            deadline=deadline,
+            payload=payload,
+            method='POST' if method.upper() == 'JSON' else method,
+            headers=headers,
+            follow_redirects=follow_redirects)
         r.url = r.final_url if r.final_url else url.text
         return Response(r.headers, r.content, r.status_code, url.text, r.url)

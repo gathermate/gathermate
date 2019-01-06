@@ -49,6 +49,11 @@
 ] -%}
       {{ render_index('https://torrentboza.com/', 'boza', '토x트보자', menu) }}
 
+{%- set menu = [
+  ['psd_caption', '자막자료실'], ['psd_dramacap', '드라마자막']
+] -%}
+      {{ render_index('http://cineaste.co.kr', 'cineaste', '시x스트', menu) }}
+
 {%- endblock sidebaritem %}
 {%- block section %}
       <div class="w3-container w3-rest" >
