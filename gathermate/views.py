@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from io import BytesIO
-from functools import wraps
 import logging
 
 from flask import Blueprint
@@ -15,7 +14,6 @@ from flask import flash
 
 from util.cache import cache
 from util.auth import auth
-from util import urldealer as ud
 from gathermate.exception import GathermateException as GE
 
 gathermate = Blueprint(
@@ -26,14 +24,7 @@ gathermate = Blueprint(
 
 def make_cache_key():
     # type: () -> Text
-    return app.mgr.create_key(request.url, payload=request.form)
-
-def cache_option(f):
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        f.cache_timeout = app.config.get('TIMEOUT')
-        return f(*args, **kwargs)
-    return decorated
+    return cache.create_key(request.url, payload=request.form)
 
 @gathermate.route('/', strict_slashes=False)
 @auth.requires_auth
@@ -48,31 +39,28 @@ def quote():
     return render_template('gathermate_encode.html')
 
 @gathermate.route('/<string:site>/<string:board>/rss', methods=['GET'])
-@cache_option
-@cache.cached(key_prefix=make_cache_key)
+@cache.cached(key_prefix=make_cache_key, timeout=cache.APP_TIMEOUT)
 @auth.requires_auth
 def rss_by_alias(site, board):
     # type: (Text, Text) -> Text
-    data = app.mgr.request_by_alias('rss', site, board, request.args)
+    data = app.manager.request_by_alias('rss', site, board, request.args)
     return order_rss(data)
 
 @gathermate.route('/<string:site>/<string:board>', methods=['GET'])
-@cache_option
-@cache.cached(key_prefix=make_cache_key)
+@cache.cached(key_prefix=make_cache_key, timeout=cache.APP_TIMEOUT)
 @auth.requires_auth
 def list_by_alias(site, board):
     # type: (Text, Text) -> Text
-    data = app.mgr.request_by_alias('list', site, board, request.args)
+    data = app.manager.request_by_alias('list', site, board, request.args)
     return order_list(data)
 
 @gathermate.route('/<string:order>', methods=['GET'])
-@cache_option
-@cache.cached(key_prefix=make_cache_key)
+@cache.cached(key_prefix=make_cache_key, timeout=cache.APP_TIMEOUT)
 @auth.requires_auth
 def order(order):
     # type: (Text) -> Union[unicode, flask.wrappers.Response]
     ''' Do not name order()'s args with query names ex) path, netloc, scheme etc... '''
-    data = app.mgr.request(order, request.url)
+    data = app.manager.request(order, request.url)
     return globals()['order_{}'.format(order)](data)
 
 def order_rss(data):
@@ -118,8 +106,6 @@ def unhandled_exception(e):
     content = None
     if type(e) is GE and e.response:
         content = e.content
-        logging.debug('Loaded response content for handling exception.')
-
     if len(path) > 2 and path[2] in ['item']:
         return render_template_string(GE.VIEW_ERROR_TEMPLATE,
                                       msg=e.message,

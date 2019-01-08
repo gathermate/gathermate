@@ -26,7 +26,6 @@ def get_rss_builder():
 def pack_rss(articles):
     # type (Union[List[object], Generator], Text) -> Text
     rss = get_rss_builder()
-
     for article in list(articles)[::-1]:
         for item in article:
             try:
@@ -48,7 +47,6 @@ def pack_rss(articles):
                     rss[0].append(e_item)
                     e_enclosure = E.enclosure()
                     e_item.append(e_enclosure)
-
                     if item['type'] == 'file':
                         url = url_for('.order',
                                       _external=True,
@@ -79,6 +77,5 @@ def pack_item(items):
             log.warning('%s does not have accepted extension.', item['name'])
             items.pop(idx)
             continue
-
         item['ticket'] = ud.quote(ud.unsplit_qs(item['ticket']))
     return items

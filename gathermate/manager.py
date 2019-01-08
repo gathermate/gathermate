@@ -18,17 +18,7 @@ def hire_manager(config):
     # type: (flask.config.Config, Text) -> gathermate.Manager
     manager = FlaskManager(config)
     packer.ACCEPTED_EXT = config.get('ACCEPTED_EXT', [])
-    fetchers.create_key = manager.create_key
     return manager
-
-def log_traffic(f):
-    # type: (Callable) -> Callable
-    @wraps(f)
-    def decorator(self, *args, **kwargs):
-        result = f(self, *args, **kwargs)
-        log.info('Cumulative fetching size : %s', self.fetcher.size_text(self.fetcher.cum_size))
-        return result
-    return decorator
 
 
 class Manager(object):
@@ -38,14 +28,8 @@ class Manager(object):
         if not config:
             raise GE('Config is not set.')
         self.config = config
-        self.SECRET_KEY = config.get('SECRET_KEY')
         self.gatherer_classes = self._register_modules('gatherers')
         self.fetcher = None
-
-    def create_key(self, url_text, payload=None):
-        # type: (Text, Dict[Text, Text]) -> Text
-        key_suffix = '{}?{}'.format(url_text, ud.unsplit_qs(payload)) if payload else url_text
-        return '{}-{}'.format(self.SECRET_KEY, key_suffix)
 
     def _register_modules(self, package):
         # type: (Text) -> Dict[Text, Type[gatherer.Gatherer]]
@@ -89,7 +73,6 @@ class Manager(object):
         except KeyError:
             GE.trace_error()
             class_ = self._find_gatherer(host)
-
         log.info("%s class matches with [%s].", class_.__name__, target.text)
         return self._train_gatherer(class_, self.config.get('GATHERERS'))
 
@@ -104,8 +87,7 @@ class Manager(object):
     def _train_gatherer(self, class_, config):
         # type: (Type[gatherer.Gatherer], Dict[Text, object]) -> Type[gatherer.Gatherer]
         instance_config = self._get_default_config(class_.__name__, config)
-        self.fetcher = fetchers.hire_fetcher(self.config)
-        gatherer = class_(instance_config, self.fetcher)
+        gatherer = class_(instance_config, fetchers.hire_fetcher(self.config))
         log.debug("%s instance has been created.", type(gatherer).__name__)
         return gatherer
 
@@ -153,7 +135,6 @@ class Manager(object):
             ticket = ud.split_qs(ud.unquote(query_dict.get('ticket')))
             gatherer = self._hire_gatherer(ud.URL(ticket['referer']))
             return gatherer.parse_file(target, ticket)
-
         # RSS_AGGRESSIVE = False
         gatherer = self._hire_gatherer(target)
         gatherer.isRSS = True
@@ -167,20 +148,18 @@ class Manager(object):
         gatherer = self._hire_gatherer(target)
         return gatherer.get_page(gatherer.fetch(target))
 
+    @tb.timeit
     def _get_data(self, order, target, query_dict):
         # type: (Text, urldealer.URL, Union[Dict, ImmutableMultiDict]) -> Optional[Text, Response, Iterable]
         search_key = query_dict.get('search', None)
         if search_key:
             target.update_qs('search={}'.format(search_key))
-
         page_num = int(query_dict.get('page', 0))
         if page_num > 0:
             target.update_qs('page={}'.format(page_num))
-
         log.info('%s mode', order.upper())
-
         data = getattr(self, '_order_{}'.format(order))(target, query_dict)
-
+        log.info('Cumulative fetching size : %s', fetchers.fetcher.size_text(fetchers.fetcher.cum_size))
         return data
 
     def request(self):
@@ -192,12 +171,9 @@ class Manager(object):
 
 class FlaskManager(Manager):
 
-    @tb.timeit
-    @log_traffic
     def request(self, order, request_url):
         # type: (Text, Text) -> Optional[Text, Response, Iterable]
         request = ud.URL(request_url)
-
         try:
             url = request.query_dict['url']
             if url:
@@ -209,8 +185,6 @@ class FlaskManager(Manager):
 
         return self._get_data(order, target, request.query_dict)
 
-    @tb.timeit
-    @log_traffic
     def request_by_alias(self, order, site, board, query):
         # type: (Text, Text, Text, ImmutableMultiDict) -> Optional[Text, Response, Iterable]
         class_ = self._find_gatherer(site)

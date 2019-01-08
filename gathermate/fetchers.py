@@ -10,9 +10,10 @@ from gathermate.exception import GathermateException as GE
 from util.cache import cache
 from util import urldealer as ud
 
-create_key = None
+fetcher = None
 
 def hire_fetcher(config):
+    global fetcher
     backend = config.get('BACKEND', '')
     if backend == 'GoogleAppEngine':
         fetcher = Urlfetch(config.get('FETCHER'),
@@ -53,9 +54,9 @@ class Fetcher(object):
         # type : (Dict[Text, Union[Text, str, int]], Callable) -> None
         self.config = config
         self.module = module
-        self.timeout = config.get('CACHE_TIMEOUT', 30)
-        self.cookie_timeout = config.get('COOKIE_TIMEOUT', 60)
-        self.deadline = config.get('DEAD_LINE', 30)
+        self.timeout = cache.FETCHER_TIMEOUT
+        self.cookie_timeout = cache.FETCHER_COOKIE_TIMEOUT
+        self.deadline = config.get('DEADLINE', 30)
         self.counter = 0
         self.current_response = None
         log.debug('Using {} for Fetcher.'.format(type(self).__name__))
@@ -69,7 +70,7 @@ class Fetcher(object):
         if self.counter > self.THRESHOLD:
             log.error('Fetching counter exceeds threshold by a request. : %d of %d', self.counter, self.THRESHOLD)
             raise GE('Too many fetchings by a request.')
-        key = create_key(url.text, payload=payload)
+        key = cache.create_key(url.text, payload=payload)
         @cache.cached(timeout=self.timeout, key_prefix=key, forced_update=lambda:forced_update)
         def cached_fetch():
             # type: () -> Response
@@ -126,18 +127,18 @@ class Fetcher(object):
         self.url = url.text
         set_cookie = r.headers.get('set-cookie')
         if set_cookie:
-            self._set_cookie(create_key(url.hostname) + '-cookies',
-                             set_cookie)
+            self._set_cookie(url, set_cookie)
 
     def _get_cookie(self, url):
         # type: (urldealer.URL) -> Text
-        cookie = cache.get(create_key(url.hostname) + '-cookies')
+        cookie = cache.get(cache.create_key(url.hostname) + '-cookies')
         if cookie:
             return cookie
         return Cookie.SimpleCookie().output(self.COOKIE_ATTRS, header='', sep=';')
 
-    def _set_cookie(self, key, new_cookie):
-        # type: (Text, cookie.SimpleCookie) -> None
+    def _set_cookie(self, url, new_cookie):
+        # type: (urldealer.URL, str) -> None
+        key = cache.create_key(url.hostname) + '-cookies'
         old_cookie = Cookie.SimpleCookie(str(cache.get(key)))
         old_cookie.load(new_cookie)
         cookie = old_cookie.output(self.COOKIE_ATTRS, header='', sep=';').strip()

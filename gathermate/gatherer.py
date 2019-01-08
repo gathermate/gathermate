@@ -54,7 +54,6 @@ class Gatherer(object):
         self.handle_query(url)
         response = self.fetch(url)
         current_ids = []
-
         try:
             # self.get_list() returns dictionary generator.
             for article in self.get_list(response):
@@ -67,16 +66,13 @@ class Gatherer(object):
                 self.articles[id_num] = article
         except:
             GE.trace_error()
-
         self._log_result(url)
         self._paginate(url, response.content)
         if self.max_page > self.current_page:
             self.next_page = self.current_page + 1
         self._check_length(url, self.articles, current_ids)
-
         if self.isRSS:
             return self.articles
-
         return {
             'articles': self.articles,
             'current_page': self.current_page,
@@ -104,22 +100,17 @@ class Gatherer(object):
         if total < 1:
             raise GE('There are no articles that could be parsed : {}'.format(url.text),
                      response=self.fetcher.current_response)
-
         current = len(current_ids)
         if current < 1:
             log.warning('Current page is empty. : %s', url.text)
             return
-
         self.check_length_count += 1
         if self.check_length_count > 5:
             log.error('Too many loops...')
             return
-
         log.debug("Articles of current page : %d", current)
-
         if not self.isRSS:
             return
-
         if total > self.length:
             log.debug('Shorten articles from %s to %s', total, self.length)
             self._remove_list(articles, current_ids, total - self.length)
@@ -149,7 +140,6 @@ class Gatherer(object):
         # type: (Dict[Text, Dict[Text, Text]]) -> Iterable
         if not self.config.get('RSS_AGGRESSIVE'):
             return self._parse_item_from_list(articles)
-
         urls = [ud.URL(article['link']) for article in articles.values()]
         if self.config.get('RSS_ASYNC', False):
             with futures.ThreadPoolExecutor(max_workers=self.config.get('RSS_WORKERS', 1),
@@ -169,7 +159,6 @@ class Gatherer(object):
             item['link'] = article['link']
             item['type'] = 'unknown'
             new_articles.append([item])
-
         return new_articles
 
     def parse_item(self, article_url):
@@ -188,15 +177,11 @@ class Gatherer(object):
                     item['link'] = unicode(ud.join(article_url.text, item['link']))
         except:
             GE.trace_error()
-
         self._log_result(article_url)
-
         if len(items) == 0:
-            raise GE('No items found : %s' % article_url, response=self.fetcher.current_response)
-
+            log.error('No items found : %s' % article_url)
         if self.isRSS and not self.config.get('RSS_AGGRESSIVE'):
             items = self._want(items)
-
         return items
 
     def _want(self, items):
@@ -218,23 +203,17 @@ class Gatherer(object):
     ESCAPE_REGEXP = re.compile(r'\%..')
     def parse_file(self, url, ticket):
         # type: (urldealer.URL, Dict[Text, Union[Text, Dict[Text, Text]]]) -> Response
-
         down_response = self.get_file(url, ticket)
-
         if not down_response or not down_response.headers.get('Content-Disposition'):
             log.error('HEADERS : %s', down_response.headers)
             raise GE('Could not download : {}'.format(url.text),
                      response=self.fetcher.current_response)
-
         filename = tb.filename_from_headers(down_response.headers)
-
         if not self.ESCAPE_REGEXP.search(filename):
             filename = ud.quote(filename)
-
         down_response.filename = filename
         log.info('Downloading : [%s]', filename)
         down_response.headers['content-type'] = tb.get_mime(filename)
-
         return down_response
 
     def etree(self, response, encoding='utf-8'):
@@ -267,6 +246,7 @@ class Gatherer(object):
                            referer=self.login_info.get('referer', self.URL),
                            method=self.login_info.get('method', 'POST').upper(),
                            payload=self.login_info.get('payload', None),
+                           follow_redirects=self.login_info.get('follow_redirects', False),
                            forced_update=True)
 
     def check_login(self, r):

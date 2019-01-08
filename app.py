@@ -13,20 +13,18 @@ from gathermate.exception import GathermateException as GE
 from util.cache import cache
 from util.auth import auth
 from util import logger
-
+from util import urldealer as ud
 
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
 def create_app(config_instance, cache_type, backend):
     # type: () -> flask.app.Flask
-
     # Make flask instance
     app = Flask(__name__,
                 instance_relative_config=True,
                 static_folder='static',
                 template_folder='templates')
-
     # config.py (default) : It has instances of Localhost and GoogleAppEngine.
     app.config.from_object('config')
     # instance/config.py (user) : It also has instances of Localhost and GoogleAppEngine.
@@ -35,14 +33,19 @@ def create_app(config_instance, cache_type, backend):
     app.config.from_object(app.config[config_instance])
     logging.debug('Config: %s', app.config['NAME'])
     app.config['BACKEND'] = backend
-
     logger.config(backend, app.config['LOG_LEVEL'])
-
     cache.init_app(app, config=cache_type)
     with app.app_context():
         cache.clear()
+        cache.APP_SECRET_KEY = app.config.get('SECRET_KEY', '')
+        cache.APP_TIMEOUT = app.config.get('TIMEOUT', 10)
+        cache.FETCHER_TIMEOUT = app.config['FETCHER'].get('CACHE_TIMEOUT', 120)
+        cache.FETCHER_COOKIE_TIMEOUT = app.config['FETCHER'].get('COOKIE_TIMEOUT', 3600)
+        cache.create_key = lambda url_text, payload=None : \
+            '{}-{}'.format(cache.APP_SECRET_KEY,
+                           '{}?{}'.format(url_text,
+                                          ud.unsplit_qs(payload)) if payload else url_text)
     auth.init_app(app)
-
     # Register blueprints from config.
     for blue, setting in app.config['BLUEPRINTS'].items():
         try:
@@ -56,11 +59,8 @@ def create_app(config_instance, cache_type, backend):
                 '{} has been registered as Blueprint.'.format(blueprint.name))
         except:
             GE.trace_error()
-
     # Register a manager from config.
-    manager = importlib.import_module(app.config['MANAGER'])
-    app.mgr = manager.hire_manager(app.config)
-
+    app.manager = importlib.import_module(app.config['MANAGER']).hire_manager(app.config)
     return app
 
 # Before create flask...
@@ -72,11 +72,7 @@ if backend.startswith('Google App Engine/') or backend.startswith('Development/'
 else:
     config_instance = 'LOCALHOST'
     cache_type = {'CACHE_TYPE': 'simple'}
-
-
 app = create_app(config_instance, cache_type, backend)
-
-
 if __name__ == '__main__':
     app.run()
 
