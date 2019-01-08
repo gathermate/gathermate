@@ -71,9 +71,10 @@
 {%- if response %}
       <hr />
       <div class="w3-container w3-rest">
-        <pre>
+        <pre><code class="html">
           {{- response }}
-        </pre>
+        </code></pre>
       </div>
+      <script>hljs.initHighlightingOnLoad();</script>
 {%- endif %}
 {%- endblock section %}

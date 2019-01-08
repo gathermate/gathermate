@@ -27,7 +27,7 @@ class Etoland(Gatherer):
                 'y': 0,
             },
             'url': 'https://www.etoland.co.kr/bbs/login_check2.php',
-            'denied': re.compile(r'<script language=[\'"]javascript[\'"]>alert\(\'.*?\'\);<\/script>'),
+            'denied': re.compile('<script language=[\'"]javascript[\'"]>alert\(\'.*?권한.*?\'\);<\/script>'.encode(self.encoding)),
         }
 
     def handle_search(self, url, keyword):
