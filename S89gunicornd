@@ -29,5 +29,8 @@ export GATHERMATE_AUTH_ID=admin
 export GATHERMATE_AUTH_PW=password
 export GATHERMATE_ETO_ID=
 export GATHERMATE_ETO_PW=
+export GATHERMATE_CINE_ID=
+export GATHERMATE_CINE_PW=
+
 
 source /opt/etc/init.d/rc.func
