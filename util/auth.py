@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
-
-import logging
+import logging as log
 from functools import wraps
 
 from flask import request
 from flask import Response
-from flask import session
 
 
 class Auth(object):
@@ -21,9 +19,8 @@ class Auth(object):
                         and password == self.app.config['AUTH_PW']
 
         def authenticate():
-            logging.info(
-                '[%s] was denied with [%s]',
-                request.remote_addr, request.full_path)
+            log.info('[%s] was denied with [%s]',
+                     request.remote_addr, request.full_path)
             return Response('Could not verify your access level.',
                             401,
                             {'WWW-Authenticate': 'Basic realm="Login Required"'})
@@ -33,9 +30,8 @@ class Auth(object):
             auth = request.authorization
             if not auth or not check_auth(auth.username, auth.password):
                 return authenticate()
-            logging.info(
-                '[%s] was accepted with [%s]',
-                request.remote_addr, request.path)
+            log.info('[%s] was accepted with [%s]',
+                     request.remote_addr, request.path)
             return f(*args, **kwargs)
         return decorated
 

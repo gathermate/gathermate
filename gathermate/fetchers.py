@@ -61,9 +61,6 @@ class Fetcher(object):
         self.current_response = None
         log.debug('Using {} for Fetcher.'.format(type(self).__name__))
 
-    def __del__(self):
-        pass
-
     def fetch(self, url, referer=None, method='GET', payload=None, forced_update=False, follow_redirects=False):
         # type: (urldealer.URL, str, str, Dict[Text, Text], bool) -> Response
         self.counter += 1

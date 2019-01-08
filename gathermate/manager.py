@@ -27,7 +27,6 @@ class Manager(object):
             raise GE('Config is not set.')
         self.config = config
         self.gatherer_classes = self._register_modules('gatherers')
-        self.fetcher = None
 
     def _register_modules(self, package):
         # type: (Text) -> Dict[Text, Type[gatherer.Gatherer]]

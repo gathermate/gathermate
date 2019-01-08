@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from io import BytesIO
-import logging
 
 from flask import Blueprint
 from flask import render_template
