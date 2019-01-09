@@ -65,7 +65,7 @@ class Torrenthaja(Gatherer):
                     if protected:
                         fname = u'{}{}.torrent'.format(tb.cf_decode(protected), th[0].tail)
 
-                yield {'name': fname, 'link': link, 'type': self.is_magnet(link), 'ticket': ticket}
+                yield {'name': fname, 'link': link, 'type': 'file', 'ticket': ticket}
             except:
                 GE.trace_error()
 
@@ -87,7 +87,7 @@ class Torrenthaja(Gatherer):
             try:
                 fname = e[0].text
                 flink = e.get('href')
-                yield {'name': fname, 'link': flink, 'type': self.is_magnet(flink)}
+                yield {'name': fname, 'link': flink, 'type': 'file'}
             except:
                 GE.trace_error()
 

@@ -41,11 +41,9 @@ def decode(content):
     if encoding is None:
         log.warning('Could not figure out what encoding is.')
         return content
-
     result = content.decode(encoding)
     stack = inspect.stack()[2]
     log.debug('[{0:s}()] decodes [{1:s}] string from [{2:s}:{3:d}]]'.format(stack[3], encoding, stack[1], stack[2]))
-
     return result
 
 MIME = {
@@ -58,6 +56,8 @@ MIME = {
 }
 def get_mime(filename):
     # type: (str) -> str
+    if is_magnet(filename):
+        return 'x-scheme-handler/magnet'
     ext = get_ext(filename)[1]
     ext = '.jpg' if ext in ['.jpg', '.jpeg'] else ext
     try:
@@ -85,12 +85,15 @@ def cf_decode(encodedString):
 REGEXP_FILENAME = re.compile(r'filename[^;\n=]*=([\'\"])*(.*)(?(1)\1|)')
 def filename_from_headers(headers):
     # type: (Dict[str, str]) -> unicode
-
-    #regex = r'filename[^;\n=]*=([\'\"])*(.*)(?(1)\1|)'
     target = headers.get('Content-Disposition')
     target = decode(target)
     filename = REGEXP_FILENAME.search(target, re.I).group(2)
     return filename
+
+MAGNET_REGEXP = re.compile(r'^magnet:\?xt=urn:btih:')
+def is_magnet(link):
+    # type: (Text) -> boolean
+    return bool(MAGNET_REGEXP.search(link))
 
 def compare(a, b):
     # Type: (Text, Text) -> float

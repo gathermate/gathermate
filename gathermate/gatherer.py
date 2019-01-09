@@ -23,7 +23,11 @@ class Gatherer(object):
         self.set_login(config)
         self.isRSS = False
         self.articles = {}
-        self.want_regex = self._get_want_regex(self.config.get('RSS_WANT'))
+        try:
+            self.want_regex = self._get_want_regex(self.config.get('RSS_WANT', []))
+        except:
+            GE.trace_error()
+            self.want_regex = self._get_want_regex([])
 
     def handle_query(self, url):
         # type: (urldealer.URL) -> None
@@ -228,11 +232,6 @@ class Gatherer(object):
         # type: (Text) -> int
         result = self.ID_REGEXP.search(text)
         return int(result.group(1)) if result else -1
-
-    MAGNET_REGEXP = re.compile(r'^magnet:\?xt=urn:btih:.*')
-    def is_magnet(self, link):
-        # type: (Text) -> Text
-        return 'magnet' if self.MAGNET_REGEXP.search(link) else 'file'
 
     def _log_result(self, url):
         # type: (urldealer.URL) -> None

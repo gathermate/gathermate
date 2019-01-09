@@ -40,7 +40,7 @@ class Boza(Gatherer):
             try:
                 name = title_regexp.sub('', e.find('i[@class="fa fa-download"]').tail.strip())
                 link = e.get('href')
-                yield {'name': name.decode('utf-8', 'ignore'), 'link': link, 'type': self.is_magnet(link)}
+                yield {'name': name.decode('utf-8', 'ignore'), 'link': link, 'type': 'file'}
             except:
                 GE.trace_error()
 

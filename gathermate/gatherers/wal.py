@@ -70,8 +70,7 @@ class Wal(Gatherer):
                 if match:
                     link = ud.join(self.URL, match.group(1))
                     name = match.group(2)
-                    link_type = self.is_magnet(link)
-                    yield {'name': name, 'link': link, 'type': link_type}
+                    yield {'name': name, 'link': link, 'type': 'file'}
             except:
                 GE.trace_error()
 

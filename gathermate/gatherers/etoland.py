@@ -59,8 +59,7 @@ class Etoland(Gatherer):
                 matches = onclick_regexp.search(e.get('onclick'))
                 name = matches.group(2)
                 link = 'http://www.etoland.co.kr/bbs{}'.format(matches.group(1))
-                link_type = self.is_magnet(link)
-                yield {'name': name, 'link': link, 'type': link_type, 'etc': 'test'}
+                yield {'name': name, 'link': link, 'type': 'file', 'etc': 'test'}
             except:
                 GE.trace_error()
 
@@ -68,8 +67,7 @@ class Etoland(Gatherer):
             try:
                 name = e.getparent().getparent().getparent().xpath('tr/td[@class="mw_basic_view_subject"]/h1')[0].text.strip()
                 link = e.get('href')
-                link_type = self.is_magnet(link)
-                yield {'name': name, 'link': link, 'type': link_type}
+                yield {'name': name, 'link': link, 'type': 'magnet'}
             except:
                 GE.trace_error()
 
@@ -77,8 +75,7 @@ class Etoland(Gatherer):
             try:
                 name = e.text.strip()
                 link = name
-                link_type = 'link'
-                yield {'name': name, 'link': link, 'type': link_type}
+                yield {'name': name, 'link': link, 'type': 'link'}
             except:
                 GE.trace_error()
 

@@ -57,8 +57,7 @@ class Tfreeca(Gatherer):
             try:
                 name = e.text.strip()
                 link = e.get('href').strip()
-                link_type = self.is_magnet(link)
-                yield {'name': name, 'link': link, 'type': link_type}
+                yield {'name': name, 'link': link, 'type': 'file'}
             except:
                 GE.trace_error()
 
@@ -76,8 +75,7 @@ class Tfreeca(Gatherer):
                 try:
                     name = e.text.strip()
                     link = e.getnext()[0].get('href').strip()
-                    link_type = self.is_magnet(link)
-                    yield {'name': name, 'link': link, 'type': link_type}
+                    yield {'name': name, 'link': link, 'type': 'magnet'}
                 except:
                     GE.trace_error()
 
