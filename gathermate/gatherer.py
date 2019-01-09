@@ -40,17 +40,14 @@ class Gatherer(object):
 
     def set_login(self, config):
         # type: (Dict[str, object]) -> None
-        # Override if it is necessary.
         self.login_info = {}
 
     def handle_search(self, url, keyword):
         # type: (urldealer.URL, Text) -> None
-        # Override if it is necessary.
         url.update_qs(self.SEARCH_QUERY % keyword)
 
     def handle_page(self, url, num):
         # type: (urldealer.URL, Text) -> None
-        # Override if it is necessary.
         url.update_qs(self.PAGE_QUERY % int(num))
 
     def parse_list(self, url):
@@ -59,9 +56,9 @@ class Gatherer(object):
         response = self.fetch(url)
         current_ids = []
         try:
-            # self.get_list() returns dictionary generator.
+            # self.get_list() returns a generator that generates a dictionary.
             for article in self.get_list(response):
-                id_num = article.get('id')
+                id_num = article.get('id', -1)
                 if id_num < 0:
                     log.warning('Skipped article id : [%s]', id_num)
                     continue
@@ -170,7 +167,7 @@ class Gatherer(object):
         items = []
         try:
             r = self.fetch(article_url)
-            # self.get_item() returns dictionary generator.
+            # self.get_item() returns a generator that generates a dictionary.
             for item in self.get_item(r):
                 items.append(item)
                 if not item.get('ticket'):
@@ -285,22 +282,18 @@ class Gatherer(object):
 
     def get_list(self, response):
         # type: (Response) -> Generator
-        # Override is required.
         raise NotImplementedError
 
     def get_item(self, response):
         # type: (Response) -> Generator
-        # Override is required.
         raise NotImplementedError
 
     def get_file(self, url, ticket):
         # type: (urldealer.URL, Dict[Text, Union[Text, Dict[Text, Text]]]) -> Response
-        # Override is required.
         raise NotImplementedError
 
     def get_page(self, response):
         # type: (Response) -> Iterable
-        # Override it.
         root = self.etree(response, encoding=self.encoding)
         return etree.tostring(root,
                               pretty_print=True,
