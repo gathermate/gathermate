@@ -96,13 +96,12 @@ class Fetcher(object):
                     break
                     raise GE('Failed to fetch [%s]', url.text)
             r.key = key
-            self.current_response = r
             current_size = len(r.content)
-            self.cum_size += current_size
             log.debug('Fetched {0:s} from [...{1}{2}]'
                       .format(self.size_text(current_size),
                               url.path,
                               '?%s' % url.query if url.query else ''))
+            self.cum_size += current_size
             self._handle_response(url, r)
             return r
         return cached_fetch()
@@ -126,6 +125,7 @@ class Fetcher(object):
 
     def _handle_response(self, url, r):
         # type: (urldealer.URL, Response) -> None
+        self.current_response = r
         status_code = str(r.status_code)
         if status_code[0] in ['4', '5']:
             raise GE('''
