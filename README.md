@@ -305,7 +305,7 @@ http://videlibri.sourceforge.net/cgi-bin/xidelcgi
 ##### GAE
 Google App Engine의 Python 2 Standard 환경에 맞추어져 있습니다. 
 
-##### GAE 파이썬 패키지 설치 (개발 환경)
+##### GAE 파이썬 패키지 설치
 
 ```shell
 $ pip install -t /opt/apps/gathermate/lib -r /opt/apps/gathermate/requirements_gae.txt --no-dependencies
