@@ -5,9 +5,9 @@ PATH=/opt/sbin:/opt/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:
 ENABLED=yes
 PROCS=gunicorn
 DESC=$PROCS
-# 설치한 폴더명을 아래에 입력해 주세요. (기본값: /opt/etc/flask)
-ROOT=/opt/etc/flask
-ACTIVATE=$ROOT/venv/bin/activate
+# 설치한 폴더명을 아래에 입력해 주세요. (기본값: /opt/apps/gathermate)
+ROOT=/opt/apps/gathermate
+ACTIVATE=/opt/apps/venv/gathermate/bin/activate
 PRECMD="source $ACTIVATE"
 PREARGS=
 

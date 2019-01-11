@@ -3,9 +3,9 @@
 PATH=/bin:/usr/bin:/sbin:/usr/sbin
 
 DAEMON=gunicorn
-# 설치한 폴더명을 아래에 입력해 주세요. (기본값: /home/(current_user)/flask)
-ROOT=~/flask
-ACTIVATE=$ROOT/venv/bin/activate
+# 설치한 폴더명을 아래에 입력해 주세요. (기본값: /opt/apps/gathermate)
+ROOT=/opt/apps/gathermate
+ACTIVATE=/opt/apps/venv/gathermate/bin/activate
 
 APPNAME=Gathermate
 APP=app:app
@@ -15,7 +15,7 @@ WORKERS=1
 LOGLEVEL=DEBUG
 PIDFILE=/var/run/$DAEMON.pid
 LOGFILE=/var/log/$DAEMON.log
-SYS_LOG_ADDR=
+SYS_LOG_ADDR=/var/log/syslog
 MAX_REQUESTS=100
 
 # instance/config.py 에서 사용할 정보를 입력해 주세요.
@@ -37,7 +37,7 @@ case "$1" in
   start)
         log_daemon_msg "Starting gunicorn" "$APPNAME"
         source $ACTIVATE
-        $DAEMON  $APP --daemon --chdir $ROOT --bind=$BIND --max-requests $MAX_REQUESTS --pid=$PIDFILE --workers=$WORKERS --log-file=$LOGFILE --log-level $LOGLEVEL --log-syslog-to $SYS_LOG_ADDR --log-syslog-prefix $APPNAME
+        $DAEMON  $APP --daemon --chdir $ROOT --bind=$BIND --max-requests $MAX_REQUESTS --pid=$PIDFILE --workers=$WORKERS --log-file=$LOGFILE --log-level $LOGLEVEL --log-syslog-to $SYS_LOG_ADDR --log-syslog-prefix $APPNAME #--log-syslog
         log_end_msg $?
     ;;
   stop)

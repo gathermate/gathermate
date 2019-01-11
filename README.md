@@ -18,16 +18,35 @@ Gathermate
 
 설치하기
 --------
+### 디렉토리 계층
+```plain
+opt/
+    apps/
+        gathermate/
+            bin/
+            gathermate/
+                gatherers/
+                static/   
+                templates/
+            instance/
+            static/
+            templates/
+            util/
+        venv/
+            gathermate/                
+                GAE-lib/
+```
+
 ### Entware @ RT-AC68U(AC1900)
 
 #### 소스파일 복사
 
-Git에서 소스 파일을 받아 `/opt/etc/flask` 폴더에 저장합니다.
+Git에서 소스 파일을 받아 `/opt/apps/gathermate` 폴더에 저장합니다.
 
 ```shell
 $ opkg update
 $ opkg install git git-http    
-$ git clone https://github.com/gathermate/gathermate.git /opt/etc/flask
+$ git clone https://github.com/gathermate/gathermate.git /opt/apps/gathermate
 ```
 #### 파이썬 설치
 
@@ -43,9 +62,9 @@ $ opkg install python python-pip python-lxml
 
 ```shell
 $ pip install virtualenv
-$ virtualenv -p python2 /opt/etc/flask/venv
-$ source /opt/etc/flask/venv/bin/activate
-(venv) $ 
+$ virtualenv -p python2 /opt/apps/venv/gathermate
+$ source /opt/apps/venv/gathermate/bin/activate
+(gathermate) $ 
 ```
 
 #### 파이썬 패키지 설치
@@ -53,9 +72,8 @@ $ source /opt/etc/flask/venv/bin/activate
 가상환경 내에서 `python` 추가 패키지를 설치합니다. 또한 `opkg`로 설치한 `lxml` 패키지도 가상환경 폴더에 복사해 주세요.
    
 ```shell 
-(venv) $ cd /opt/etc/flask
-(venv) $ pip install -r requirements_entware.txt
-(venv) $ cp -r /opt/lib/python2.7/site-packages/lxml* /opt/etc/flask/venv/lib/python2.7/site-packages/ 
+(gathermate) $ pip install -r /opt/apps/gathermate/requirements_entware.txt
+(gathermate) $ cp -r /opt/lib/python2.7/site-packages/lxml* /opt/apps/venv/gathermate/lib/python2.7/site-packages/ 
 ```
 
 #### 실행하기
@@ -65,8 +83,8 @@ $ source /opt/etc/flask/venv/bin/activate
 `S89gunicornd` 스크립트에서 포트 번호를 꼭 변경해 주세요.
     
 ```shell
-$ cp /opt/etc/flask/S89gunicornd /opt/etc/init.d/S89gunicornd
-$ chmod +x /opt/etc/init.d/S89gunicornd
+$ cp /opt/apps/gathermate/S89gunicornd /opt/etc/init.d/S89gunicornd
+$ chmod 755 /opt/etc/init.d/S89gunicornd
 $ /opt/etc/init.d/S89gunicornd start
 ```
 
@@ -101,12 +119,12 @@ Debian은 `Windows Subsystem for Linux`에서 테스트 했습니다.
 
 #### 소스파일 복사
 
-Git에서 소스 파일을 받아 홈 디렉토리의 `flask` 폴더에 저장합니다.
+Git에서 소스 파일을 받아 `/opt/apps/gathermate` 폴더에 저장합니다.
 
 ```shell
 $ apt update
 $ apt install git
-$ git clone https://github.com/gathermate/gathermate.git ~/flask
+$ git clone https://github.com/gathermate/gathermate.git /opt/apps/gathermate
 ```
 
 #### 파이썬 설치
@@ -119,16 +137,15 @@ $ apt install python python-pip
 
 ```shell
 $ pip install virtualenv
-$ virtualenv -p python2 ~/flask/venv
-$ source ~/flask/venv/bin/activate
-(venv) $ 
+$ virtualenv -p python2 /opt/apps/venv/gathermate
+$ source /opt/apps/venv/gathermate/bin/activate
+(gathermate) $ 
 ```
 
 #### 파이썬 패키지 설치
 
 ```shell
-(venv) $ cd ~/flask
-(venv) $ pip install -r requirements.txt
+(gathermate) $ pip install -r /opt/apps/gathermate/requirements.txt
 ```
 
 #### 실행하기
@@ -138,8 +155,9 @@ $ source ~/flask/venv/bin/activate
 `gunicornd` 스크립트에서 포트 번호를 꼭 변경해 주세요.
     
 ```shell
-$ chmod +x ~/flask/gunicornd
-$ ~/flask/gunicornd start
+$ cp /opt/apps/gathermate/gunicornd /etc/init.d/gunicornd
+$ chmod 755 /etc/init.d/gunicornd
+$ service gunicornd start
 ```
 
 ---
@@ -151,16 +169,9 @@ $ ~/flask/gunicornd start
 
 먼저 `config.py`를 `instance`폴더로 복사해 주세요.
 
-Entware
 ```shell
-$ mkdir /opt/etc/flask/instance
-$ cp /opt/etc/flask/config.py /opt/etc/flask/instance/config.py
-```
-
-Debian
-```shell
-$ mkdir ~/flask/instance
-$ cp ~/flask/config.py ~/flask/instance/config.py
+$ mkdir /opt/apps/gathermate/instance
+$ cp /opt/apps/gathermate/config.py /opt/apps/gathermate/instance/config.py
 ```
 
  그런 다음 `instance/config.py` 내의 민감한 정보를 즉시 변경해 주세요. 이제부터 `config.py`가 아닌 `instance/config.py`의 설정을 사용하게 됩니다.
@@ -296,10 +307,10 @@ http://videlibri.sourceforge.net/cgi-bin/xidelcgi
 ##### GAE
 Google App Engine의 Python 2 Standard 환경에 맞추어져 있습니다. 
 
-##### GAE 파이썬 패키지 설치
+##### GAE 파이썬 패키지 설치 (개발 환경)
 
 ```shell
-$ pip install -t lib -r requirements_gae.txt --no-dependencies
+$ pip install -t /opt/apps/venv/gathermate/GAE-lib -r /opt/apps/gathermate/requirements_gae.txt --no-dependencies
 ```
 
 ##### GAE 테스트 서버

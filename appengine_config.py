@@ -3,7 +3,7 @@ from google.appengine.ext import vendor
 import os
 import sys
 
-vendor.add('lib')
+vendor.add('/opt/apps/venv/gathermate/GAE-lib')
 
 '''
 os.environ.get('SERVER_SOFTWARE')
