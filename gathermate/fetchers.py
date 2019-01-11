@@ -84,7 +84,10 @@ class Fetcher(object):
                                     headers=self._get_headers(url, referer),
                                     follow_redirects=follow_redirects)
                     break
-                except httplib.BadStatusLine, self.module.exceptions.ConnectionError:
+                except httplib.BadStatusLine:
+                    GE.trace_error()
+                    break
+                except self.module.exceptions.ConnectionError:
                     GE.trace_error()
                     retry += 1
                     log.warning('Retry fetching... (%d)', retry)
