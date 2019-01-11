@@ -5,7 +5,7 @@ import logging as log
 from functools import wraps
 
 from lxml import etree
-import concurrent.futures as futures
+from concurrent import futures
 
 from gathermate.exception import GathermateException as GE
 from util import urldealer as ud

@@ -23,21 +23,19 @@ Gathermate
 opt/
     apps/
         gathermate/
-            bin/
             gathermate/
                 gatherers/
-                static/   
+                static/
                 templates/
             instance/
             static/
             templates/
             util/
         venv/
-            gathermate/                
-                GAE-lib/
+            gathermate/
 ```
 
-### Entware @ RT-AC68U(AC1900)
+### Entware @ ASUS RT-AC68U aka T-mobile AC1900
 
 #### 소스파일 복사
 
@@ -310,7 +308,7 @@ Google App Engine의 Python 2 Standard 환경에 맞추어져 있습니다.
 ##### GAE 파이썬 패키지 설치 (개발 환경)
 
 ```shell
-$ pip install -t /opt/apps/venv/gathermate/GAE-lib -r /opt/apps/gathermate/requirements_gae.txt --no-dependencies
+$ pip install -t /opt/apps/gathermate/lib -r /opt/apps/gathermate/requirements_gae.txt --no-dependencies
 ```
 
 ##### GAE 테스트 서버

@@ -13,6 +13,9 @@ libraries:
     version: "latest"
   - name: flask
     version: "latest"
+  - name: futures
+    version: "latest"
+
 
 # urllib3 is using URLFetch on Google App Engine sandbox instead of sockets.
 # To use sockets directly instead of URLFetch see https://urllib3.readthedocs.io/en/latest/reference/urllib3.contrib.html.

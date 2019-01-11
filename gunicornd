@@ -15,7 +15,7 @@ WORKERS=1
 LOGLEVEL=DEBUG
 PIDFILE=/var/run/$DAEMON.pid
 LOGFILE=/var/log/$DAEMON.log
-SYS_LOG_ADDR=/var/log/syslog
+SYS_LOG_ADDR=unix:///dev/log#dgram
 MAX_REQUESTS=100
 
 # instance/config.py 에서 사용할 정보를 입력해 주세요.
@@ -37,7 +37,7 @@ case "$1" in
   start)
         log_daemon_msg "Starting gunicorn" "$APPNAME"
         source $ACTIVATE
-        $DAEMON  $APP --daemon --chdir $ROOT --bind=$BIND --max-requests $MAX_REQUESTS --pid=$PIDFILE --workers=$WORKERS --log-file=$LOGFILE --log-level $LOGLEVEL --log-syslog-to $SYS_LOG_ADDR --log-syslog-prefix $APPNAME #--log-syslog
+        $DAEMON  $APP --daemon --chdir $ROOT --bind=$BIND --max-requests $MAX_REQUESTS --pid=$PIDFILE --workers=$WORKERS --log-file=$LOGFILE --log-level $LOGLEVEL --log-syslog-to $SYS_LOG_ADDR --log-syslog-prefix $APPNAME
         log_end_msg $?
     ;;
   stop)
