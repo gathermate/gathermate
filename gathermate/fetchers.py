@@ -74,15 +74,24 @@ class Fetcher(object):
             log.debug('This fetching will update its cache.')
             log.debug('Fetching [...{0}{1}]'
                       .format(url.path, '?%s' % url.query if url.query else ''))
-            try:
-                r = self._fetch(url,
-                                deadline=self.deadline,
-                                payload=payload,
-                                method=method,
-                                headers=self._get_headers(url, referer),
-                                follow_redirects=follow_redirects)
-            except httplib.BadStatusLine:
-                GE.trace_error()
+            retry = 0
+            while retry < 2:
+                try:
+                    r = self._fetch(url,
+                                    deadline=self.deadline,
+                                    payload=payload,
+                                    method=method,
+                                    headers=self._get_headers(url, referer),
+                                    follow_redirects=follow_redirects)
+                    break
+                except httplib.BadStatusLine, self.module.exceptions.ConnectionError:
+                    GE.trace_error()
+                    retry += 1
+                    log.warning('Retry fetching... (%d)', retry)
+                except Exception:
+                    GE.trace_error()
+                    break
+                    raise GE('Failed to fetch [%s]', url.text)
             r.key = key
             self.current_response = r
             current_size = len(r.content)

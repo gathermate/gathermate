@@ -37,8 +37,8 @@ class Cineaste(Gatherer):
                 title = cmt_regexp.sub('', e.xpath('string()').strip())
                 link = e.get('href').strip()
                 id_ = self.get_id_num(link)
-                lang = e.getparent().getparent().find('td[2]/a/span/b').text.strip()
-                date = e.getparent().getparent().find('td[7]').text.strip()
+                lang = e.getparent().getparent().find('td[1]/a/span/b').text.strip()
+                date = e.getparent().getparent().find('td[6]').text.strip()
                 etc = '{} {}'.format(date, lang)
                 yield {'id': id_, 'title': title, 'link': link, 'etc': etc}
             except:
@@ -53,11 +53,8 @@ class Cineaste(Gatherer):
         for e in root.xpath(item_xpath):
             try:
                 name = title_regexp.sub('', e.xpath('text()')[0]).strip()
-
                 link = e.get('href')
-                link_type = self.is_magnet(link)
-                etc = ''
-                yield {'name': name, 'link': link, 'type': link_type, 'etc': etc}
+                yield {'name': name, 'link': link, 'type': 'file'}
             except:
                 GE.trace_error()
 
