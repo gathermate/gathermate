@@ -63,7 +63,7 @@ class Etoland(Gatherer):
             except:
                 GE.trace_error()
 
-        for e in root.xpath(r'//a[contains(@href, "magnet")]'):
+        for e in root.xpath(r'//td[@class="mw_basic_view_file"]/a[contains(@href, "magnet")]'):
             try:
                 name = e.getparent().getparent().getparent().xpath('tr/td[@class="mw_basic_view_subject"]/h1')[0].text.strip()
                 link = e.get('href')

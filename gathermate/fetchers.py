@@ -65,7 +65,7 @@ class Fetcher(object):
         # type: (urldealer.URL, str, str, Dict[Text, Text], bool) -> Response
         self.counter += 1
         if self.counter > self.THRESHOLD:
-            log.error('Fetching counter exceeds threshold by a request. : %d of %d', self.counter, self.THRESHOLD)
+            log.error('Fetching counter exceeds threshold by a request. : %d', self.counter)
             raise GE('Too many fetchings by a request.')
         key = cache.create_key(url.text, payload=payload)
         @cache.cached(timeout=self.timeout, key_prefix=key, forced_update=lambda:forced_update)
@@ -74,8 +74,8 @@ class Fetcher(object):
             log.debug('This fetching will update its cache.')
             log.debug('Fetching [...{0}{1}]'
                       .format(url.path, '?%s' % url.query if url.query else ''))
-            retry = 0
-            while retry < 2:
+            r = None
+            for _ in range(2):
                 try:
                     r = self._fetch(url,
                                     deadline=self.deadline,
@@ -83,18 +83,16 @@ class Fetcher(object):
                                     method=method,
                                     headers=self._get_headers(url, referer),
                                     follow_redirects=follow_redirects)
-                    break
                 except httplib.BadStatusLine:
                     GE.trace_error()
-                    break
                 except self.module.exceptions.ConnectionError:
                     GE.trace_error()
-                    retry += 1
-                    log.warning('Retry fetching... (%d)', retry)
+                    log.warning('Retry fetching...')
+                    continue
                 except Exception:
                     GE.trace_error()
-                    break
                     raise GE('Failed to fetch [%s]', url.text)
+                break
             r.key = key
             current_size = len(r.content)
             log.debug('Fetched {0:s} from [...{1}{2}]'

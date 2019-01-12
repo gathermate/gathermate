@@ -1,4 +1,5 @@
 .git
 instance
 lib
+setup
 *.pyc
