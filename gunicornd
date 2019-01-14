@@ -13,8 +13,8 @@ APP=app:app
 BIND=0.0.0.0:8181
 WORKERS=1
 LOGLEVEL=DEBUG
-PIDFILE=/var/run/$DAEMON.pid
-LOGFILE=/var/log/$DAEMON.log
+PIDFILE=$ROOT/var/run/$DAEMON.pid
+LOGFILE=$ROOT/var/log/$DAEMON.log
 SYS_LOG_ADDR=unix:///dev/log#dgram
 MAX_REQUESTS=100
 

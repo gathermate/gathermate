@@ -1,0 +1,337 @@
+#!/bin/bash
+
+OPTION=$1
+TARGET=$2
+
+NAME=gathermate-test
+PREFIX="Gathermate :"
+
+PYTHON=python2
+eval "$PYTHON"_package=python
+VIRTUALENV=virtualenv
+eval "$VIRTUALENV"_package=python-virtualenv
+GIT=git
+eval "$GIT"_package=git
+
+REPOSITORY=https://github.com/gathermate/gathermate.git
+
+CONFIG=config.py
+REQUIRE_PYTHON=2.7
+
+OPT=/opt
+APPS=$OPT/apps
+ROOT=$APPS/$NAME
+VENV_ROOT=$APPS/venv
+VENV=$VENV_ROOT/$NAME
+CACHE_PATH=$APPS/tmp
+
+init_debian(){
+    PATH=/bin:/usr/bin:/sbin:/usr/sbin
+    DAEMON=gunicornd
+    INSTALL="apt install"
+    REQUIREMENTS=requirements.txt
+    INIT_PATH=/etc/init.d
+    DAEMON_PATH=$INIT_PATH/$DAEMON
+    PIP_INSTALL="$PYTHON -m pip install -r $ROOT/$REQUIREMENTS"
+    SERVICE="service $DAEMON"
+}
+
+init_entware(){
+    PATH=/opt/sbin:/opt/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    DAEMON=S89gunicornd
+    INSTALL="opkg install"
+    REQUIREMENTS=requirements_entware.txt
+    INIT_PATH=$OPT/etc/init.d
+    DAEMON_PATH=$INIT_PATH/$DAEMON
+    PIP_INSTALL="$PYTHON -m pip install -r $ROOT/$REQUIREMENTS"
+    SERVICE="$DAEMON_PATH"
+    eval "$GIT"_package=\"git git-http\"
+}
+
+install_package(){
+    echo "$PREFIX Do you want to install $PACKAGE (Y/n)"
+    read -r choice
+    case "$choice" in
+        y|Y|"")
+            echo "$PREFIX Install $PACKAGE..."
+            $INSTALL $PACKAGE
+            ;;
+        n|N)
+            echo "$PREFIX Exit..."
+            exit 0
+            ;;
+        *)
+            echo "$PREFIX Invalid option - exit..."
+            exit 1
+            ;;
+    esac
+}
+
+check_command(){
+    if [ -x "$(get_command_path)" ]; then
+        return 0
+    else
+        echo "$PREFIX Could not execute $COMMAND."
+        return 1
+    fi
+}
+
+check_commands(){
+    LIST=
+    for i in $COMMANDS; do
+        COMMAND=$i
+        if ! check_command; then
+            ITEM=$i
+            appendToList
+        fi
+    done
+}
+
+get_command_path(){
+    echo $(which $COMMAND)
+}
+
+get_python_version(){
+    echo $($PYTHON -c 'import sys; print(".".join(str(d) for d in sys.version_info[:2]))')
+}
+
+backup_file(){
+    SUFFIX="-$(date +%Y%m%d%H%M)"
+    BACKUP=$ORIGIN$SUFFIX
+    echo "$PREFIX Backup previous $ORIGIN to $BACKUP"
+    if mv $ORIGIN $BACKUP; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+appendToList(){
+    if [ -z "$LIST" ]; then
+        LIST=$ITEM
+    else
+        LIST="$LIST $ITEM"
+    fi
+}
+
+check_permission(){
+    echo "$PREFIX Check permission..."
+    FOLDERS="$APPS $INIT_PATH"
+    LIST=
+    for i in $FOLDERS; do
+        if [ ! -w "$i" ]; then
+            ITEM=$i
+            appendToList
+        fi
+    done
+
+    if [ -n "$LIST" ]; then
+        for i in $LIST; do
+            echo "$PREFIX $i is not writable."
+        done
+        echo "$PREFIX Check your permission on above folder(s) first."
+        echo "$PREFIX DO NOT RUN this script with sudo."
+        echo "$PREFIX Running with sudo will just make things worse."
+        echo "$PREFIX Instead, change permissions or owner."
+        exit 1
+    fi
+}
+
+check_packages(){
+    echo "$PREFIX Check required packages..."
+    COMMANDS="$PYTHON $VIRTUALENV $GIT"
+    check_commands
+    if [ -n "$LIST" ]; then
+        OLD_LIST=$LIST
+        LIST=
+        echo "$PREFIX It seems to be not installed : $OLD_LIST"
+        for i in $OLD_LIST; do
+            ITEM=$(eval echo \$"$i"_package)
+            appendToList
+        done
+        PACKAGE=$LIST
+        install_package
+        check_commands
+        if [ -n "$LIST" ]; then
+            echo "$PREFIX Still could not execute $LIST."
+            exit 1
+        fi
+    fi
+}
+
+install(){
+    echo "$PREFIX Install to $TARGET"
+    check_permission
+    check_packages
+
+    echo "$PREFIX Clone $REPOSITORY..."
+    if [ -d "$ROOT" ]; then
+        echo "$PREFIX $ROOT already exists."
+        exit 1
+    fi
+    $GIT clone $REPOSITORY $ROOT
+
+    echo "$PREFIX Check daemon script..."
+    if [ -e "$DAEMON_PATH" ]; then
+        echo "$PREFIX $DAEMON_PATH exists."
+        ORIGIN=$DAEMON_PATH
+        if ! backup_file; then
+            exit 1
+        fi
+    fi
+
+    echo "$PREFIX Copy $ROOT/$DAEMON to $DAEMON_PATH"
+    if cp $ROOT/$DAEMON $DAEMON_PATH; then
+        echo "$PREFIX Make $DAEMON_PATH executable."
+        chmod ug=rwx,o=rx $DAEMON_PATH
+    else
+        exit 1
+    fi
+
+    INSTANCE_CONFIG=$ROOT/instance/$CONFIG
+    if [ ! -d "$ROOT/instance" ]; then
+        if ! mkdir $ROOT/instance; then
+            exit 1
+        fi
+    fi
+
+    echo "$PREFIX Copy $ROOT/$CONFIG to $INSTANCE_CONFIG"
+    if [ -e "$INSTANCE_CONFIG" ]; then
+        echo "$PREFIX $INSTANCE_CONFIG exists."
+        ORIGIN=$INSTANCE_CONFIG
+        if ! backup_file; then
+            exit 1
+        fi
+    fi
+
+    if ! cp $ROOT/$CONFIG $INSTANCE_CONFIG; then
+        exit 1
+    fi
+
+    mkdir -p $ROOT/var/log $ROOT/var/run
+
+    # Python
+    echo "$PREFIX Check Python version..."
+    COMMAND=$PYTHON
+    if ! check_command; then
+        CURRENT_PYTHON=$(get_python_version)
+        if [ "$CURRENT_PYTHON" = "$REQUIRE_PYTHON" ]; then
+            echo "$PREFIX Python $CURRENT_PYTHON exists at $(get_command_path)"
+        else
+            echo "$PREFIX Python $CURRENT_PYTHON is not compatible with this program."
+            PACKAGE="python"
+            install_package
+            CURRENT_PYTHON=$(get_python_version)
+            if [ "$CURRENT_PYTHON" != "$REQUIRE_PYTHON" ]; then
+                echo "$PREFIX Python virsion is still $CURRENT_PYTHON"
+                exit 1
+            fi
+        fi
+    fi
+
+    echo "$PREFIX Check $VENV exists..."
+    if [ ! -d "$VENV" ]; then
+        echo "$PREFIX Make $PYTHON virtual environment at $VENV"
+        $VIRTUALENV $VENV -p $PYTHON
+    fi
+
+    if [ -e "$VENV/bin/activate" ]; then
+        . $VENV/bin/activate
+    else
+        echo "#PREFIX Could not activate virtual environment."
+        exit 1
+    fi
+
+    if [ ! -e $ROOT/$REQUIREMENTS ]; then
+        echo "$PREFIX $ROOT/$REQUIREMENTS is not found."
+        exit 1
+    fi
+
+    if [ ! -d "$CACHE_PATH" ]; then
+        mkdir $CACHE_PATH
+    fi
+    echo "$PREFIX Install Python packages..."
+    if [ -d "$CACHE_PATH" ]; then
+        HOME=$CACHE_PATH $PIP_INSTALL
+    else
+        $PIP_INSTALL
+    fi
+
+    echo "$PREFIX Start $DAEMON..."
+    $SERVICE start
+
+}
+
+uninstall(){
+    echo "$PREFIX Uninstall from $TARGET"
+    check_permission
+    $SERVICE stop
+    if [ -e $DAEMON_PATH ]; then
+        echo "$PREFIX Delete $DAEMON_PATH"
+        rm -f $DAEMON_PATH
+    fi
+    if [ -e $VENV ]; then
+        echo "$PREFIX Delete $VENV"
+        rm -rf $VENV
+    fi
+    if [ -e $ROOT ]; then
+        echo "$PREFIX Delete $ROOT"
+        rm -rf $ROOT
+    fi
+}
+
+start(){
+    echo "$PREFIX Are you sure to $TO_DO Gathermate on $TARGET? (yes/no)"
+    read -r choice
+    case "$choice" in
+        yes)
+            case $TARGET in
+                debian)
+                    init_debian
+                    ;;
+                entware)
+                    init_entware
+                    ;;
+                *)
+                    echo "$PREFIX You need to choice the target. (debian or entware)"
+                    exit 1
+                    ;;
+            esac
+            $WHAT_TO_DO
+            ;;
+        no|*)
+            echo "$PREFIX Exit..."
+            exit 0
+            ;;
+    esac
+}
+
+case $OPTION in
+    -i)
+        WHAT_TO_DO=install
+        ;;
+    -u)
+        WHAT_TO_DO=uninstall
+        ;;
+    *)
+        echo
+        echo "$PREFIX This script will clone https://github.com/gathermate/gathermate.git to"
+        echo "$PREFIX $ROOT folder and install packages relative to python 2.7."
+        echo "$PREFIX It is made for personal use at first and only tested with"
+        echo "$PREFIX Debian on WSL and Entware on RT-AC68U Merlin Firmware."
+        echo "$PREFIX So it has chance to not work properly."
+        echo "$PREFIX You can install manually if you are not sure it's safe."
+        echo
+        echo "$PREFIX Usage: install-gathermate OPTION TARGET"
+        echo
+        echo "$PREFIX TARGET: debian    Debian on WSL"
+        echo "$PREFIX         entware   Entware on RT-AC68U Merlin Firmware"
+        echo "$PREFIX OPTION: -i        Install to TARGET"
+        echo "$PREFIX         -u        Uninstall from TARGET"
+        echo
+        echo "$PREFIX ex) install-gathermate -i entware"
+        exit 0
+        ;;
+esac
+
+start
