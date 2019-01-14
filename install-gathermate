@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 OPTION=$1
 TARGET=$2
@@ -7,11 +7,12 @@ NAME=gathermate
 PREFIX="Gathermate :"
 
 PYTHON=python2
-eval "$PYTHON"_package=python
-VIRTUALENV=virtualenv
-eval "$VIRTUALENV"_package=python-virtualenv
+eval "$PYTHON"_package=python2.7
 GIT=git
 eval "$GIT"_package=git
+PIP=pip
+eval "$PIP"_package=python-pip
+EXTRA_PACKAGE=
 
 REPOSITORY=https://github.com/gathermate/gathermate.git
 
@@ -25,15 +26,18 @@ VENV_ROOT=$APPS/venv
 VENV=$VENV_ROOT/$NAME
 CACHE_PATH=$APPS/tmp
 
+init_common(){
+    DAEMON_PATH=$INIT_PATH/$DAEMON
+}
+
 init_debian(){
     PATH=/bin:/usr/bin:/sbin:/usr/sbin
     DAEMON=gunicornd
     INSTALL="apt install"
     REQUIREMENTS=requirements.txt
     INIT_PATH=/etc/init.d
-    DAEMON_PATH=$INIT_PATH/$DAEMON
-    PIP_INSTALL="$PYTHON -m pip install -r $ROOT/$REQUIREMENTS"
     SERVICE="service $DAEMON"
+    init_common
 }
 
 init_entware(){
@@ -42,10 +46,10 @@ init_entware(){
     INSTALL="opkg install"
     REQUIREMENTS=requirements_entware.txt
     INIT_PATH=$OPT/etc/init.d
-    DAEMON_PATH=$INIT_PATH/$DAEMON
-    PIP_INSTALL="$PYTHON -m pip install -r $ROOT/$REQUIREMENTS"
-    SERVICE="$DAEMON_PATH"
+    SERVICE=$INIT_PATH/$DAEMON
     eval "$GIT"_package=\"git git-http\"
+    EXTRA_PACKAGE=python-lxml
+    init_common
 }
 
 install_package(){
@@ -116,10 +120,10 @@ appendToList(){
 
 check_permission(){
     echo "$PREFIX Check permission..."
-    FOLDERS="$APPS $INIT_PATH"
+    FOLDERS="$OPT $INIT_PATH"
     LIST=
     for i in $FOLDERS; do
-        if [ ! -w "$i" ]; then
+        if [ -d "$i" ] && [ ! -w "$i" ]; then
             ITEM=$i
             appendToList
         fi
@@ -130,16 +134,15 @@ check_permission(){
             echo "$PREFIX $i is not writable."
         done
         echo "$PREFIX Check your permission on above folder(s) first."
-        echo "$PREFIX DO NOT RUN this script with sudo."
-        echo "$PREFIX Running with sudo will just make things worse."
-        echo "$PREFIX Instead, change permissions or owner."
+        echo "$PREFIX Or run script with sudo."
+        echo "$PREFIX ex) sudo install-gathermate -i debian"
         exit 1
     fi
 }
 
 check_packages(){
     echo "$PREFIX Check required packages..."
-    COMMANDS="$PYTHON $VIRTUALENV $GIT"
+    COMMANDS="$PYTHON $PIP $GIT"
     check_commands
     if [ -n "$LIST" ]; then
         OLD_LIST=$LIST
@@ -229,10 +232,16 @@ install(){
         fi
     fi
 
+    if [ ! -d "$CACHE_PATH" ]; then
+        mkdir $CACHE_PATH
+    fi
+
+    HOME=$CACHE_PATH $PIP install virtualenv
+
     echo "$PREFIX Check $VENV exists..."
     if [ ! -d "$VENV" ]; then
         echo "$PREFIX Make $PYTHON virtual environment at $VENV"
-        $VIRTUALENV $VENV -p $PYTHON
+        $PYTHON -m virtualenv $VENV -p $PYTHON
     fi
 
     if [ -e "$VENV/bin/activate" ]; then
@@ -247,14 +256,12 @@ install(){
         exit 1
     fi
 
-    if [ ! -d "$CACHE_PATH" ]; then
-        mkdir $CACHE_PATH
-    fi
     echo "$PREFIX Install Python packages..."
+    PIP_INSTALL_REQUIREMENTS="$PIP install -r $ROOT/$REQUIREMENTS"
     if [ -d "$CACHE_PATH" ]; then
-        HOME=$CACHE_PATH $PIP_INSTALL
+        HOME=$CACHE_PATH $PIP_INSTALL_REQUIREMENTS
     else
-        $PIP_INSTALL
+        $PIP_INSTALL_REQUIREMENTS
     fi
 
     echo "$PREFIX Start $DAEMON..."
@@ -278,6 +285,8 @@ uninstall(){
         echo "$PREFIX Delete $ROOT"
         rm -rf $ROOT
     fi
+    echo "$PREFIX You need to uninstall $PYTHON $PIP $GIT manually if necessary."
+    echo "$PREFIX It might already exist before installing Gathermate."
 }
 
 start(){
