@@ -48,7 +48,6 @@ init_entware(){
     INIT_PATH=$OPT/etc/init.d
     SERVICE=$INIT_PATH/$DAEMON
     eval "$GIT"_package=\"git git-http\"
-    EXTRA_PACKAGE=python-lxml
     init_common
 }
 
@@ -162,10 +161,24 @@ check_packages(){
     fi
 }
 
-install(){
-    echo "$PREFIX Install to $TARGET"
+before_install(){
     check_permission
     check_packages
+    if [ $TARGET = "entware"]; then
+        $INSTALL python-lxml
+    fi
+}
+
+after_install(){
+    if [ $TARGET = "entware"]; then
+        cp -r $OPT/lib/python2.7/site-packages/lxml* $VENV/lib/python2.7/site-packages
+    fi
+    $SERVICE start
+}
+
+install(){
+    echo "$PREFIX Install to $TARGET"
+    before_install
 
     echo "$PREFIX Clone $REPOSITORY..."
     if [ -d "$ROOT" ]; then
@@ -264,9 +277,7 @@ install(){
         $PIP_INSTALL_REQUIREMENTS
     fi
 
-    echo "$PREFIX Start $DAEMON..."
-    $SERVICE start
-
+    after_install
 }
 
 uninstall(){
@@ -286,7 +297,7 @@ uninstall(){
         rm -rf $ROOT
     fi
     echo "$PREFIX You need to uninstall $PYTHON $PIP $GIT manually if necessary."
-    echo "$PREFIX It might already exist before installing Gathermate."
+    echo "$PREFIX Because it might already exist before installing Gathermate."
 }
 
 start(){
