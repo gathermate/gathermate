@@ -3,7 +3,7 @@
 OPTION=$1
 TARGET=$2
 
-NAME=gathermate-test
+NAME=gathermate
 PREFIX="Gathermate :"
 
 PYTHON=python2
