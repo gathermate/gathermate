@@ -3,16 +3,15 @@
 OPTION=$1
 TARGET=$2
 
-NAME=gathermate
+NAME=my-flask-server
 PREFIX="Gathermate :"
 
 PYTHON=python2
-eval "$PYTHON"_package=python2.7
+eval "$PYTHON"_package=python-minimal
 GIT=git
 eval "$GIT"_package=git
 PIP=pip
 eval "$PIP"_package=python-pip
-EXTRA_PACKAGE=
 
 REPOSITORY=https://github.com/gathermate/gathermate.git
 
@@ -27,31 +26,33 @@ VENV=$VENV_ROOT/$NAME
 CACHE_PATH=$APPS/tmp
 
 init_common(){
-    DAEMON_PATH=$INIT_PATH/$DAEMON
+    DAEMON_SCRIPT_PATH=$INIT_PATH/$DAEMON_SCRIPT
 }
 
 init_debian(){
     PATH=/bin:/usr/bin:/sbin:/usr/sbin
-    DAEMON=gunicornd
+    DAEMON_SCRIPT=$NAME
     INSTALL="apt install"
     REQUIREMENTS=requirements.txt
     INIT_PATH=/etc/init.d
-    SERVICE="service $DAEMON"
+    SERVICE="service $DAEMON_SCRIPT"
     init_common
 }
 
 init_entware(){
     PATH=/opt/sbin:/opt/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-    DAEMON=S89gunicornd
+    DAEMON_SCRIPT=S89$NAME
     INSTALL="opkg install"
     REQUIREMENTS=requirements_entware.txt
     INIT_PATH=$OPT/etc/init.d
-    SERVICE=$INIT_PATH/$DAEMON
     eval "$GIT"_package=\"git git-http\"
+    eval "$PYTHON"_package=python-light
     init_common
+    SERVICE=$DAEMON_SCRIPT_PATH
 }
 
 install_package(){
+    # You must decalre PACKAGE variable before call it.
     echo "$PREFIX Do you want to install $PACKAGE (Y/n)"
     read -r choice
     case "$choice" in
@@ -71,6 +72,7 @@ install_package(){
 }
 
 check_command(){
+    # You must decalre COMMAND variable before call it.
     if [ -x "$(get_command_path)" ]; then
         return 0
     else
@@ -80,6 +82,7 @@ check_command(){
 }
 
 check_commands(){
+    # You must decalre COMMANDS variable before call it.
     LIST=
     for i in $COMMANDS; do
         COMMAND=$i
@@ -91,6 +94,7 @@ check_commands(){
 }
 
 get_command_path(){
+    # You must decalre COMMAND variable before call it.
     echo $(which $COMMAND)
 }
 
@@ -99,6 +103,7 @@ get_python_version(){
 }
 
 backup_file(){
+    # You must declare ORIGIN variable before call it.
     SUFFIX="-$(date +%Y%m%d%H%M)"
     BACKUP=$ORIGIN$SUFFIX
     echo "$PREFIX Backup previous $ORIGIN to $BACKUP"
@@ -110,6 +115,7 @@ backup_file(){
 }
 
 appendToList(){
+    # You must empty LIST variable before call it.
     if [ -z "$LIST" ]; then
         LIST=$ITEM
     else
@@ -164,53 +170,58 @@ check_packages(){
 before_install(){
     check_permission
     check_packages
-    if [ $TARGET = "entware"]; then
+    if [ ! -d "$CACHE_PATH" ]; then
+        mkdir $CACHE_PATH
+    fi
+    if [ "$TARGET" = "entware" ]; then
         $INSTALL python-lxml
     fi
 }
 
 after_install(){
-    if [ $TARGET = "entware"]; then
+    if [ "$TARGET" = "entware" ]; then
         cp -r $OPT/lib/python2.7/site-packages/lxml* $VENV/lib/python2.7/site-packages
     fi
+    mkdir -p $ROOT/var/log $ROOT/var/run
     $SERVICE start
 }
 
-install(){
-    echo "$PREFIX Install to $TARGET"
-    before_install
-
+clone_repository(){
     echo "$PREFIX Clone $REPOSITORY..."
     if [ -d "$ROOT" ]; then
         echo "$PREFIX $ROOT already exists."
         exit 1
     fi
     $GIT clone $REPOSITORY $ROOT
+}
 
+set_daemon_script(){
     echo "$PREFIX Check daemon script..."
-    if [ -e "$DAEMON_PATH" ]; then
-        echo "$PREFIX $DAEMON_PATH exists."
-        ORIGIN=$DAEMON_PATH
+    if [ -e "$DAEMON_SCRIPT_PATH" ]; then
+        echo "$PREFIX $DAEMON_SCRIPT_PATH exists."
+        ORIGIN=$DAEMON_SCRIPT_PATH
         if ! backup_file; then
             exit 1
         fi
     fi
 
-    echo "$PREFIX Copy $ROOT/$DAEMON to $DAEMON_PATH"
-    if cp $ROOT/$DAEMON $DAEMON_PATH; then
-        echo "$PREFIX Make $DAEMON_PATH executable."
-        chmod ug=rwx,o=rx $DAEMON_PATH
+    echo "$PREFIX Copy $ROOT/$DAEMON_SCRIPT to $DAEMON_SCRIPT_PATH"
+    if cp $ROOT/$DAEMON_SCRIPT $DAEMON_SCRIPT_PATH; then
+        echo "$PREFIX Make $DAEMON_SCRIPT_PATH executable."
+        chmod ug=rwx,o=rx $DAEMON_SCRIPT_PATH
+        sed -i -e "s@^ROOT=.*@ROOT=$ROOT@g; s@^ACTIVATE=.*@ACTIVATE=$VENV/bin/activate@g" $DAEMON_SCRIPT_PATH
     else
         exit 1
     fi
+}
 
+copy_config(){
     INSTANCE_CONFIG=$ROOT/instance/$CONFIG
     if [ ! -d "$ROOT/instance" ]; then
         if ! mkdir $ROOT/instance; then
             exit 1
         fi
     fi
-
     echo "$PREFIX Copy $ROOT/$CONFIG to $INSTANCE_CONFIG"
     if [ -e "$INSTANCE_CONFIG" ]; then
         echo "$PREFIX $INSTANCE_CONFIG exists."
@@ -223,10 +234,8 @@ install(){
     if ! cp $ROOT/$CONFIG $INSTANCE_CONFIG; then
         exit 1
     fi
-
-    mkdir -p $ROOT/var/log $ROOT/var/run
-
-    # Python
+}
+check_python_version(){
     echo "$PREFIX Check Python version..."
     COMMAND=$PYTHON
     if ! check_command; then
@@ -244,26 +253,21 @@ install(){
             fi
         fi
     fi
-
-    if [ ! -d "$CACHE_PATH" ]; then
-        mkdir $CACHE_PATH
-    fi
-
+}
+make_virtualenv(){
     HOME=$CACHE_PATH $PIP install virtualenv
 
-    echo "$PREFIX Check $VENV exists..."
-    if [ ! -d "$VENV" ]; then
-        echo "$PREFIX Make $PYTHON virtual environment at $VENV"
-        $PYTHON -m virtualenv $VENV -p $PYTHON
-    fi
+    echo "$PREFIX Make $PYTHON virtual environment at $VENV"
+    $PYTHON -m virtualenv $VENV -p $PYTHON
 
     if [ -e "$VENV/bin/activate" ]; then
         . $VENV/bin/activate
     else
-        echo "#PREFIX Could not activate virtual environment."
+        echo "$PREFIX Could not activate virtual environment."
         exit 1
     fi
-
+}
+install_python_packages(){
     if [ ! -e $ROOT/$REQUIREMENTS ]; then
         echo "$PREFIX $ROOT/$REQUIREMENTS is not found."
         exit 1
@@ -276,17 +280,25 @@ install(){
     else
         $PIP_INSTALL_REQUIREMENTS
     fi
-
+}
+install(){
+    echo "$PREFIX Install to $TARGET"
+    before_install
+    clone_repository
+    set_daemon_script
+    copy_config
+    check_python_version
+    make_virtualenv
+    install_python_packages
     after_install
 }
-
 uninstall(){
     echo "$PREFIX Uninstall from $TARGET"
     check_permission
     $SERVICE stop
-    if [ -e $DAEMON_PATH ]; then
-        echo "$PREFIX Delete $DAEMON_PATH"
-        rm -f $DAEMON_PATH
+    if [ -e $DAEMON_SCRIPT_PATH ]; then
+        echo "$PREFIX Delete $DAEMON_SCRIPT_PATH"
+        rm -f $DAEMON_SCRIPT_PATH
     fi
     if [ -e $VENV ]; then
         echo "$PREFIX Delete $VENV"
@@ -301,22 +313,46 @@ uninstall(){
 }
 
 start(){
+    case $OPTION in
+        -i)
+            WHAT_TO_DO=install
+            ;;
+        -u)
+            WHAT_TO_DO=uninstall
+            ;;
+        *)
+            echo
+            echo "$PREFIX This script will clone https://github.com/gathermate/gathermate.git to"
+            echo "$PREFIX $ROOT folder and install packages relative to python 2.7."
+            echo "$PREFIX It is made for personal use at first and only tested with"
+            echo "$PREFIX Debian on WSL and Entware on RT-AC68U Merlin Firmware."
+            echo "$PREFIX So it has chance to not work properly."
+            echo "$PREFIX You can install manually if you are not sure it's safe."
+            echo
+            echo "$PREFIX Usage: install-gathermate OPTION TARGET"
+            echo
+            echo "$PREFIX TARGET: debian    Debian on WSL"
+            echo "$PREFIX         entware   Entware on RT-AC68U Merlin Firmware"
+            echo "$PREFIX OPTION: -i        Install to TARGET"
+            echo "$PREFIX         -u        Uninstall from TARGET"
+            echo
+            echo "$PREFIX ex) install -i entware"
+            exit 0
+            ;;
+    esac
+    case $TARGET in
+        debian|entware)
+            ;;
+        *)
+            echo "$PREFIX You need to choice the target. (debian or entware)"
+            exit 1
+            ;;
+    esac
     echo "$PREFIX Are you sure to $TO_DO Gathermate on $TARGET? (yes/no)"
     read -r choice
     case "$choice" in
         yes)
-            case $TARGET in
-                debian)
-                    init_debian
-                    ;;
-                entware)
-                    init_entware
-                    ;;
-                *)
-                    echo "$PREFIX You need to choice the target. (debian or entware)"
-                    exit 1
-                    ;;
-            esac
+            eval init_"$TARGET"
             $WHAT_TO_DO
             ;;
         no|*)
@@ -325,33 +361,5 @@ start(){
             ;;
     esac
 }
-
-case $OPTION in
-    -i)
-        WHAT_TO_DO=install
-        ;;
-    -u)
-        WHAT_TO_DO=uninstall
-        ;;
-    *)
-        echo
-        echo "$PREFIX This script will clone https://github.com/gathermate/gathermate.git to"
-        echo "$PREFIX $ROOT folder and install packages relative to python 2.7."
-        echo "$PREFIX It is made for personal use at first and only tested with"
-        echo "$PREFIX Debian on WSL and Entware on RT-AC68U Merlin Firmware."
-        echo "$PREFIX So it has chance to not work properly."
-        echo "$PREFIX You can install manually if you are not sure it's safe."
-        echo
-        echo "$PREFIX Usage: install-gathermate OPTION TARGET"
-        echo
-        echo "$PREFIX TARGET: debian    Debian on WSL"
-        echo "$PREFIX         entware   Entware on RT-AC68U Merlin Firmware"
-        echo "$PREFIX OPTION: -i        Install to TARGET"
-        echo "$PREFIX         -u        Uninstall from TARGET"
-        echo
-        echo "$PREFIX ex) install-gathermate -i entware"
-        exit 0
-        ;;
-esac
 
 start

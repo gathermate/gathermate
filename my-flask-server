@@ -3,11 +3,12 @@
 PATH=/bin:/usr/bin:/sbin:/usr/sbin
 
 DAEMON=gunicorn
-# 설치한 폴더명을 아래에 입력해 주세요. (기본값: /opt/apps/gathermate)
-ROOT=/opt/apps/gathermate
-ACTIVATE=/opt/apps/venv/gathermate/bin/activate
+# 설치한 폴더명을 아래에 입력해 주세요. (기본값: /opt/apps/my-flask-server)
+NAME=my-flask-server
+ROOT=/opt/apps/$NAME
+ACTIVATE=/opt/apps/venv/$NAME/bin/activate
 
-APPNAME=Gathermate
+APPNAME=$NAME
 APP=app:app
 # 기본 포트 번호를 변경 후 외부 접속을 차단해주세요.
 BIND=0.0.0.0:8181

@@ -5,20 +5,21 @@ PATH=/opt/sbin:/opt/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:
 ENABLED=yes
 PROCS=gunicorn
 DESC=$PROCS
-# 설치한 폴더명을 아래에 입력해 주세요. (기본값: /opt/apps/gathermate)
-ROOT=/opt/apps/gathermate
-ACTIVATE=/opt/apps/venv/gathermate/bin/activate
+# 설치한 폴더명을 아래에 입력해 주세요. (기본값: /opt/apps/my-flask-server)
+NAME=my-flask-server
+ROOT=/opt/apps/$NAME
+ACTIVATE=/opt/apps/venv/$NAME/bin/activate
 PRECMD="source $ACTIVATE"
 PREARGS=
 
-APPNAME=Gathermate
+APPNAME=$NAME
 APP=app:app
 # 기본 포트 번호를 변경 후 외부 접속을 차단해주세요.
 BIND=0.0.0.0:8181
 WORKERS=1
 LOGLEVEL=DEBUG
-PIDFILE=/opt/var/run/gunicorn.pid
-LOGFILE=/opt/var/log/gunicorn.log
+PIDFILE=$ROOT/var/run/$PROCS.pid
+LOGFILE=$ROOT/var/log/$PROCS.log
 SYS_LOG_ADDR=unix:///dev/log#dgram
 MAX_REQUESTS=100
 

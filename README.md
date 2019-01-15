@@ -22,7 +22,9 @@ Gathermate
 ```plain
 opt/
     apps/
-        gathermate/
+        my-flask-server/
+            gae/
+                lib/
             gathermate/
                 gatherers/
                 static/
@@ -34,20 +36,23 @@ opt/
             var/
                 log/
                 run/
-        venv/
-            gathermate/
+            venv/
+                bin/
+                include/
+                lib/
+                local/
 ```
 
 ### Entware @ ASUS RT-AC68U aka T-mobile AC1900
 
 #### 소스파일 복사
 
-Git에서 소스 파일을 받아 `/opt/apps/gathermate` 폴더에 저장합니다.
+Git에서 소스 파일을 받아 `/opt/apps/my-flask-server` 폴더에 저장합니다.
 
 ```shell
 $ opkg update
 $ opkg install git git-http    
-$ git clone https://github.com/gathermate/gathermate.git /opt/apps/gathermate
+$ git clone https://github.com/gathermate/gathermate.git /opt/apps/my-flask-server
 ```
 #### 파이썬 설치
 
@@ -56,16 +61,16 @@ $ git clone https://github.com/gathermate/gathermate.git /opt/apps/gathermate
 [entware]: https://github.com/Entware/Entware
     
 ```shell
-$ opkg install python python-pip python-lxml
+$ opkg install python-light python-pip python-lxml
 ```
 
 #### 파이썬 가상환경 만들기
 
 ```shell
 $ pip install virtualenv
-$ virtualenv -p python2 /opt/apps/venv/gathermate
-$ source /opt/apps/venv/gathermate/bin/activate
-(gathermate) $ 
+$ virtualenv -p python2 /opt/apps/my-flask-server/venv
+$ source /opt/apps/my-flask-server/venv/bin/activate
+(venv) $ 
 ```
 
 #### 파이썬 패키지 설치
@@ -73,20 +78,20 @@ $ source /opt/apps/venv/gathermate/bin/activate
 가상환경 내에서 `python` 추가 패키지를 설치합니다. 또한 `opkg`로 설치한 `lxml` 패키지도 가상환경 폴더에 복사해 주세요.
    
 ```shell 
-(gathermate) $ pip install -r /opt/apps/gathermate/requirements_entware.txt
-(gathermate) $ cp -r /opt/lib/python2.7/site-packages/lxml* /opt/apps/venv/gathermate/lib/python2.7/site-packages/ 
+(venv) $ pip install -r /opt/apps/my-flask-server/requirements_entware.txt
+(venv) $ cp -r /opt/lib/python2.7/site-packages/lxml* /opt/apps/my-flask-server/venv/lib/python2.7/site-packages/ 
 ```
 
 #### 실행하기
 
 **설정하기를 읽어본 후 실행하기를 권장합니다.**
 
-`S89gunicornd` 스크립트에서 포트 번호를 꼭 변경해 주세요.
+`S89my-flask-server` 스크립트에서 포트 번호를 꼭 변경해 주세요.
     
 ```shell
-$ cp /opt/apps/gathermate/S89gunicornd /opt/etc/init.d/S89gunicornd
-$ chmod 755 /opt/etc/init.d/S89gunicornd
-$ /opt/etc/init.d/S89gunicornd start
+$ cp /opt/apps/my-flask-server/S89my-flask-server /opt/etc/init.d/S89my-flask-server
+$ chmod +x /opt/etc/init.d/S89my-flask-server
+$ /opt/etc/init.d/S89my-flask-server start
 ```
 
 `공유기_주소:8181`로 접속하여 "Welcome" 페이지가 나오는지 확인.
@@ -120,45 +125,45 @@ Debian은 `Windows Subsystem for Linux`에서 테스트 했습니다.
 
 #### 소스파일 복사
 
-Git에서 소스 파일을 받아 `/opt/apps/gathermate` 폴더에 저장합니다.
+Git에서 소스 파일을 받아 `/opt/apps/my-flask-server` 폴더에 저장합니다.
 
 ```shell
 $ apt update
 $ apt install git
-$ git clone https://github.com/gathermate/gathermate.git /opt/apps/gathermate
+$ git clone https://github.com/gathermate/gathermate.git /opt/apps/my-flask-server
 ```
 
 #### 파이썬 설치
 
 ```shell
-$ apt install python python-pip
+$ apt install python-minimal python-pip
 ```
 
 #### 파이썬 가상환경 만들기
 
 ```shell
 $ pip install virtualenv
-$ virtualenv -p python2 /opt/apps/venv/gathermate
-$ source /opt/apps/venv/gathermate/bin/activate
-(gathermate) $ 
+$ virtualenv -p python2 /opt/apps/my-flask-server/venv
+$ source /opt/apps/my-flask-server/venv/bin/activate
+(venv) $ 
 ```
 
 #### 파이썬 패키지 설치
 
 ```shell
-(gathermate) $ pip install -r /opt/apps/gathermate/requirements.txt
+(venv) $ pip install -r /opt/apps/my-flask-server/requirements.txt
 ```
 
 #### 실행하기
 
 **설정하기를 읽어본 후 실행하기를 권장합니다.**
 
-`gunicornd` 스크립트에서 포트 번호를 꼭 변경해 주세요.
+`my-flask-server` 스크립트에서 포트 번호를 꼭 변경해 주세요.
     
 ```shell
-$ cp /opt/apps/gathermate/gunicornd /etc/init.d/gunicornd
-$ chmod 755 /etc/init.d/gunicornd
-$ service gunicornd start
+$ cp /opt/apps/my-flask-server/my-flask-server /etc/init.d/my-flask-server
+$ chmod 755 /etc/init.d/my-flask-server
+$ service my-flask-server start
 ```
 
 ---
@@ -171,8 +176,8 @@ $ service gunicornd start
 먼저 `config.py`를 `instance`폴더로 복사해 주세요.
 
 ```shell
-$ mkdir /opt/apps/gathermate/instance
-$ cp /opt/apps/gathermate/config.py /opt/apps/gathermate/instance/config.py
+$ mkdir /opt/apps/my-flask-server/instance
+$ cp /opt/apps/my-flask-server/config.py /opt/apps/my-flask-server/instance/config.py
 ```
 
  그런 다음 `instance/config.py` 내의 민감한 정보를 즉시 변경해 주세요. 이제부터 `config.py`가 아닌 `instance/config.py`의 설정을 사용하게 됩니다.
@@ -311,7 +316,7 @@ Google App Engine의 Python 2 Standard 환경에 맞추어져 있습니다.
 ##### GAE 파이썬 패키지 설치
 
 ```shell
-$ pip install -t /opt/apps/gathermate/lib -r /opt/apps/gathermate/requirements_gae.txt --no-dependencies
+$ pip install -t /opt/apps/my-flask-server/gae/lib -r /opt/apps/my-flask-server/requirements_gae.txt --no-dependencies
 ```
 
 ##### GAE 테스트 서버

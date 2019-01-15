@@ -1,6 +1,6 @@
 .git
 instance
-lib
-setup
+gae
 *.pyc
 var
+venv
