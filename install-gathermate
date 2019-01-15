@@ -269,20 +269,17 @@ check_python_version(){
     fi
 }
 make_virtualenv(){
-    if [ -e "$VENV/bin/activate" ]; then
-        . $VENV/bin/activate
-    else
+    if [ ! -e "$VENV/bin/activate" ]; then
         echo "$PREFIX Make $PYTHON virtual environment at $VENV"
         $PYTHON -m virtualenv $VENV -p $PYTHON
-        if [ -e "$VENV/bin/activate" ]; then
-            . $VENV/bin/activate
-        else
-            echo "$PREFIX Could not activate virtual environment."
+        if [ ! -e "$VENV/bin/activate" ]; then
+            echo "$PREFIX Could not make virtual environment."
             exit 1
         fi
     fi
 }
 install_python_packages(){
+    . $VENV/bin/activate
     if [ ! -e $ROOT/$REQUIREMENTS ]; then
         echo "$PREFIX $ROOT/$REQUIREMENTS is not found."
         exit 1
@@ -295,6 +292,7 @@ install_python_packages(){
     else
         $PIP_INSTALL_REQUIREMENTS
     fi
+    deactivate
 }
 install(){
     echo "$PREFIX Install to $TARGET"
