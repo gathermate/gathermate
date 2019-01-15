@@ -252,7 +252,12 @@ check_python_version(){
     fi
 }
 make_virtualenv(){
-    HOME=$CACHE_PATH $PIP install virtualenv
+    IMPORT_ERROR=$($PIP 2>&1 | sed -r -n -e "s/(ImportError).*/\1/p")
+    if [ "$IMPORT_ERROR" = "ImportError" ]; then
+        $PYTHON -m pip install virtualenv
+    else
+        HOME=$CACHE_PATH $PIP install virtualenv
+    fi
 
     echo "$PREFIX Make $PYTHON virtual environment at $VENV"
     $PYTHON -m virtualenv $VENV -p $PYTHON
