@@ -31,6 +31,9 @@ opt/
             static/
             templates/
             util/
+            var/
+                log/
+                run/
         venv/
             gathermate/
 ```
