@@ -6,7 +6,7 @@ TARGET=$2
 NAME=my-flask-server
 PREFIX="Gathermate :"
 
-PYTHON=python2
+PYTHON=python
 eval "$PYTHON"_package=python-minimal
 GIT=git
 eval "$GIT"_package=git
@@ -21,8 +21,7 @@ REQUIRE_PYTHON=2.7
 OPT=/opt
 APPS=$OPT/apps
 ROOT=$APPS/$NAME
-VENV_ROOT=$APPS/venv
-VENV=$VENV_ROOT/$NAME
+VENV=$ROOT/venv
 CACHE_PATH=$APPS/tmp
 
 init_common(){
@@ -30,7 +29,6 @@ init_common(){
 }
 
 init_debian(){
-    PATH=/bin:/usr/bin:/sbin:/usr/sbin
     DAEMON_SCRIPT=$NAME
     INSTALL="apt install"
     REQUIREMENTS=requirements.txt
@@ -40,7 +38,6 @@ init_debian(){
 }
 
 init_entware(){
-    PATH=/opt/sbin:/opt/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
     DAEMON_SCRIPT=S89$NAME
     INSTALL="opkg install"
     REQUIREMENTS=requirements_entware.txt
@@ -244,7 +241,7 @@ check_python_version(){
             echo "$PREFIX Python $CURRENT_PYTHON exists at $(get_command_path)"
         else
             echo "$PREFIX Python $CURRENT_PYTHON is not compatible with this program."
-            PACKAGE="python"
+            PACKAGE=$python_package
             install_package
             CURRENT_PYTHON=$(get_python_version)
             if [ "$CURRENT_PYTHON" != "$REQUIRE_PYTHON" ]; then
@@ -299,10 +296,6 @@ uninstall(){
     if [ -e $DAEMON_SCRIPT_PATH ]; then
         echo "$PREFIX Delete $DAEMON_SCRIPT_PATH"
         rm -f $DAEMON_SCRIPT_PATH
-    fi
-    if [ -e $VENV ]; then
-        echo "$PREFIX Delete $VENV"
-        rm -rf $VENV
     fi
     if [ -e $ROOT ]; then
         echo "$PREFIX Delete $ROOT"
