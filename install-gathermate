@@ -62,7 +62,8 @@ install_package(){
             ;;
         n|N)
             echo "$PREFIX Exit..."
-            exit 0
+            uninstall
+            exit 1
             ;;
         *)
             echo "$PREFIX Invalid option - uninstall and exit..."
@@ -175,13 +176,15 @@ before_install(){
     if [ ! -d "$CACHE_PATH" ]; then
         mkdir $CACHE_PATH
     fi
-    if [ "$TARGET" = "entware" ]; then
-        $INSTALL python-lxml
-    fi
 }
 
 after_install(){
     if [ "$TARGET" = "entware" ]; then
+        if ! $PYTHON -c "from lxml import etree" > /dev/null 2>&1; then
+            echo "$PREFIX python-lxml is also required on $TARGET."
+            PACKAGE=python-lxml
+            install_package
+        fi
         cp -r $OPT/lib/python2.7/site-packages/lxml* $VENV/lib/python2.7/site-packages
     fi
     mkdir -p $ROOT/var/log $ROOT/var/run
