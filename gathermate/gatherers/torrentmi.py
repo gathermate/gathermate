@@ -47,7 +47,7 @@ class Torrentmi(Gatherer):
                 yield {'name': name, 'link': link, 'type': 'file'}
             except:
                 GE.trace_error()
-
+        '''
         iframe_xpath = r'//iframe[contains(@src, "info.php")]/@src'
         magnet_xpath = r'//div[contains(@class, "torrent_file")]'
         iframe_url = self.etree(r, encoding=self.encoding).xpath(iframe_xpath)[0]
@@ -61,7 +61,7 @@ class Torrentmi(Gatherer):
                 yield {'name': name, 'link': link, 'type': 'magnet'}
             except:
                 GE.trace_error()
-
+        '''
 
     def get_file(self, url, ticket):
         # type: (urldealer.Url, Dict[Text, object]) -> fetchers.Response
