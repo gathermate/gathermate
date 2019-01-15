@@ -10,6 +10,9 @@ PYTHON=python
 eval "$PYTHON"_package=python-minimal
 GIT=git
 eval "$GIT"_package=git
+PIP=pip
+eval "$PIP"_package=python-pip
+REQUIRE_COMMANDS="$PYTHON $GIT"
 
 REPOSITORY=https://github.com/gathermate/gathermate.git
 
@@ -39,16 +42,17 @@ init_debian(){
 }
 
 init_entware(){
+    REQUIRE_COMMANDS="$REQUIRE_COMMANDS $PIP"
     DAEMON_SCRIPT=S89$NAME
     INSTALL="opkg install"
     REQUIREMENTS=requirements_entware.txt
     INIT_PATH=$OPT/etc/init.d
     eval "$GIT"_package=\"git git-http\"
     eval "$PYTHON"_package=python-light
+    SERVICE=$INIT_PATH/$DAEMON_SCRIPT
     init_common
-    SERVICE=$DAEMON_SCRIPT_PATH
-    SERVICE_START="$SERVICE start"
     SERVICE_STATUS="$SERVICE check"
+
 }
 
 install_package(){
@@ -62,12 +66,10 @@ install_package(){
             ;;
         n|N)
             echo "$PREFIX Exit..."
-            uninstall
             exit 1
             ;;
         *)
             echo "$PREFIX Invalid option - uninstall and exit..."
-            uninstall
             exit 1
             ;;
     esac
@@ -149,7 +151,7 @@ check_permission(){
 
 check_packages(){
     echo "$PREFIX Check required packages..."
-    COMMANDS="$PYTHON $GIT"
+    COMMANDS=$REQUIRE_COMMANDS
     check_commands
     if [ -n "$LIST" ]; then
         OLD_LIST=$LIST
@@ -164,7 +166,6 @@ check_packages(){
         check_commands
         if [ -n "$LIST" ]; then
             echo "$PREFIX Still could not execute $LIST."
-            uninstall
             exit 1
         fi
     fi
@@ -195,7 +196,6 @@ clone_repository(){
     echo "$PREFIX Clone $REPOSITORY..."
     if [ -d "$ROOT" ]; then
         echo "$PREFIX $ROOT already exists."
-        uninstall
         exit 1
     fi
     $GIT clone $REPOSITORY $ROOT
@@ -207,7 +207,6 @@ set_daemon_script(){
         echo "$PREFIX $DAEMON_SCRIPT_PATH exists."
         ORIGIN=$DAEMON_SCRIPT_PATH
         if ! backup_file; then
-            uninstall
             exit 1
         fi
     fi
@@ -218,7 +217,6 @@ set_daemon_script(){
         chmod ug=rwx,o=rx $DAEMON_SCRIPT_PATH
         sed -i -e "s@^ROOT=.*@ROOT=$ROOT@g; s@^ACTIVATE=.*@ACTIVATE=$VENV/bin/activate@g" $DAEMON_SCRIPT_PATH
     else
-        uninstall
         exit 1
     fi
 }
@@ -227,7 +225,6 @@ copy_config(){
     INSTANCE_CONFIG=$ROOT/instance/$CONFIG
     if [ ! -d "$ROOT/instance" ]; then
         if ! mkdir $ROOT/instance; then
-            uninstall
             exit 1
         fi
     fi
@@ -236,13 +233,11 @@ copy_config(){
         echo "$PREFIX $INSTANCE_CONFIG exists."
         ORIGIN=$INSTANCE_CONFIG
         if ! backup_file; then
-            uninstall
             exit 1
         fi
     fi
 
     if ! cp $ROOT/$CONFIG $INSTANCE_CONFIG; then
-        uninstall
         exit 1
     fi
 }
@@ -259,33 +254,41 @@ check_python_version(){
         CURRENT_PYTHON=$(get_python_version)
         if [ "$CURRENT_PYTHON" != "$REQUIRE_PYTHON" ]; then
             echo "$PREFIX Python virsion is still $CURRENT_PYTHON"
-            uninstall
             exit 1
         fi
     fi
+    #PYTHON_ERROR=$($PYTHON -m virtualenv 2>&1 | sed -r -n -e "s/(No module).*/\1/p")
+    if ! $PYTHON -c "import virtualenv" > /dev/null 2>&1; then
+        if ! $PYTHON -c "import pip" > /dev/null 2>&1; then
+            echo "$PREFIX Python pip module is required."
+            PACKAGE=$(eval echo \$"$PIP"_package)
+            install_package
+        fi
+        echo "$PREFIX Python virtualenv module is required."
+        $PYTHON -m pip install virtualenv
+    fi
 }
 make_virtualenv(){
-    #PYTHON_ERROR=$($PYTHON -m virtualenv 2>&1 | sed -r -n -e "s/(No module).*/\1/p")
-
-    echo "$PREFIX Make $PYTHON virtual environment at $VENV"
-    $PYTHON -m virtualenv $VENV -p $PYTHON
-
     if [ -e "$VENV/bin/activate" ]; then
         . $VENV/bin/activate
     else
-        echo "$PREFIX Could not activate virtual environment."
-        uninstall
-        exit 1
+        echo "$PREFIX Make $PYTHON virtual environment at $VENV"
+        $PYTHON -m virtualenv $VENV -p $PYTHON
+        if [ -e "$VENV/bin/activate" ]; then
+            . $VENV/bin/activate
+        else
+            echo "$PREFIX Could not activate virtual environment."
+            exit 1
+        fi
     fi
 }
 install_python_packages(){
     if [ ! -e $ROOT/$REQUIREMENTS ]; then
         echo "$PREFIX $ROOT/$REQUIREMENTS is not found."
-        uninstall
         exit 1
     fi
 
-    echo "$PREFIX Install Python packages..."
+    echo "$PREFIX Install required python packages form PyPI..."
     PIP_INSTALL_REQUIREMENTS="$PYTHON -m pip install -r $ROOT/$REQUIREMENTS"
     if [ -d "$CACHE_PATH" ]; then
         HOME=$CACHE_PATH $PIP_INSTALL_REQUIREMENTS
@@ -318,7 +321,8 @@ uninstall(){
         echo "$PREFIX Delete $ROOT"
         rm -rf $ROOT
     fi
-    echo "$PREFIX You need to uninstall $PYTHON $GIT manually if necessary."
+
+    echo "$PREFIX You need to uninstall $(eval echo \$"$PYTHON"_package) $(eval echo \$"$GIT"_package) manually if necessary."
     echo "$PREFIX Because it might already exist before installing Gathermate."
 }
 
@@ -358,7 +362,7 @@ start(){
             exit 1
             ;;
     esac
-    echo "$PREFIX Are you sure to $TO_DO Gathermate on $TARGET? (yes/no)"
+    echo "$PREFIX Are you sure to $WHAT_TO_DO Gathermate on $TARGET? (yes/no)"
     read -r choice
     case "$choice" in
         yes)
