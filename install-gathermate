@@ -349,13 +349,13 @@ uninstall(){
         rm -f $DAEMON_SCRIPT_PATH
     fi
     get_installed
-    if [ -n "$installed" ]; then
-        echo "$PREFIX You can uninstall $installed manually if necessary."
-        echo "$PREFIX ex) $PACKAGE_MANAGER remove $installed"
-    fi
     if [ -e $ROOT ]; then
         echo "$PREFIX Delete $ROOT"
         rm -rf $ROOT
+    fi
+    if [ -n "$installed" ]; then
+        echo "$PREFIX You can uninstall $installed manually if necessary."
+        echo "$PREFIX ex) $PACKAGE_MANAGER remove $installed"
     fi
 }
 
