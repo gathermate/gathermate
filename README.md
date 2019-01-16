@@ -42,7 +42,8 @@ opt/
                 lib/
                 local/
 ```
-### 스크립트로 자동 설치하기
+
+### 스크립트로 일괄 설치하기
 
 ##### 아래의 명령어로 `/opt/apps`폴더에 `install-gathermate` 스크립트를 다운로드합니다.
 
@@ -67,9 +68,9 @@ chmod +x /opt/apps/install-gathermate
 /opt/apps/install-gathermate -u debian # 데비안
 ```
 ##### 외부 접속 차단
-직접 설치하기를 참고하세요.
-### 직접 설치하기 Entware @ ASUS RT-AC68U aka T-mobile AC1900
+개별 설치하기를 참고하세요.
 
+### 개별 설치하기 (Entware @ ASUS RT-AC68U aka T-mobile AC1900)
 
 #### 소스파일 복사
 
@@ -145,8 +146,8 @@ service restart_firewall
 iptables -L
 ```
 
-### 직접 설치하기 Debian @ WSL
-Debian은 `Windows Subsystem for Linux`에서 테스트 했습니다.
+### 개별 설치하기 (Debian/Ubuntu on WSL)
+Debian, Ubuntu는 `Windows Subsystem for Linux` 환경에서 테스트 했습니다.
 
 #### 소스파일 복사
 
@@ -189,8 +190,6 @@ cp /opt/apps/my-flask-server/my-flask-server /etc/init.d/my-flask-server
 chmod 755 /etc/init.d/my-flask-server
 service my-flask-server start
 ```
-
----
 
 설정하기
 --------
@@ -244,14 +243,11 @@ AUTH_ID = 'admin' # instance/config.py
 
 Google App Engine에서 운영한다면 `GoogleAppEngine` 클래스를 수정해 주세요. `GoogleAppEngine` 클래스는 `LocalHost` 클래스를 상속 받기 때문에 불필요한 중복 입력을 피할 수 있습니다.
 
----
-
-사용하기
--------
+사용법
+------
 **당연한 이야기이지만 해당 사이트의 콘텐츠 수집 코드가 `Gatherer`의 서브 클래스로 구현되어 있어야 합니다.**
 
 #### 현재 버전에서 서버가 처리할 수 있는 요청의 형태는 아래와 같습니다.
-
 
 유형|사이트 이름으로 요청
 :------:|-------
@@ -320,7 +316,7 @@ download_auth:
 
 ---
 
-연습하기
+웹 스크래핑 연습
 -------
 [quotes][quotes]는 스크래핑 연습용 사이트입니다. `gatherers`폴더의 `quotes.py`파일에 코드를 작성하고 아래의 서버 주소에서 결과를 확인해 보세요.
 
