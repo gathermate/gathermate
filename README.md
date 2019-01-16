@@ -42,17 +42,43 @@ opt/
                 lib/
                 local/
 ```
+### 스크립트로 자동 설치하기
 
-### Entware @ ASUS RT-AC68U aka T-mobile AC1900
+##### 아래의 명령어로 `/opt/apps`폴더에 `install-gathermate` 스크립트를 다운로드합니다.
+
+```shell
+curl -L https://raw.githubusercontent.com/gathermate/gathermate/master/install-gathermate > /opt/apps/install-gathermate
+```
+
+##### 설치 스크립트에 실행권한을 부여합니다.
+
+```shell
+chmod +x /opt/apps/install-gathermate
+```
+
+##### 설치하기
+```shell
+/opt/apps/install-gathermate -i entware # 엔트웨어
+/opt/apps/install-gathermate -i debian # 데비안
+```
+##### 제거하기
+```shell
+/opt/apps/install-gathermate -u entware # 엔트웨어
+/opt/apps/install-gathermate -u debian # 데비안
+```
+##### 외부 접속 차단
+직접 설치하기를 참고하세요.
+### 직접 설치하기 Entware @ ASUS RT-AC68U aka T-mobile AC1900
+
 
 #### 소스파일 복사
 
 Git에서 소스 파일을 받아 `/opt/apps/my-flask-server` 폴더에 저장합니다.
 
 ```shell
-$ opkg update
-$ opkg install git git-http    
-$ git clone https://github.com/gathermate/gathermate.git /opt/apps/my-flask-server
+opkg update
+opkg install git git-http    
+git clone https://github.com/gathermate/gathermate.git /opt/apps/my-flask-server
 ```
 #### 파이썬 설치
 
@@ -61,16 +87,15 @@ $ git clone https://github.com/gathermate/gathermate.git /opt/apps/my-flask-serv
 [entware]: https://github.com/Entware/Entware
     
 ```shell
-$ opkg install python-light python-pip python-lxml
+opkg install python-light python-pip python-lxml
 ```
 
 #### 파이썬 가상환경 만들기
 
 ```shell
-$ pip install virtualenv
-$ virtualenv -p python2 /opt/apps/my-flask-server/venv
-$ source /opt/apps/my-flask-server/venv/bin/activate
-(venv) $ 
+pip install virtualenv
+virtualenv -p python2 /opt/apps/my-flask-server/venv
+source /opt/apps/my-flask-server/venv/bin/activate
 ```
 
 #### 파이썬 패키지 설치
@@ -78,8 +103,8 @@ $ source /opt/apps/my-flask-server/venv/bin/activate
 가상환경 내에서 `python` 추가 패키지를 설치합니다. 또한 `opkg`로 설치한 `lxml` 패키지도 가상환경 폴더에 복사해 주세요.
    
 ```shell 
-(venv) $ pip install -r /opt/apps/my-flask-server/requirements_entware.txt
-(venv) $ cp -r /opt/lib/python2.7/site-packages/lxml* /opt/apps/my-flask-server/venv/lib/python2.7/site-packages/ 
+pip install -r /opt/apps/my-flask-server/requirements_entware.txt
+cp -r /opt/lib/python2.7/site-packages/lxml* /opt/apps/my-flask-server/venv/lib/python2.7/site-packages/ 
 ```
 
 #### 실행하기
@@ -89,9 +114,9 @@ $ source /opt/apps/my-flask-server/venv/bin/activate
 `S89my-flask-server` 스크립트에서 포트 번호를 꼭 변경해 주세요.
     
 ```shell
-$ cp /opt/apps/my-flask-server/S89my-flask-server /opt/etc/init.d/S89my-flask-server
-$ chmod +x /opt/etc/init.d/S89my-flask-server
-$ /opt/etc/init.d/S89my-flask-server start
+cp /opt/apps/my-flask-server/S89my-flask-server /opt/etc/init.d/S89my-flask-server
+chmod +x /opt/etc/init.d/S89my-flask-server
+/opt/etc/init.d/S89my-flask-server start
 ```
 
 `공유기_주소:8181`로 접속하여 "Welcome" 페이지가 나오는지 확인.
@@ -112,15 +137,15 @@ iptables -I INPUT -p tcp -s localhost --dport 8181 -j ACCEPT # 1. localhost의 �
 firewall 서비스 재실행
 
 ```shell
-$ service restart_firewall
+service restart_firewall
 ```
 
 확인
 ```shell
-$ iptables -L
+iptables -L
 ```
 
-### Debian @ WSL
+### 직접 설치하기 Debian @ WSL
 Debian은 `Windows Subsystem for Linux`에서 테스트 했습니다.
 
 #### 소스파일 복사
@@ -128,30 +153,29 @@ Debian은 `Windows Subsystem for Linux`에서 테스트 했습니다.
 Git에서 소스 파일을 받아 `/opt/apps/my-flask-server` 폴더에 저장합니다.
 
 ```shell
-$ apt update
-$ apt install git
-$ git clone https://github.com/gathermate/gathermate.git /opt/apps/my-flask-server
+apt update
+apt install git
+git clone https://github.com/gathermate/gathermate.git /opt/apps/my-flask-server
 ```
 
 #### 파이썬 설치
 
 ```shell
-$ apt install python-minimal python-pip
+apt install python-minimal python-pip
 ```
 
 #### 파이썬 가상환경 만들기
 
 ```shell
-$ pip install virtualenv
-$ virtualenv -p python2 /opt/apps/my-flask-server/venv
-$ source /opt/apps/my-flask-server/venv/bin/activate
-(venv) $ 
+pip install virtualenv
+virtualenv -p python2 /opt/apps/my-flask-server/venv
+source /opt/apps/my-flask-server/venv/bin/activate 
 ```
 
 #### 파이썬 패키지 설치
 
 ```shell
-(venv) $ pip install -r /opt/apps/my-flask-server/requirements.txt
+pip install -r /opt/apps/my-flask-server/requirements.txt
 ```
 
 #### 실행하기
@@ -161,9 +185,9 @@ $ source /opt/apps/my-flask-server/venv/bin/activate
 `my-flask-server` 스크립트에서 포트 번호를 꼭 변경해 주세요.
     
 ```shell
-$ cp /opt/apps/my-flask-server/my-flask-server /etc/init.d/my-flask-server
-$ chmod 755 /etc/init.d/my-flask-server
-$ service my-flask-server start
+cp /opt/apps/my-flask-server/my-flask-server /etc/init.d/my-flask-server
+chmod 755 /etc/init.d/my-flask-server
+service my-flask-server start
 ```
 
 ---
@@ -174,10 +198,11 @@ $ service my-flask-server start
 실행하기 전에 **반드시** 해야 할 작업이 있습니다.
 
 먼저 `config.py`를 `instance`폴더로 복사해 주세요.
+스크립트로 자동 설치했다면 건너뛰어도 됩니다.
 
 ```shell
-$ mkdir /opt/apps/my-flask-server/instance
-$ cp /opt/apps/my-flask-server/config.py /opt/apps/my-flask-server/instance/config.py
+mkdir /opt/apps/my-flask-server/instance
+cp /opt/apps/my-flask-server/config.py /opt/apps/my-flask-server/instance/config.py
 ```
 
  그런 다음 `instance/config.py` 내의 민감한 정보를 즉시 변경해 주세요. 이제부터 `config.py`가 아닌 `instance/config.py`의 설정을 사용하게 됩니다.
@@ -316,15 +341,15 @@ Google App Engine의 Python 2 Standard 환경에 맞추어져 있습니다.
 ##### GAE 파이썬 패키지 설치
 
 ```shell
-$ pip install -t /opt/apps/my-flask-server/gae/lib -r /opt/apps/my-flask-server/requirements_gae.txt --no-dependencies
+pip install -t /opt/apps/my-flask-server/gae/lib -r /opt/apps/my-flask-server/requirements_gae.txt --no-dependencies
 ```
 
 ##### GAE 테스트 서버
 ```shell
-$ dev_appserver.py --log_level=debug app.yaml
+dev_appserver.py --log_level=debug app.yaml
 ```
 
 ##### GAE 배포
 ```shell
-$ gcloud app deploy --version=20181201-my-version --verbosity=info
+gcloud app deploy --version=20181201-my-version --verbosity=info
 ```
