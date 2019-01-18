@@ -313,8 +313,8 @@ make_virtualenv(){
 
 install_python_packages(){
     . $VENV/bin/activate
-    if [ ! -e $ROOT/$REQUIREMENTS ]; then
-        echo "$PREFIX $ROOT/$REQUIREMENTS is not found."
+    if [ ! -e $ROOT/install/$REQUIREMENTS ]; then
+        echo "$PREFIX $ROOT/install/$REQUIREMENTS is not found."
         exit 1
     fi
     echo "$PREFIX Install required python packages form PyPI..."
