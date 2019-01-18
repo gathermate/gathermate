@@ -172,7 +172,6 @@ Debian, Ubuntu는 `Windows Subsystem for Linux` 환경에서 테스트 했습니
 #### 1. 소스파일 복사
 
 Git에서 소스 파일을 받아 `/opt/apps/my-flask-server` 폴더에 저장합니다.
-
 ```shell
 apt update
 apt install git
@@ -180,13 +179,11 @@ git clone https://github.com/gathermate/gathermate.git /opt/apps/my-flask-server
 ```
 
 #### 2. 파이썬 설치
-
 ```shell
 apt install python-minimal python-pip
 ```
 
 #### 3. 파이썬 가상환경 만들기
-
 ```shell
 pip install virtualenv
 virtualenv -p python2 /opt/apps/my-flask-server/venv
@@ -194,17 +191,15 @@ source /opt/apps/my-flask-server/venv/bin/activate
 ```
 
 #### 4. 파이썬 패키지 설치
-
 ```shell
 pip install -r /opt/apps/my-flask-server/install/requirements.txt
 ```
 
 #### 5. 실행하기
-
 **설정하기를 읽어본 후 실행하기를 권장합니다.**
 
-기본 설정 파일 `/opt/apps/my-flask-server/install/default_config.py`를 `/opt/apps/my-flask-server/instance/` 폴더로 복사하면서 파일 이름을 `config.py`로 변경합니다.
 
+기본 설정 파일 `/opt/apps/my-flask-server/install/default_config.py`를 `/opt/apps/my-flask-server/instance/` 폴더로 복사하면서 파일 이름을 `config.py`로 변경합니다.
 ```shell
 mkdir /opt/apps/my-flask-server/instance
 cp /opt/apps/my-flask-server/install/default_config.py /opt/apps/my-flask-server/instance/config.py
