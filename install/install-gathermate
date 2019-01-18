@@ -26,7 +26,7 @@ APPS=$OPT/apps
 ROOT=$APPS/$NAME
 VENV=$ROOT/venv
 CACHE_PATH=$APPS/tmp
-INSTALLED_PATH=$ROOT/installed
+INSTALLED_PATH=$ROOT/install/installed.txt
 
 init_common(){
     DAEMON_SCRIPT_PATH=$INIT_PATH/$DAEMON_SCRIPT
@@ -201,6 +201,7 @@ before_install(){
 
 after_install(){
     if [ "$TARGET" = "entware" ]; then
+        deactivate
         if ! $PYTHON -c "from lxml import etree" > /dev/null 2>&1; then
             echo "$PREFIX python-lxml is also required on $TARGET."
             packages=python-lxml
@@ -240,9 +241,9 @@ set_daemon_script(){
             exit 1
         fi
     fi
-
-    echo "$PREFIX Copy $ROOT/$DAEMON_SCRIPT to $DAEMON_SCRIPT_PATH"
-    if cp $ROOT/$DAEMON_SCRIPT $DAEMON_SCRIPT_PATH; then
+    default_script="$ROOT/install/daemon-$TARGET"
+    echo "$PREFIX Copy $default_script to $DAEMON_SCRIPT_PATH"
+    if cp $default_script $DAEMON_SCRIPT_PATH; then
         echo "$PREFIX Make $DAEMON_SCRIPT_PATH executable."
         chmod ug=rwx,o=rx $DAEMON_SCRIPT_PATH
         sed -i -e "s@^ROOT=.*@ROOT=$ROOT@g; s@^ACTIVATE=.*@ACTIVATE=$VENV/bin/activate@g" $DAEMON_SCRIPT_PATH
@@ -265,8 +266,8 @@ copy_config(){
             exit 1
         fi
     fi
-    echo "$PREFIX Copy $ROOT/$CONFIG to $instance_config"
-    if ! cp $ROOT/$CONFIG $instance_config; then
+    echo "$PREFIX Copy $ROOT/install/default_$CONFIG to $instance_config"
+    if ! cp $ROOT/install/default_$CONFIG $instance_config; then
         exit 1
     fi
 }
@@ -317,13 +318,12 @@ install_python_packages(){
         exit 1
     fi
     echo "$PREFIX Install required python packages form PyPI..."
-    local install_python_requirements="$PYTHON -m $PIP install -r $ROOT/$REQUIREMENTS"
+    local install_python_requirements="$PYTHON -m $PIP install -r $ROOT/install/$REQUIREMENTS"
     if [ -d "$CACHE_PATH" ]; then
-        HOME=$CACHE_PATH $install_python_requirements
+        $install_python_requirements --cache-dir $CACHE_PATH
     else
         $install_python_requirements
     fi
-    deactivate
 }
 
 install(){

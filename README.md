@@ -29,6 +29,7 @@ opt/
                 gatherers/
                 static/
                 templates/
+            install/
             instance/
             static/
             templates/
@@ -48,7 +49,7 @@ opt/
 ##### 아래의 명령어로 `/opt/apps`폴더에 `install-gathermate` 스크립트를 다운로드합니다.
 
 ```shell
-curl -L https://raw.githubusercontent.com/gathermate/gathermate/master/install-gathermate > /opt/apps/install-gathermate
+curl -L https://raw.githubusercontent.com/gathermate/gathermate/master/install/install-gathermate > /opt/apps/install-gathermate
 ```
 
 ##### 설치 스크립트에 실행권한을 부여합니다.
@@ -104,7 +105,7 @@ source /opt/apps/my-flask-server/venv/bin/activate
 가상환경 내에서 `python` 추가 패키지를 설치합니다. 또한 `opkg`로 설치한 `lxml` 패키지도 가상환경 폴더에 복사해 주세요.
    
 ```shell 
-pip install -r /opt/apps/my-flask-server/requirements_entware.txt
+pip install -r /opt/apps/my-flask-server/install/requirements_entware.txt
 cp -r /opt/lib/python2.7/site-packages/lxml* /opt/apps/my-flask-server/venv/lib/python2.7/site-packages/ 
 ```
 
@@ -115,7 +116,7 @@ cp -r /opt/lib/python2.7/site-packages/lxml* /opt/apps/my-flask-server/venv/lib/
 `S89my-flask-server` 스크립트에서 포트 번호를 꼭 변경해 주세요.
     
 ```shell
-cp /opt/apps/my-flask-server/S89my-flask-server /opt/etc/init.d/S89my-flask-server
+cp /opt/apps/my-flask-server/install/daemon-entware /opt/etc/init.d/S89my-flask-server
 chmod +x /opt/etc/init.d/S89my-flask-server
 /opt/etc/init.d/S89my-flask-server start
 ```
@@ -176,7 +177,7 @@ source /opt/apps/my-flask-server/venv/bin/activate
 #### 파이썬 패키지 설치
 
 ```shell
-pip install -r /opt/apps/my-flask-server/requirements.txt
+pip install -r /opt/apps/my-flask-server/install/requirements.txt
 ```
 
 #### 실행하기
@@ -186,7 +187,7 @@ pip install -r /opt/apps/my-flask-server/requirements.txt
 `my-flask-server` 스크립트에서 포트 번호를 꼭 변경해 주세요.
     
 ```shell
-cp /opt/apps/my-flask-server/my-flask-server /etc/init.d/my-flask-server
+cp /opt/apps/my-flask-server/install/daemon-debian /etc/init.d/my-flask-server
 chmod 755 /etc/init.d/my-flask-server
 service my-flask-server start
 ```
@@ -201,7 +202,7 @@ service my-flask-server start
 
 ```shell
 mkdir /opt/apps/my-flask-server/instance
-cp /opt/apps/my-flask-server/config.py /opt/apps/my-flask-server/instance/config.py
+cp /opt/apps/my-flask-server/install/default_config.py /opt/apps/my-flask-server/instance/config.py
 ```
 
  그런 다음 `instance/config.py` 내의 민감한 정보를 즉시 변경해 주세요. 이제부터 `config.py`가 아닌 `instance/config.py`의 설정을 사용하게 됩니다.
@@ -337,7 +338,7 @@ Google App Engine의 Python 2 Standard 환경에 맞추어져 있습니다.
 ##### GAE 파이썬 패키지 설치
 
 ```shell
-pip install -t /opt/apps/my-flask-server/gae/lib -r /opt/apps/my-flask-server/requirements_gae.txt --no-dependencies
+pip install -t /opt/apps/my-flask-server/gae/lib -r /opt/apps/my-flask-server/install/requirements_gae.txt --no-dependencies
 ```
 
 ##### GAE 테스트 서버
