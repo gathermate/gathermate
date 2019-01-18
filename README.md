@@ -233,7 +233,7 @@ service my-flask-server start
 
 ```shell
 mkdir /opt/apps/my-flask-server/instance
-cp /opt/apps/my-flask-server/install/default_config.py /opt/apps/my-flask-server/instance/config.py
+cp /opt/apps/my-flask-server/install/default_config.py /opt/apps/my-flask-server/instance/config.py 
 ```
 
  그런 다음 `instance/config.py` 내의 민감한 정보를 즉시 변경해 주세요.
