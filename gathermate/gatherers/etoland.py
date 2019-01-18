@@ -42,8 +42,11 @@ class Etoland(Gatherer):
                 link = e.get('href').strip()
                 id_ = self.get_id_num(link)
                 date = e.getparent().getparent().findall('td')[3].text
-                category = e.getparent().find('a[1]').text.strip()
-                etc = '{} {}'.format(category, date)
+                catext = e.getparent().find('a[1]').text
+                if catext:
+                    etc = '{} {}'.format(catext.strip(), date)
+                else:
+                    etc = date
                 yield {'id': id_, 'title': title, 'link': link, 'etc': etc}
             except:
                 GE.trace_error()
