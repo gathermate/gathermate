@@ -73,8 +73,7 @@ chmod +x /opt/apps/install-gathermate.sh
 
 ### 개별 설치하기 (Entware @ ASUS RT-AC68U aka T-mobile AC1900)
 
-#### 소스파일 복사
-
+#### 1. 소스파일 복사
 Git에서 소스 파일을 받아 `/opt/apps/my-flask-server` 폴더에 저장합니다.
 
 ```shell
@@ -82,7 +81,7 @@ opkg update
 opkg install git git-http    
 git clone https://github.com/gathermate/gathermate.git /opt/apps/my-flask-server
 ```
-#### 파이썬 설치
+#### 2. 파이썬 설치
 
 `python`, `python-pip`, `python-lxml`을 설치합니다. `lxml`을 [Entware][entware] 패키지에서 설치하는 이유는 `pip`으로 설치할 경우 컴파일 오류가 발생하기 때문입니다. `lxml`을 컴파일하려면 헤더 파일이 필요한데 [Entware][entware]에는 기본 탑재되어 있지 않습니다. 그래도 정말 컴파일 하기를 원한다면 [Using gcc](https://github.com/Entware/Entware-ng/wiki/Using-gcc-(native-compilation))를 참조하세요.
 
@@ -92,7 +91,7 @@ git clone https://github.com/gathermate/gathermate.git /opt/apps/my-flask-server
 opkg install python-light python-pip python-lxml
 ```
 
-#### 파이썬 가상환경 만들기
+#### 3. 파이썬 가상환경 만들기
 
 ```shell
 pip install virtualenv
@@ -100,7 +99,7 @@ virtualenv -p python2 /opt/apps/my-flask-server/venv
 source /opt/apps/my-flask-server/venv/bin/activate
 ```
 
-#### 파이썬 패키지 설치
+#### 4. 파이썬 패키지 설치
 
 가상환경 내에서 `python` 추가 패키지를 설치합니다. 또한 `opkg`로 설치한 `lxml` 패키지도 가상환경 폴더에 복사해 주세요.
    
@@ -109,7 +108,7 @@ pip install -r /opt/apps/my-flask-server/install/requirements_entware.txt
 cp -r /opt/lib/python2.7/site-packages/lxml* /opt/apps/my-flask-server/venv/lib/python2.7/site-packages/ 
 ```
 
-#### 실행하기
+#### 5. 실행하기
 
 **설정하기를 읽어본 후 실행하기를 권장합니다.**
 
@@ -143,7 +142,7 @@ chmod +x /opt/etc/init.d/S89my-flask-server
 
 `공유기_주소:8181`로 접속하여 "Welcome" 페이지가 나오는지 확인.
 
-#### 외부 접속 차단
+#### 6. 외부 접속 차단
 
 `/jffs/scripts/firewall-start`에 아래 내용을 추가
 
@@ -170,7 +169,7 @@ iptables -L
 ### 개별 설치하기 (Debian/Ubuntu on WSL)
 Debian, Ubuntu는 `Windows Subsystem for Linux` 환경에서 테스트 했습니다.
 
-#### 소스파일 복사
+#### 1. 소스파일 복사
 
 Git에서 소스 파일을 받아 `/opt/apps/my-flask-server` 폴더에 저장합니다.
 
@@ -180,13 +179,13 @@ apt install git
 git clone https://github.com/gathermate/gathermate.git /opt/apps/my-flask-server
 ```
 
-#### 파이썬 설치
+#### 2. 파이썬 설치
 
 ```shell
 apt install python-minimal python-pip
 ```
 
-#### 파이썬 가상환경 만들기
+#### 3. 파이썬 가상환경 만들기
 
 ```shell
 pip install virtualenv
@@ -194,13 +193,13 @@ virtualenv -p python2 /opt/apps/my-flask-server/venv
 source /opt/apps/my-flask-server/venv/bin/activate 
 ```
 
-#### 파이썬 패키지 설치
+#### 4. 파이썬 패키지 설치
 
 ```shell
 pip install -r /opt/apps/my-flask-server/install/requirements.txt
 ```
 
-#### 실행하기
+#### 5. 실행하기
 
 **설정하기를 읽어본 후 실행하기를 권장합니다.**
 
