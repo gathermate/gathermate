@@ -49,24 +49,24 @@ opt/
 ##### 아래의 명령어로 `/opt/apps`폴더에 `install-gathermate` 스크립트를 다운로드합니다.
 
 ```shell
-curl -L https://raw.githubusercontent.com/gathermate/gathermate/master/install/install-gathermate > /opt/apps/install-gathermate
+curl -L https://raw.githubusercontent.com/gathermate/gathermate/master/install/install-gathermate.sh > /opt/apps/install-gathermate.sh
 ```
 
 ##### 설치 스크립트에 실행권한을 부여합니다.
 
 ```shell
-chmod +x /opt/apps/install-gathermate
+chmod +x /opt/apps/install-gathermate.sh
 ```
 
 ##### 설치하기
 ```shell
-/opt/apps/install-gathermate -i entware # 엔트웨어
-/opt/apps/install-gathermate -i debian # 데비안
+/opt/apps/install-gathermate.sh -i entware # 엔트웨어
+/opt/apps/install-gathermate.sh -i debian # 데비안
 ```
 ##### 제거하기
 ```shell
-/opt/apps/install-gathermate -u entware # 엔트웨어
-/opt/apps/install-gathermate -u debian # 데비안
+/opt/apps/install-gathermate.sh -u entware # 엔트웨어
+/opt/apps/install-gathermate.sh -u debian # 데비안
 ```
 ##### 외부 접속 차단
 개별 설치하기를 참고하세요.
@@ -113,11 +113,22 @@ cp -r /opt/lib/python2.7/site-packages/lxml* /opt/apps/my-flask-server/venv/lib/
 
 **설정하기를 읽어본 후 실행하기를 권장합니다.**
 
-`S89my-flask-server` 스크립트에서 포트 번호를 꼭 변경해 주세요.
-    
+`/opt/apps/my-flask-server/install` 폴더의 `daemon-entware` 스크립트를 `/opt/etc/init.d` 폴더로 복사하면서 파일 이름을 `S89my-flask-server`로 변경합니다. 
 ```shell
 cp /opt/apps/my-flask-server/install/daemon-entware /opt/etc/init.d/S89my-flask-server
+```
+**`S89my-flask-server` 스크립트 내 포트 번호를 확인 후 변경해 주세요.**
+
+`/opt/etc/init.d/S89my-flask-server` 스크립트에 실행권한을 부여합니다.
+```shell
 chmod +x /opt/etc/init.d/S89my-flask-server
+```
+
+
+   
+실행하기 
+
+```shell
 /opt/etc/init.d/S89my-flask-server start
 ```
 
@@ -184,11 +195,19 @@ pip install -r /opt/apps/my-flask-server/install/requirements.txt
 
 **설정하기를 읽어본 후 실행하기를 권장합니다.**
 
-`my-flask-server` 스크립트에서 포트 번호를 꼭 변경해 주세요.
-    
+`/opt/apps/my-flask-server/install` 폴더의 `daemon-debian` 스크립트를 `/etc/init.d` 폴더로 복사하면서 파일 이름을 `my-flask-server`로 변경합니다. 
 ```shell
 cp /opt/apps/my-flask-server/install/daemon-debian /etc/init.d/my-flask-server
-chmod 755 /etc/init.d/my-flask-server
+```
+**`my-flask-server` 스크립트 내 포트 번호를 확인 후 변경해 주세요.**
+
+`/etc/init.d/my-flask-server` 스크립트에 실행권한을 부여합니다.
+```shell
+chmod +x /etc/init.d/my-flask-server
+```
+
+실행하기     
+```shell
 service my-flask-server start
 ```
 
