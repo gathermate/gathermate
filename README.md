@@ -46,7 +46,7 @@ opt/
 
 ### 스크립트로 일괄 설치하기
 
-##### 아래의 명령어로 `/opt/apps`폴더에 `install-gathermate` 스크립트를 다운로드합니다.
+##### 아래의 명령어로 `/opt/apps`폴더에 `install-gathermate.sh` 스크립트를 다운로드합니다.
 
 ```shell
 curl -L https://raw.githubusercontent.com/gathermate/gathermate/master/install/install-gathermate.sh > /opt/apps/install-gathermate.sh
@@ -124,7 +124,11 @@ cp /opt/apps/my-flask-server/install/default_config.py /opt/apps/my-flask-server
 ```shell
 cp /opt/apps/my-flask-server/install/daemon-entware /opt/etc/init.d/S89my-flask-server
 ```
+
 **`S89my-flask-server` 스크립트 내 포트 번호를 확인 후 변경해 주세요.**
+```shell
+BIND=0.0.0.0:8181
+```
 
 `/opt/etc/init.d/S89my-flask-server` 스크립트에 실행권한을 부여합니다.
 ```shell
@@ -211,7 +215,11 @@ cp /opt/apps/my-flask-server/install/default_config.py /opt/apps/my-flask-server
 ```shell
 cp /opt/apps/my-flask-server/install/daemon-debian /etc/init.d/my-flask-server
 ```
-**`my-flask-server` 스크립트 내 포트 번호를 확인 후 변경해 주세요.**
+
+**`S89my-flask-server` 스크립트 내 포트 번호를 확인 후 변경해 주세요.**
+```shell
+BIND=0.0.0.0:8181
+```
 
 `/etc/init.d/my-flask-server` 스크립트에 실행권한을 부여합니다.
 ```shell
@@ -250,20 +258,21 @@ cp /opt/apps/my-flask-server/install/default_config.py /opt/apps/my-flask-server
 
 민감한 정보는 기본적으로 `os.environ.get()` 를 통해 `export`된 값을 불러오도록 되어 있습니다. `os.environ.get()`이 어떤 이름의 환경변수를 가져오는지 확인한 다음 `gunicorn` 스크립트에서 `export` 해 주면 됩니다. 이 방법이 어려울 경우 직접 `instance/config.py`에 입력하세요.
 
-S89guicornd / gunicornd 스크립트에는 아래의 환경 변수가 기본값으로 입력되어 있습니다.
+데몬 스크립트에는 아래의 환경 변수가 기본값으로 입력되어 있습니다.
 ```shell
 export GATHERMATE_AUTH_ID=admin
 export GATHERMATE_AUTH_PW=password
 ```
-변수명을 바꾼 `export` 설정:
+`export` 변수명을 바꿀 경우:
 
 ```shell
-export MY_AUTH_ID="admin" # gunicornd 스크립트
+export MY_AUTH_ID="admin" # 데몬 스크립트
 ```
 ```python
 AUTH_ID = os.environ.get('MY_AUTH_ID') # instance/config.py
 ```
-`instance/config.py`에 직접 입력:
+
+`instance/config.py`에 직접 입력할 경우:
 
 ```python
 AUTH_ID = 'admin' # instance/config.py
