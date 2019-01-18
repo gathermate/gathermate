@@ -25,11 +25,9 @@ def create_app(config_instance, cache_type, backend):
                 instance_relative_config=True,
                 static_folder='static',
                 template_folder='templates')
-    # config.py (default) : It has instances of Localhost and GoogleAppEngine.
-    app.config.from_object('config')
-    # instance/config.py (user) : It also has instances of Localhost and GoogleAppEngine.
+    # instance/config.py : It has instances of Localhost and GoogleAppEngine.
     app.config.from_pyfile('config.py', silent=True)
-    # Overwrite app config from a instance created by config.py or instance/config.py if it exists.
+    # Overwrite app config from a instance created by instance/config.py
     app.config.from_object(app.config[config_instance])
     logging.debug('Config: %s', app.config['NAME'])
     app.config['BACKEND'] = backend

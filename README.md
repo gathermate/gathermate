@@ -113,6 +113,13 @@ cp -r /opt/lib/python2.7/site-packages/lxml* /opt/apps/my-flask-server/venv/lib/
 
 **설정하기를 읽어본 후 실행하기를 권장합니다.**
 
+기본 설정 파일 `/opt/apps/my-flask-server/install/default_config.py`를 `/opt/apps/my-flask-server/instance/` 폴더로 복사하면서 파일 이름을 `config.py`로 변경합니다.
+
+```shell
+mkdir /opt/apps/my-flask-server/instance
+cp /opt/apps/my-flask-server/install/default_config.py /opt/apps/my-flask-server/instance/config.py
+```
+
 `/opt/apps/my-flask-server/install` 폴더의 `daemon-entware` 스크립트를 `/opt/etc/init.d` 폴더로 복사하면서 파일 이름을 `S89my-flask-server`로 변경합니다. 
 ```shell
 cp /opt/apps/my-flask-server/install/daemon-entware /opt/etc/init.d/S89my-flask-server
@@ -123,8 +130,6 @@ cp /opt/apps/my-flask-server/install/daemon-entware /opt/etc/init.d/S89my-flask-
 ```shell
 chmod +x /opt/etc/init.d/S89my-flask-server
 ```
-
-
    
 실행하기 
 
@@ -195,6 +200,13 @@ pip install -r /opt/apps/my-flask-server/install/requirements.txt
 
 **설정하기를 읽어본 후 실행하기를 권장합니다.**
 
+기본 설정 파일 `/opt/apps/my-flask-server/install/default_config.py`를 `/opt/apps/my-flask-server/instance/` 폴더로 복사하면서 파일 이름을 `config.py`로 변경합니다.
+
+```shell
+mkdir /opt/apps/my-flask-server/instance
+cp /opt/apps/my-flask-server/install/default_config.py /opt/apps/my-flask-server/instance/config.py
+```
+
 `/opt/apps/my-flask-server/install` 폴더의 `daemon-debian` 스크립트를 `/etc/init.d` 폴더로 복사하면서 파일 이름을 `my-flask-server`로 변경합니다. 
 ```shell
 cp /opt/apps/my-flask-server/install/daemon-debian /etc/init.d/my-flask-server
@@ -216,7 +228,7 @@ service my-flask-server start
 
 실행하기 전에 **반드시** 해야 할 작업이 있습니다.
 
-먼저 `config.py`를 `instance`폴더로 복사해 주세요.
+먼저 `default_config.py`를 `instance`폴더로 복사하면서 `config.py`로 이름을 변경해 주세요.
 스크립트로 자동 설치했다면 건너뛰어도 됩니다.
 
 ```shell
@@ -224,7 +236,7 @@ mkdir /opt/apps/my-flask-server/instance
 cp /opt/apps/my-flask-server/install/default_config.py /opt/apps/my-flask-server/instance/config.py
 ```
 
- 그런 다음 `instance/config.py` 내의 민감한 정보를 즉시 변경해 주세요. 이제부터 `config.py`가 아닌 `instance/config.py`의 설정을 사용하게 됩니다.
+ 그런 다음 `instance/config.py` 내의 민감한 정보를 즉시 변경해 주세요.
 
 #### 꼭 변경해야 하는 값들
 
