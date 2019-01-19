@@ -40,6 +40,9 @@ opt/
                 bin/
                 gae/
                     lib/
+                        chardet/
+                        concurrent/
+                        flask_caching/
                 include/
                 lib/
                 local/
