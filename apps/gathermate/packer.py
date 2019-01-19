@@ -7,8 +7,8 @@ from lxml import etree
 from lxml.builder import E
 from flask import url_for
 
-from util import urldealer as ud
-from util import toolbox as tb
+from apps.common import urldealer as ud
+from apps.common import toolbox as tb
 
 ACCEPTED_EXT = []
 

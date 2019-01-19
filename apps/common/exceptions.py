@@ -2,15 +2,15 @@
 import traceback
 import logging as log
 
-from util import toolbox
-from util.cache import cache
+from apps.common import toolbox
+from apps.common.cache import cache
 
 
-class GathermateException(Exception):
+class MyFlaskException(Exception):
 
     def __init__(self, *args, **kwargs):
         # type: (*str, Optional[fetcher.Response]) -> None
-        super(GathermateException, self).__init__(*args)
+        super(MyFlaskException, self).__init__(*args)
         self.response = kwargs.get('response', None)
         if self.response:
             if self.response.content:

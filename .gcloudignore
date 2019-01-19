@@ -1,4 +1,5 @@
-.git
-*.pyc
-var
-venv
+#!include:.gitignore
+!instance/
+!venv/
+venv/*
+!venv/gae/

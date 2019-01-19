@@ -8,9 +8,9 @@ import logging as log
 import packer
 import gatherer as gtr
 import fetchers
-from gathermate.exception import GathermateException as GE
-from util import toolbox as tb
-from util import urldealer as ud
+from apps.common.exceptions import MyFlaskException
+from apps.common import toolbox as tb
+from apps.common import urldealer as ud
 
 def hire_manager(config):
     # type: (flask.config.Config, Text) -> gathermate.Manager
@@ -24,7 +24,7 @@ class Manager(object):
     def __init__(self, config):
         # type: (flask.config.Config) -> None
         if not config:
-            raise GE('Config is not set.')
+            raise MyFlaskException('Config is not set.')
         self.config = config
         self.gatherer_classes = self._register_modules('gatherers')
 
@@ -35,11 +35,11 @@ class Manager(object):
         modules_path = '{}/'.format(os.path.join(root, package))
         for file in glob.iglob("{}[!_]*.py".format(modules_path)):
             fname, fext = os.path.splitext(os.path.basename(file))
-            module = importlib.import_module('gathermate.{}.{}'.format(package, fname))
+            module = importlib.import_module('apps.gathermate.{}.{}'.format(package, fname))
             try:
                 type_ = module.register()
             except AttributeError:
-                GE.trace_error()
+                MyFlaskException.trace_error()
                 log.warning('[%s%s] has not register() function.', fname, fext)
                 continue
             if type_ == 'Gatherer':
@@ -64,11 +64,11 @@ class Manager(object):
         # type: (urldealer.URL) -> Type[gatherer.Gatherer]
         host = target.hostname if target.hostname else target.netloc
         if not host:
-            raise GE('Target URL is wrong : %s' % target.text)
+            raise MyFlaskException('Target URL is wrong : %s' % target.text)
         try:
             class_ = self.gatherer_classes[host]
         except KeyError:
-            GE.trace_error()
+            MyFlaskException.trace_error()
             class_ = self._find_gatherer(host)
         log.info("%s class matches with [%s].", class_.__name__, target.text)
         return self._train_gatherer(class_, self.config.get('GATHERERS'))
@@ -79,7 +79,7 @@ class Manager(object):
             if alias in host:
                 log.info("%s class matches with [%s].", class_.__name__, alias)
                 return class_
-        raise GE('There is no class associate with : {}'.format(alias))
+        raise MyFlaskException('There is no class associate with : {}'.format(alias))
 
     def _train_gatherer(self, class_, config):
         # type: (Type[gatherer.Gatherer], Dict[Text, object]) -> Type[gatherer.Gatherer]
@@ -176,7 +176,7 @@ class FlaskManager(Manager):
             if url:
                 target = ud.URL(ud.unquote(url))
             else:
-                raise GE('There is no target page')
+                raise MyFlaskException('There is no target page')
         except KeyError:
             raise KeyError('There is no target page : {}'.format(request.query))
 

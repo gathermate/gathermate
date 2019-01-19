@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 import re
 
-from gathermate.gatherer import Gatherer
-from gathermate.exception import GathermateException as GE
-from util import urldealer as ud
+from apps.gathermate.gatherer import Gatherer
+from apps.common.exceptions import MyFlaskException
+from apps.common import urldealer as ud
 
 def register():
     return 'Gatherer'
@@ -42,7 +42,7 @@ class Wal(Gatherer):
                 date = e.getparent().getnext().find('a').text.strip()
                 yield {'id': id_, 'title': title, 'link': link, 'etc': date}
             except:
-                GE.trace_error()
+                MyFlaskException.trace_error()
 
         pop_xpath = r'//div[@id="m_list"]/ul/li/a'
         root = tree.xpath(pop_xpath)
@@ -55,7 +55,7 @@ class Wal(Gatherer):
                 real_id =  self.get_id_num(link)
                 yield {'id': id_, 'title': title, 'link': link, 'etc': real_id}
             except:
-                GE.trace_error()
+                MyFlaskException.trace_error()
 
     def get_item(self, r):
         # type: (fetchers.Response) -> Generator
@@ -72,7 +72,7 @@ class Wal(Gatherer):
                     name = match.group(2)
                     yield {'name': name, 'link': link, 'type': 'file'}
             except:
-                GE.trace_error()
+                MyFlaskException.trace_error()
 
         magnet_xpath = r'//input[contains(@value, "magnet:?xt")]'
         for e in root.xpath(magnet_xpath):
@@ -86,7 +86,7 @@ class Wal(Gatherer):
                     name = name if name else xt
                     yield {'name': name, 'link': ud.unquote(value), 'type': 'magnet'}
             except:
-                GE.trace_error()
+                MyFlaskException.trace_error()
 
     def get_file(self, url, ticket):
         # type: (urldealer.Url, Dict[Text, object]) -> fetchers.Response

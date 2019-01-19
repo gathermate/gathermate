@@ -22,13 +22,13 @@ class Localhost(Flask):
 
     # Manager 모듈을 불러오기 위한 값입니다.
     # 다른 매니저로 교체하고 싶을 경우 해당 모듈의 패키지를 입력해 주세요.
-    MANAGER = 'gathermate.manager'
+    MANAGER = 'apps.gathermate.manager'
 
     # 시작시 아래 딕셔너리의 블루프린트가 등록됩니다.
     # instance는 해당 'package'에 명시된 블루프린트 객체의 변수명을 입력하세요.
     BLUEPRINTS = {
         'Gathermate': {
-            'package': 'gathermate.views',
+            'package': 'apps.gathermate.views',
             'instance': 'gathermate',
             'url_prefix': PATH,
         },

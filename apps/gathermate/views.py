@@ -11,9 +11,9 @@ from flask import redirect
 from flask import render_template_string
 from flask import flash
 
-from util.cache import cache
-from util.auth import auth
-from gathermate.exception import GathermateException as GE
+from apps.common.cache import cache
+from apps.common.auth import auth
+from apps.common.exceptions import MyFlaskException
 
 gathermate = Blueprint(
     'Gathermate',
@@ -99,14 +99,14 @@ def order_page(data):
 @auth.requires_auth
 def unhandled_exception(e):
     # type: (Type[Exception]) -> Text
-    GE.trace_error()
+    MyFlaskException.trace_error()
     flash(e.message)
     path = request.path.split('/')
     content = None
-    if type(e) is GE and e.response:
+    if type(e) is MyFlaskException and e.response:
         content = e.content
     if len(path) > 2 and path[2] in ['item']:
-        return render_template_string(GE.VIEW_ERROR_TEMPLATE,
+        return render_template_string(MyFlaskException.VIEW_ERROR_TEMPLATE,
                                       msg=e.message,
                                       response=content)
     return render_template('gathermate_index.html',

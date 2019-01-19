@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
-import logging as log
-
 from lxml.builder import E
 from lxml import etree
 
-from gathermate.gatherer import Gatherer
-from gathermate.exception import GathermateException as GE
+from apps.gathermate.gatherer import Gatherer
+from apps.common.exceptions import MyFlaskException
 
 def register():
     return 'Gatherer'
@@ -43,6 +41,6 @@ class Quotes(Gatherer):
                 )
 
             except:
-                GE.trace_error()
+                MyFlaskException.trace_error()
 
         return etree.tostring(html, pretty_print=True,)

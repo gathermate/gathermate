@@ -6,9 +6,9 @@ import logging as log
 import httplib
 import importlib
 
-from gathermate.exception import GathermateException as GE
-from util.cache import cache
-from util import urldealer as ud
+from apps.common.exceptions import MyFlaskException
+from apps.common.cache import cache
+from apps.common import urldealer as ud
 
 fetcher = None
 
@@ -66,7 +66,7 @@ class Fetcher(object):
         self.counter += 1
         if self.counter > self.THRESHOLD:
             log.error('Fetching counter exceeds threshold by a request. : %d', self.counter)
-            raise GE('Too many fetchings by a request.')
+            raise MyFlaskException('Too many fetchings by a request.')
         key = cache.create_key(url.text, payload=payload)
         @cache.cached(timeout=self.timeout, key_prefix=key, forced_update=lambda:forced_update)
         def cached_fetch():
@@ -84,14 +84,14 @@ class Fetcher(object):
                                     headers=self._get_headers(url, referer),
                                     follow_redirects=follow_redirects)
                 except httplib.BadStatusLine:
-                    GE.trace_error()
+                    MyFlaskException.trace_error()
                 except self.module.exceptions.ConnectionError:
-                    GE.trace_error()
+                    MyFlaskException.trace_error()
                     log.warning('Retry fetching...')
                     continue
                 except Exception:
-                    GE.trace_error()
-                    raise GE('Failed to fetch [%s]', url.text)
+                    MyFlaskException.trace_error()
+                    raise MyFlaskException('Failed to fetch [%s]', url.text)
                 break
             r.key = key
             current_size = len(r.content)
@@ -126,7 +126,7 @@ class Fetcher(object):
         self.current_response = r
         status_code = str(r.status_code)
         if status_code[0] in ['4', '5']:
-            raise GE('''
+            raise MyFlaskException('''
                 Destination URL not working.
                 Content size: %d,
                 Status Code: %d,

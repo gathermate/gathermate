@@ -9,11 +9,11 @@ from flask import request
 from flask import send_from_directory
 from flask import render_template
 
-from gathermate.exception import GathermateException as GE
-from util.cache import cache
-from util.auth import auth
-from util import logger
-from util import urldealer as ud
+from apps.common.exceptions import MyFlaskException
+from apps.common.cache import cache
+from apps.common.auth import auth
+from apps.common import logger
+from apps.common import urldealer as ud
 
 reload(sys)
 sys.setdefaultencoding('utf-8')
@@ -56,7 +56,7 @@ def create_app(config_instance, cache_type, backend):
             logging.debug(
                 '{} has been registered as Blueprint.'.format(blueprint.name))
         except:
-            GE.trace_error()
+            MyFlaskException.trace_error()
     # Register a manager from config.
     app.manager = importlib.import_module(app.config['MANAGER']).hire_manager(app.config)
     return app

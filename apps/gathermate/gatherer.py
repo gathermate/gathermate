@@ -7,9 +7,9 @@ from functools import wraps
 from lxml import etree
 from concurrent import futures
 
-from gathermate.exception import GathermateException as GE
-from util import urldealer as ud
-from util import toolbox as tb
+from apps.common.exceptions import MyFlaskException
+from apps.common import urldealer as ud
+from apps.common import toolbox as tb
 
 class Gatherer(object):
     def __init__(self, config, fetcher):
@@ -26,7 +26,7 @@ class Gatherer(object):
         try:
             self.want_regex = self._get_want_regex(self.config.get('RSS_WANT', []))
         except:
-            GE.trace_error()
+            MyFlaskException.trace_error()
             self.want_regex = self._get_want_regex([])
 
     def handle_query(self, url):
@@ -66,7 +66,7 @@ class Gatherer(object):
                 article['link'] = ud.join(url.text, article['link'])
                 self.articles[id_num] = article
         except:
-            GE.trace_error()
+            MyFlaskException.trace_error()
         self._log_result(url)
         self._paginate(url, response.content)
         if self.max_page > self.current_page:
@@ -99,7 +99,7 @@ class Gatherer(object):
         # type: (urldealer.URL, Dict[Text, Dict[Text, Text]], List[Text]) -> None
         total = len(articles)
         if total < 1:
-            raise GE('There are no articles that could be parsed : {}'.format(url.text),
+            raise MyFlaskException('There are no articles that could be parsed : {}'.format(url.text),
                      response=self.fetcher.current_response)
         current = len(current_ids)
         if current < 1:
@@ -177,7 +177,7 @@ class Gatherer(object):
                 if item['type'] == 'file' and not ud.URL(item['link']).netloc:
                     item['link'] = unicode(ud.join(article_url.text, item['link']))
         except:
-            GE.trace_error()
+            MyFlaskException.trace_error()
         self._log_result(article_url)
         if len(items) == 0:
             log.error('No items found : %s' % article_url)
@@ -207,7 +207,7 @@ class Gatherer(object):
         down_response = self.get_file(url, ticket)
         if not down_response or not down_response.headers.get('Content-Disposition'):
             log.error('HEADERS : %s', down_response.headers)
-            raise GE('Could not download : {}'.format(url.text),
+            raise MyFlaskException('Could not download : {}'.format(url.text),
                      response=self.fetcher.current_response)
         filename = tb.filename_from_headers(down_response.headers)
         if not self.ESCAPE_REGEXP.search(filename):
@@ -259,7 +259,7 @@ class Gatherer(object):
             log.debug('Refetching [%s]', url.text)
             r = self.fetcher.fetch(url, forced_update=True, **kwargs)
             if self.check_login(r):
-                raise GE('Could not login.',
+                raise MyFlaskException('Could not login.',
                          response=self.fetcher.current_response)
         return r
 
@@ -276,7 +276,7 @@ class Gatherer(object):
                         if item:
                             yield item
                     except:
-                        GE.trace_error()
+                        MyFlaskException.trace_error()
             return decorate
         return handle_element
 

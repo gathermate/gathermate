@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 import re
 
-from gathermate.gatherer import Gatherer
-from gathermate.exception import GathermateException as GE
-from util import urldealer as ud
+from apps.gathermate.gatherer import Gatherer
+from apps.common.exceptions import MyFlaskException
+from apps.common import urldealer as ud
 
 def register():
     return 'Gatherer'
@@ -49,7 +49,7 @@ class Etoland(Gatherer):
                     etc = date
                 yield {'id': id_, 'title': title, 'link': link, 'etc': etc}
             except:
-                GE.trace_error()
+                MyFlaskException.trace_error()
 
     def get_item(self, r):
         # type: (fetchers.Response) -> Generator
@@ -64,7 +64,7 @@ class Etoland(Gatherer):
                 link = 'http://www.etoland.co.kr/bbs{}'.format(matches.group(1))
                 yield {'name': name, 'link': link, 'type': 'file', 'etc': 'test'}
             except:
-                GE.trace_error()
+                MyFlaskException.trace_error()
 
         for e in root.xpath(r'//td[@class="mw_basic_view_file"]/a[contains(@href, "magnet")]'):
             try:
@@ -72,7 +72,7 @@ class Etoland(Gatherer):
                 link = e.get('href')
                 yield {'name': name, 'link': link, 'type': 'magnet'}
             except:
-                GE.trace_error()
+                MyFlaskException.trace_error()
 
         for e in root.xpath(r'//td[@class="mw_basic_view_link"]/a'):
             try:
@@ -80,7 +80,7 @@ class Etoland(Gatherer):
                 link = name
                 yield {'name': name, 'link': link, 'type': 'link'}
             except:
-                GE.trace_error()
+                MyFlaskException.trace_error()
 
     def get_file(self, url, ticket):
         # type: (urldealer.Url, Dict[Text, object]) -> fetchers.Response

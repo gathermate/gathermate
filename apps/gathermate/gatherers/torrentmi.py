@@ -3,9 +3,9 @@ import time
 import logging as log
 import re
 
-from gathermate.gatherer import Gatherer
-from gathermate.exception import GathermateException as GE
-from util import urldealer as ud
+from apps.gathermate.gatherer import Gatherer
+from apps.common.exceptions import MyFlaskException
+from apps.common import urldealer as ud
 
 def register():
     return 'Gatherer'
@@ -33,7 +33,7 @@ class Torrentmi(Gatherer):
                 etc = '{} {}'.format(category, date)
                 yield {'id': id_, 'title': title, 'link': link, 'etc': etc}
             except:
-                GE.trace_error()
+                MyFlaskException.trace_error()
 
     def get_item(self, r):
         # type: (fetchers.Response) -> Generator
@@ -46,7 +46,7 @@ class Torrentmi(Gatherer):
                 link = e.get('href')
                 yield {'name': name, 'link': link, 'type': 'file'}
             except:
-                GE.trace_error()
+                MyFlaskException.trace_error()
         '''
         iframe_xpath = r'//iframe[contains(@src, "info.php")]/@src'
         magnet_xpath = r'//div[contains(@class, "torrent_file")]'
@@ -60,7 +60,7 @@ class Torrentmi(Gatherer):
                 link = e.getnext()[0].get('href').strip()
                 yield {'name': name, 'link': link, 'type': 'magnet'}
             except:
-                GE.trace_error()
+                MyFlaskException.trace_error()
         '''
 
     def get_file(self, url, ticket):

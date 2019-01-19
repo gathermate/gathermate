@@ -4,9 +4,9 @@ import time
 import logging as log
 import re
 
-from gathermate.gatherer import Gatherer
-from gathermate.exception import GathermateException as GE
-from util import urldealer as ud
+from apps.gathermate.gatherer import Gatherer
+from apps.common.exceptions import MyFlaskException
+from apps.common import urldealer as ud
 
 def register():
     return 'Gatherer'
@@ -35,7 +35,7 @@ class Tfreeca(Gatherer):
                 etc = '{} {}'.format(category, date)
                 yield {'id': id_, 'title': title, 'link': link, 'etc': etc}
             except:
-                GE.trace_error()
+                MyFlaskException.trace_error()
 
         caption_xpath = r'//td[normalize-space(@class)="subject"]//a[contains(@href, "wr_id")]/text()/..'
         for e in tree.xpath(caption_xpath):
@@ -46,7 +46,7 @@ class Tfreeca(Gatherer):
                 id_ = self.get_id_num(link)
                 yield {'id': id_, 'title': title, 'link': link}
             except:
-                GE.trace_error()
+                MyFlaskException.trace_error()
 
     def get_item(self, r):
         # type: (fetchers.Response) -> Generator
@@ -59,7 +59,7 @@ class Tfreeca(Gatherer):
                 link = e.get('href').strip()
                 yield {'name': name, 'link': link, 'type': 'file'}
             except:
-                GE.trace_error()
+                MyFlaskException.trace_error()
 
         url = ud.URL(r.url)
         if not url.query_dict.get('bo_table') == 'captions':
@@ -77,7 +77,7 @@ class Tfreeca(Gatherer):
                     link = e.getnext()[0].get('href').strip()
                     yield {'name': name, 'link': link, 'type': 'magnet'}
                 except:
-                    GE.trace_error()
+                    MyFlaskException.trace_error()
 
         caption_xpath = r'//a[contains(@href, "file_download")]'
         script_regexp = re.compile(r'javascript:file_download\([\'"](.*)[\'"]\,\s[\'"](.*)[\'"]\);')
@@ -88,7 +88,7 @@ class Tfreeca(Gatherer):
                 link = ud.join(self.URL, match.group(1))
                 yield {'name': name, 'link': link, 'type': 'file'}
             except:
-                GE.trace_error()
+                MyFlaskException.trace_error()
 
     def get_file(self, url, ticket):
         # type: (urldealer.Url, Dict[Text, object]) -> fetchers.Response

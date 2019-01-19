@@ -5,10 +5,10 @@ import logging as log
 
 from lxml import etree
 
-from gathermate.gatherer import Gatherer
-from gathermate.exception import GathermateException as GE
-from util import urldealer as ud
-from util import toolbox as tb
+from apps.gathermate.gatherer import Gatherer
+from apps.common.exceptions import MyFlaskException
+from apps.common import urldealer as ud
+from apps.common import toolbox as tb
 
 def register():
     return 'Gatherer'
@@ -38,7 +38,7 @@ class Torrenthaja(Gatherer):
                     etc = '{} {}'.format(size, date)
                     yield {'id': id_, 'title': title, 'link': link, 'etc': etc}
             except:
-                GE.trace_error()
+                MyFlaskException.trace_error()
 
     def get_item(self, r):
         # type: (fetchers.Response) -> Generator
@@ -67,7 +67,7 @@ class Torrenthaja(Gatherer):
 
                 yield {'name': fname, 'link': link, 'type': 'file', 'ticket': ticket}
             except:
-                GE.trace_error()
+                MyFlaskException.trace_error()
 
         magnet_xpath = r'//button[contains(@onclick, "magnet_link")]'
         magnet_regex = re.compile(r'magnet_link\(\'(.*)\'\);')
@@ -80,7 +80,7 @@ class Torrenthaja(Gatherer):
                     magnet_name = link
                 yield {'name': magnet_name, 'link': link, 'type': 'magnet'}
             except:
-                GE.trace_error()
+                MyFlaskException.trace_error()
 
         attached_xpath = r'//a[contains(@class, "view_file_download")]'
         for e in root.xpath(attached_xpath):
@@ -89,7 +89,7 @@ class Torrenthaja(Gatherer):
                 flink = e.get('href')
                 yield {'name': fname, 'link': flink, 'type': 'file'}
             except:
-                GE.trace_error()
+                MyFlaskException.trace_error()
 
     def get_file(self, url, ticket):
         # type: (urldealer.Url, Dict[Text, object]) -> fetchers.Response

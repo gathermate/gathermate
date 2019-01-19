@@ -25,7 +25,7 @@ OPT=/opt
 APPS=$OPT/apps
 ROOT=$APPS/$NAME
 VENV=$ROOT/venv
-CACHE_PATH=$APPS/tmp
+CACHE_PATH=/tmp
 INSTALLED_PATH=$ROOT/install/installed.txt
 
 init_common(){
@@ -50,6 +50,7 @@ init_entware(){
     PACKAGE_MANAGER=opkg
     REQUIREMENTS=requirements_entware.txt
     INIT_PATH=$OPT/etc/init.d
+    CACHE_PATH=$OPT/tmp
     eval "$GIT"_packages=\"git git-http\"
     eval "$PYTHON"_packages=python-light
     SERVICE=$INIT_PATH/$DAEMON_SCRIPT
@@ -194,9 +195,6 @@ check_packages(){
 before_install(){
     check_permission
     check_packages
-    if [ ! -d "$CACHE_PATH" ]; then
-        mkdir $CACHE_PATH
-    fi
 }
 
 after_install(){
@@ -245,7 +243,7 @@ set_daemon_script(){
     echo "$PREFIX Copy $default_script to $DAEMON_SCRIPT_PATH"
     if cp $default_script $DAEMON_SCRIPT_PATH; then
         echo "$PREFIX Make $DAEMON_SCRIPT_PATH executable."
-        chmod ug=rwx,o=rx $DAEMON_SCRIPT_PATH
+        chmod u=rwx,go=rx $DAEMON_SCRIPT_PATH
         sed -i -e "s@^ROOT=.*@ROOT=$ROOT@g; s@^ACTIVATE=.*@ACTIVATE=$VENV/bin/activate@g" $DAEMON_SCRIPT_PATH
     else
         exit 1

@@ -23,22 +23,23 @@ Gathermate
 opt/
     apps/
         my-flask-server/
-            gae/
-                lib/
-            gathermate/
-                gatherers/
-                static/
-                templates/
+            apps/
+                common/
+                gathermate/
+                    gatherers/
+                    static/
+                    templates/
             install/
             instance/
             static/
-            templates/
-            util/
+            templates/            
             var/
                 log/
                 run/
             venv/
                 bin/
+                gae/
+                    lib/
                 include/
                 lib/
                 local/
@@ -372,7 +373,7 @@ Google App Engine의 Python 2 Standard 환경에 맞추어져 있습니다.
 ##### GAE 파이썬 패키지 설치
 
 ```shell
-pip install -t /opt/apps/my-flask-server/gae/lib -r /opt/apps/my-flask-server/install/requirements_gae.txt --no-dependencies
+pip install -t /opt/apps/my-flask-server/venv/gae/lib -r /opt/apps/my-flask-server/install/requirements_gae.txt --no-dependencies
 ```
 
 ##### GAE 테스트 서버
