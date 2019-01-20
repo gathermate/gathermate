@@ -1,10 +1,7 @@
 #!/bin/sh
 
-OPTION=$1
-TARGET=$2
-
 NAME=my-flask-server
-PREFIX="Gathermate :"
+PREFIX="$NAME:"
 
 PYTHON=python
 eval "$PYTHON"_packages=python-minimal
@@ -197,10 +194,10 @@ before_install(){
 }
 
 after_install(){
-    if [ "$TARGET" = "entware" ]; then
+    if [ "$target" = "entware" ]; then
         deactivate
         if ! $PYTHON -c "from lxml import etree" > /dev/null 2>&1; then
-            echo "$PREFIX python-lxml is also required on $TARGET."
+            echo "$PREFIX python-lxml is also required on $target."
             packages=python-lxml
             install_packages
         fi
@@ -238,7 +235,7 @@ set_daemon_script(){
             exit 1
         fi
     fi
-    default_script="$ROOT/install/daemon-$TARGET"
+    default_script="$ROOT/install/daemon-$target"
     echo "$PREFIX Copy $default_script to $DAEMON_SCRIPT_PATH"
     if cp $default_script $DAEMON_SCRIPT_PATH; then
         echo "$PREFIX Make $DAEMON_SCRIPT_PATH executable."
@@ -324,7 +321,7 @@ install_python_packages(){
 }
 
 install(){
-    echo "$PREFIX Install to $TARGET"
+    echo "$PREFIX Install to $target"
     before_install
     clone_repository
     check_python_version
@@ -336,7 +333,7 @@ install(){
 }
 
 uninstall(){
-    echo "$PREFIX Uninstall from $TARGET"
+    echo "$PREFIX Uninstall from $target"
     check_permission
     if $SERVICE_STATUS > /dev/null 2>&1; then
         $SERVICE_STOP
@@ -356,54 +353,70 @@ uninstall(){
     fi
 }
 
-start(){
-    case $OPTION in
-        -i)
-            what_to_do=install
-            ;;
-        -u)
-            what_to_do=uninstall
-            ;;
-        *)
-            echo
-            echo "$PREFIX This script will clone https://github.com/gathermate/gathermate.git to"
-            echo "$PREFIX $ROOT folder and install packages relative to python 2.7."
-            echo "$PREFIX It is made for personal use at first and only tested with"
-            echo "$PREFIX Debian/Ubuntu on WSL and Entware on RT-AC68U Merlin Firmware."
-            echo "$PREFIX So it has chance to not work properly."
-            echo "$PREFIX You can install manually if you are not sure to run it."
-            echo
-            echo "$PREFIX Usage: install-gathermate OPTION TARGET"
-            echo
-            echo "$PREFIX OPTION: -i        Install to TARGET"
-            echo "$PREFIX         -u        Uninstall from TARGET"
-            echo "$PREFIX TARGET: debian    Debian/Ubuntu on WSL"
-            echo "$PREFIX         entware   Entware on RT-AC68U Merlin Firmware"
-            echo
-            echo "$PREFIX ex) install-gathermate -i entware"
-            exit 0
-            ;;
-    esac
-    case $TARGET in
-        debian|entware)
-            ;;
-        *)
-            echo "$PREFIX You need to choice the target. (debian or entware)"
-            exit 1
-            ;;
-    esac
-    echo "$PREFIX Are you sure to $what_to_do Gathermate on $TARGET? (yes/no)"
-    read -r choice
-    case "$choice" in
-        yes)
-            eval init_"$TARGET"
-            $what_to_do
-            ;;
-        no|*)
-            echo "$PREFIX Exit..."
-            exit 0
-            ;;
-    esac
+print_usage(){
+    echo
+    echo "$PREFIX This script will clone https://github.com/gathermate/gathermate.git to"
+    echo "$PREFIX $ROOT folder and install packages relative to python 2.7."
+    echo "$PREFIX It is made for personal use at first and only tested with"
+    echo "$PREFIX Debian/Ubuntu on WSL and Entware on RT-AC68U Merlin Firmware."
+    echo "$PREFIX So it has chance to not work properly."
+    echo "$PREFIX You can install manually if you are not sure to run it."
+    echo
+    echo "$PREFIX Usage: install-gathermate.sh OPTION TARGET"
+    echo
+    echo "$PREFIX OPTION: -i            Install to TARGET"
+    echo "$PREFIX         -u            Uninstall from TARGET"
+    echo "$PREFIX TARGET: debian        Debian/Ubuntu on WSL"
+    echo "$PREFIX         entware       Entware on RT-AC68U Merlin Firmware"
+    echo
+    echo "$PREFIX ex) install-gathermate.sh -i entware"
 }
 
-start
+opts=$(getopt -o i:u:  -n "$NAME" -- "$@")
+if [ $? != 0 ]; then
+    print_usage
+    exit 1
+fi
+eval set -- "$opts"
+while true; do
+    case "$1" in
+        -i|--install)
+            job=install
+            target=$2
+            shift 2
+            ;;
+        -u|--uninstall)
+            job=uninstall
+            target=$2
+            shift 2
+            ;;
+        --)
+            shift
+            break
+            ;;
+    esac
+done
+if [ -z "$job" ]; then
+    print_usage
+    exit 0
+fi
+case $target in
+    debian|entware)
+        ;;
+    *)
+        echo "$PREFIX You need to choice the target. (debian or entware)"
+        exit 1
+        ;;
+esac
+echo "$PREFIX Are you sure to $job Gathermate on $target? (yes/no)"
+read -r choice
+case "$choice" in
+    yes)
+        eval init_"$target"
+        $job
+        ;;
+    no|*)
+        echo "$PREFIX Exit..."
+        exit 0
+        ;;
+esac
