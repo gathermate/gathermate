@@ -8,7 +8,7 @@ DESC=$PROCS
 # 설치한 폴더명을 아래에 입력해 주세요. (기본값: /opt/apps/my-flask-server)
 NAME=my-flask-server
 ROOT=/opt/apps/$NAME
-ACTIVATE=/opt/apps/venv/$NAME/bin/activate
+ACTIVATE=$ROOT/venv/bin/activate
 PRECMD="source $ACTIVATE"
 PREARGS=
 
@@ -18,8 +18,8 @@ APP=app:app
 BIND=0.0.0.0:8181
 WORKERS=1
 LOGLEVEL=DEBUG
-PIDFILE=$ROOT/var/run/$PROCS.pid
-LOGFILE=$ROOT/var/log/$PROCS.log
+PIDFILE=/opt/var/run/$PROCS.pid
+LOGFILE=/opt/var/log/$PROCS.log
 SYS_LOG_ADDR=unix:///dev/log#dgram
 MAX_REQUESTS=100
 

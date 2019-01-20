@@ -37,7 +37,6 @@ init_common(){
 
 init_debian(){
     DAEMON_SCRIPT=$NAME
-
     REQUIREMENTS=requirements.txt
     INIT_PATH=/etc/init.d
     SERVICE="service $DAEMON_SCRIPT"
