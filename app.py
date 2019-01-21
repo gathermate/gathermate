@@ -45,14 +45,14 @@ def create_app(config_instance, cache_type, backend):
                                           ud.unsplit_qs(payload)) if payload else url_text)
     auth.init_app(app)
     # Register blueprints from config.
-    for blue, setting in app.config['BLUEPRINTS'].items():
+    for name, settings in app.config['BLUEPRINTS'].items():
         try:
             blueprint = getattr(importlib.import_module(
-                setting['package']),
-                setting['instance'])
+                settings['module']),
+                settings['instance'])
             app.register_blueprint(
                 blueprint,
-                url_prefix=setting['url_prefix'])
+                url_prefix=settings['url_prefix'])
             logging.debug(
                 '{} has been registered as Blueprint.'.format(blueprint.name))
         except:

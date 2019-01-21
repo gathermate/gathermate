@@ -5,9 +5,32 @@ import copy
 
 class Flask(object):
     '''
-    Flask의 설정은 Flask 문서를 참조해 주세요.
+    Flask의 추가 설정은 Flask 문서를 참조해 주세요.
     '''
     SECRET_KEY = os.urandom(32).encode('hex')
+
+    # 개발 서버와 GAE의 로그 레벨입니다.
+    # gunicorn으로 실행시 gunicorn의 로그 레벨을 따릅니다.
+    LOG_LEVEL = 'DEBUG'
+
+    # Manager 모듈을 불러오기 위한 값입니다.
+    # 각 앱의 매니저 모듈을 패키지 주소 형식으로 등록해 주세요.
+    MANAGERS = {
+        'Gathermate': 'apps.gathermate.manager',
+    }
+
+    # 플라스크에 등록할 블루프린트들입니다.
+    BLUEPRINTS = {
+        'Gathermate': {
+            # 이 블루프린트 모듈의 패키지 주소입니다.
+            'module': 'apps.gathermate.views',
+            # 이 블루프린트 모듈에서 가져올 블루프린트 객체의 변수명입니다.
+            'instance': 'gathermate',
+            # 이 블루프린트에 사용될 주소입니다.
+            # ex) https://www.yourserver.com/gather
+            'url_prefix': '/gather',
+        },
+    }
 
 class Localhost(Flask):
     '''
@@ -15,30 +38,6 @@ class Localhost(Flask):
     '''
     # 이 설정 클래스의 이름입니다.
     NAME = 'Localhost @ default'
-
-    # 서버 주소의 PATH에 해당하는 값입니다.
-    # http://www.yourserver.com/PATH/list?query=2
-    PATH = '/gather'
-
-    # Manager 모듈을 불러오기 위한 값입니다.
-    # 각 앱의 매니저를 패키지 주소 형식으로 등록해 주세요.
-    MANAGERS = {
-        'Gathermate': 'apps.gathermate.manager',
-    }
-
-    # 시작시 아래 딕셔너리의 블루프린트가 등록됩니다.
-    # instance는 해당 'package'에 명시된 블루프린트 객체의 변수명을 입력하세요.
-    BLUEPRINTS = {
-        'Gathermate': {
-            'package': 'apps.gathermate.views',
-            'instance': 'gathermate',
-            'url_prefix': PATH,
-        },
-    }
-
-    # 개발 서버와 GAE의 로그 레벨입니다.
-    # gunicorn으로 실행시 gunicorn의 로그 레벨을 따릅니다.
-    LOG_LEVEL = 'DEBUG'
 
     # 플라스크 서버로부터 받는 응답(RSS 또는 웹페이지)의 캐쉬 지속시간(초)입니다.
     # 동일한 요청이라 판단될 경우 캐쉬된 결과물로 응답합니다.
