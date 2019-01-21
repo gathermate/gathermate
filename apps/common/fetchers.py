@@ -85,13 +85,12 @@ class Fetcher(object):
                                     follow_redirects=follow_redirects)
                 except httplib.BadStatusLine:
                     MyFlaskException.trace_error()
-                except self.module.exceptions.ConnectionError:
+                except Exception as e:
                     MyFlaskException.trace_error()
-                    log.warning('Retry fetching...')
-                    continue
-                except Exception:
-                    MyFlaskException.trace_error()
-                    raise MyFlaskException('Failed to fetch [%s]', url.text)
+                    if self.module.__name__ == 'requests' and type(e) is self.module.exceptions.ConnectionError:
+                        log.warning('Retry fetching...')
+                        continue
+                    raise MyFlaskException('%s,  while fetching [%s]', e.message, url.text)
                 break
             r.key = key
             current_size = len(r.content)

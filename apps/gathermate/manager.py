@@ -7,7 +7,7 @@ import logging as log
 
 import packer
 import gatherer as gtr
-import fetchers
+from apps.common import fetchers
 from apps.common.exceptions import MyFlaskException
 from apps.common import toolbox as tb
 from apps.common import urldealer as ud

@@ -10,7 +10,15 @@ class MyFlaskException(Exception):
 
     def __init__(self, *args, **kwargs):
         # type: (*str, Optional[fetcher.Response]) -> None
-        super(MyFlaskException, self).__init__(*args)
+
+        if args:
+            if len(args) > 1:
+                self.message = args[0] % args[1:]
+            else:
+                self.message = args[0]
+
+
+        log.warning(self.message)
         self.response = kwargs.get('response', None)
         if self.response:
             if self.response.content:
