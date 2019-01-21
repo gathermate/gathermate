@@ -15,8 +15,10 @@ from apps.common.cache import cache
 from apps.common.auth import auth
 from apps.common.exceptions import MyFlaskException
 
+name = 'Gathermate'
+
 gathermate = Blueprint(
-    'Gathermate',
+    name,
     __name__,
     template_folder='templates',
     static_folder='static')
@@ -42,7 +44,7 @@ def quote():
 @auth.requires_auth
 def rss_by_alias(site, board):
     # type: (Text, Text) -> Text
-    data = app.manager.request_by_alias('rss', site, board, request.args)
+    data = app.managers[name].request_by_alias('rss', site, board, request.args)
     return order_rss(data)
 
 @gathermate.route('/<string:site>/<string:board>', methods=['GET'])
@@ -50,7 +52,7 @@ def rss_by_alias(site, board):
 @auth.requires_auth
 def list_by_alias(site, board):
     # type: (Text, Text) -> Text
-    data = app.manager.request_by_alias('list', site, board, request.args)
+    data = app.managers[name].request_by_alias('list', site, board, request.args)
     return order_list(data)
 
 @gathermate.route('/<string:order>', methods=['GET'])
@@ -59,7 +61,7 @@ def list_by_alias(site, board):
 def order(order):
     # type: (Text) -> Union[unicode, flask.wrappers.Response]
     ''' Do not name order()'s args with query names ex) path, netloc, scheme etc... '''
-    data = app.manager.request(order, request.url)
+    data = app.managers[name].request(order, request.url)
     return globals()['order_{}'.format(order)](data)
 
 def order_rss(data):

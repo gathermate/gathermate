@@ -57,8 +57,10 @@ def create_app(config_instance, cache_type, backend):
                 '{} has been registered as Blueprint.'.format(blueprint.name))
         except:
             MyFlaskException.trace_error()
-    # Register a manager from config.
-    app.manager = importlib.import_module(app.config['MANAGER']).hire_manager(app.config)
+    # Register managers from config.
+    app.managers = {}
+    for name, module in app.config['MANAGERS'].items():
+        app.managers[name] = importlib.import_module(module).hire_manager(app.config)
     return app
 
 # Before create flask...
