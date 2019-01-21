@@ -70,13 +70,16 @@ def pack_list(data_dict):
 
 def pack_item(items):
     # type (List[Dict[Text, object]]) -> List[Dict[Text, object]]
+    # items = [ item for item in items if tb.get_ext(item['name'])[1] in ACCEPTED_EXT ]
+    denied = []
     for idx, item in enumerate(items):
         if item['type'] in ['magnet', 'link']:
             item['link'] = ud.unquote(item['link'])
             continue
         if not tb.get_ext(item['name'])[1] in ACCEPTED_EXT:
             log.warning('%s does not have accepted extension.', item['name'])
-            items.pop(idx)
+            denied.append(idx)
             continue
         item['ticket'] = ud.quote(ud.unsplit_qs(item['ticket']))
+    items = [ item for idx, item in enumerate(items) if not idx in denied ]
     return items

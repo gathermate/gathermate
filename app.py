@@ -9,9 +9,9 @@ from flask import request
 from flask import send_from_directory
 from flask import render_template
 
-from apps.common.exceptions import MyFlaskException
-from apps.common.cache import cache
 from apps.common.auth import auth
+from apps.common.cache import cache
+from apps.common.exceptions import MyFlaskException
 from apps.common import logger
 from apps.common import urldealer as ud
 
