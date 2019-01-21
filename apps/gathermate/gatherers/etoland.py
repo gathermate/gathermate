@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import re
+import logging as log
 
 from apps.gathermate.gatherer import Gatherer
 from apps.common.exceptions import MyFlaskException
@@ -74,11 +75,17 @@ class Etoland(Gatherer):
             except:
                 MyFlaskException.trace_error()
 
+        location_regexp = re.compile(r'location\.replace\(["\'](.+)["\']\);')
         for e in root.xpath(r'//td[@class="mw_basic_view_link"]/a'):
             try:
                 name = e.text.strip()
-                link = name
-                yield {'name': name, 'link': link, 'type': 'link'}
+                if name.endswith('…'):
+                    link = ud.join('%s/dummy/' % self.URL, e.get('href'))
+                    link_r = self.fetch(link, referer=r.url)
+                    match = location_regexp.search(link_r.content)
+                    if match:
+                        name = match.group(1)
+                yield {'name': name, 'link': name, 'type': 'link'}
             except:
                 MyFlaskException.trace_error()
 

@@ -7,7 +7,7 @@
         </div>
     {% elif item['type'] == 'link' %}
         <div>
-          <a class="li:hover" href="{{ item['link'] }}" title="{{ item['name'] }}" target="_blank"><i class="fa fa-link"></i> {{ item['name'] }}</a>
+          <a class="li:hover" href="{{ item['link'] }}" title="{{ item['name'] }}" target="_blank" rel="noopener noreferrer"><i class="fa fa-link"></i> {{ item['name'] }}</a>
         </div>
     {% else %}
         <div>

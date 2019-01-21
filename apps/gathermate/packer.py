@@ -70,7 +70,6 @@ def pack_list(data_dict):
 
 def pack_item(items):
     # type (List[Dict[Text, object]]) -> List[Dict[Text, object]]
-    # items = [ item for item in items if tb.get_ext(item['name'])[1] in ACCEPTED_EXT ]
     denied = []
     for idx, item in enumerate(items):
         if item['type'] in ['magnet', 'link']:
