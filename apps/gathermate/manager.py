@@ -70,14 +70,14 @@ class Manager(object):
         except KeyError:
             MyFlaskException.trace_error()
             class_ = self._find_gatherer(host)
-        log.info("%s class matches with [%s].", class_.__name__, target.text)
+        log.debug("%s class matches with [%s].", class_.__name__, target.text)
         return self._train_gatherer(class_, self.config.get('GATHERERS'))
 
     def _find_gatherer(self, alias):
         # type: (Text) -> Type[gatherer.Gatherer]
         for host, class_ in self.gatherer_classes.items():
             if alias in host:
-                log.info("%s class matches with [%s].", class_.__name__, alias)
+                log.debug("%s class matches with [%s].", class_.__name__, alias)
                 return class_
         raise MyFlaskException('There is no class associate with : {}'.format(alias))
 

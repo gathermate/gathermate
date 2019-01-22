@@ -59,7 +59,7 @@ class Fetcher(object):
         self.deadline = config.get('DEADLINE', 30)
         self.counter = 0
         self.current_response = None
-        log.debug('Using {} for Fetcher.'.format(type(self).__name__))
+        log.debug('Using {} module as current fetcher.'.format(type(self).__name__))
 
     def fetch(self, url, referer=None, method='GET', payload=None, forced_update=False, follow_redirects=False):
         # type: (urldealer.URL, str, str, Dict[Text, Text], bool) -> Response
