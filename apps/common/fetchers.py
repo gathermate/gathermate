@@ -92,6 +92,8 @@ class Fetcher(object):
                         continue
                     raise MyFlaskException('%s,  while fetching [%s]', e.message, url.text)
                 break
+            if not r:
+                raise MyFlaskException('Failed to fetch [%s]', url.text)
             r.key = key
             current_size = len(r.content)
             log.debug('Fetched {0:s} from [...{1}{2}]'
