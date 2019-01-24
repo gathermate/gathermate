@@ -108,6 +108,8 @@ class Localhost(Flask):
         },
         'Etoland': {
             'ENCODING': 'euc-kr',
+            'mb_id': os.environ.get('GATHERMATE_ETO_ID', None),
+            'mb_password': os.environ.get('GATHERMATE_ETO_PW', None),
         },
         'Cineaste': {
             'mb_id': os.environ.get('GATHERMATE_CINE_ID', None),

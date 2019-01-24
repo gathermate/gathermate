@@ -59,7 +59,7 @@ class Torrenthaja(Gatherer):
                 try:
                     fname = u'{}.torrent'.format(th.text.strip())
                 except:
-                    GE.trace_error()
+                    MyFlaskException.trace_error()
                     log.debug(etree.tostring(th))
                     protected = th[0].get('data-cfemail')
                     if protected:

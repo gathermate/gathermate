@@ -4,7 +4,6 @@ import inspect
 import importlib
 import glob
 import logging as log
-import re
 
 import packer
 import gatherer as gtr

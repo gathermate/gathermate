@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import re
-import logging as log
 
 from apps.gathermate.gatherer import Gatherer
 from apps.common.exceptions import MyFlaskException

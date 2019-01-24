@@ -174,17 +174,18 @@ def remove_qs(qs, key):
 
 def split(url):
     # type: (str) -> Dict[Text, Text]
-    url_dict = {}
     parsed = urlparse.urlsplit(url, scheme='http')
-    url_dict[SCHEME] = parsed.scheme
-    url_dict[NETLOC] = parsed.netloc if parsed.netloc else parsed.path
+    url_dict = {
+        SCHEME: parsed.scheme,
+        NETLOC: parsed.netloc if parsed.netloc else parsed.path,
+        QUERY: split_qs(parsed.query),
+        FRAGMENT: parsed.fragment,
+        USERNAME: parsed.username,
+        PASSWORD: parsed.password,
+        HOSTNAME: parsed.hostname,
+        PORT: parsed.port,
+    }
     url_dict[PATH] = parsed.path if not url_dict[NETLOC] == parsed.path else ''
-    url_dict[QUERY] = split_qs(parsed.query)
-    url_dict[FRAGMENT] = parsed.fragment
-    url_dict[USERNAME] = parsed.username
-    url_dict[PASSWORD] = parsed.password
-    url_dict[HOSTNAME] = parsed.hostname
-    url_dict[PORT] = parsed.port
     return url_dict
 
 def unsplit_dict(url_dict):
