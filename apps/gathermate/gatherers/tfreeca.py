@@ -62,7 +62,7 @@ class Tfreeca(Gatherer):
                 MyFlaskException.trace_error()
 
         url = ud.URL(r.url)
-        if not url.query_dict.get('bo_table')[0] == 'captions':
+        if not url.query_dict.get('bo_table', [''])[0] == 'captions':
             iframe_xpath = r'//iframe[contains(@src, "info.php")]/@src'
             iframe_url = tree.xpath(iframe_xpath)[0]
             iframe_url = ud.join(self.URL, iframe_url)

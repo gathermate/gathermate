@@ -75,7 +75,7 @@ class Fetcher(object):
             log.debug('Fetching [...{0}{1}]'
                       .format(url.path, '?%s' % url.query if url.query else ''))
             r = None
-            for _ in range(2):
+            for _ in range(1):
                 try:
                     r = self._fetch(url,
                                     deadline=self.deadline,
@@ -87,10 +87,8 @@ class Fetcher(object):
                     MyFlaskException.trace_error()
                 except Exception as e:
                     MyFlaskException.trace_error()
-                    if self.module.__name__ == 'requests':
-                        if type(e) is self.module.exceptions.ConnectionError or \
-                           type(e) is self.module.exceptions.ChunkedEncodingError:
-                            log.warning('Retry fetching...')
+                    if type(e) in self._get_retry_exceptions():
+                        log.warning('Retry fetching...')
                         continue
                     raise MyFlaskException('%s,  while fetching [%s]', e.message, url.text)
                 break
@@ -160,6 +158,10 @@ class Fetcher(object):
         # type: (urldealer.URL, str, Dict[str, str], int, Dict[str, str], bool) -> Response
         raise NotImplementedError
 
+    def _get_retry_exceptions(self):
+        # type: () -> list[Exception]
+        raise NotImplementedError
+
 class Requests(Fetcher):
 
     # Override
@@ -175,6 +177,11 @@ class Requests(Fetcher):
             headers=headers,
             allow_redirects=follow_redirects)
         return Response(r.headers, r.content, r.status_code, url.text, r.url)
+
+    # Override
+    def _get_retry_exceptions(self):
+        # type: () -> list[Exception]
+        return [self.module.exceptions.ConnectionError, self.module.exceptions.ChunkedEncodingError]
 
 class Urlfetch(Fetcher):
 
@@ -192,3 +199,8 @@ class Urlfetch(Fetcher):
             follow_redirects=follow_redirects)
         r.url = r.final_url if r.final_url else url.text
         return Response(r.headers, r.content, r.status_code, url.text, r.url)
+
+    # Override
+    def _get_retry_exceptions(self):
+        # type: () -> list[Exception]
+        return [self.module.DNSLookupFailedError]
