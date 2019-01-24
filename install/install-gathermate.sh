@@ -240,7 +240,7 @@ set_daemon_script(){
     if cp $default_script $DAEMON_SCRIPT_PATH; then
         echo "$PREFIX Make $DAEMON_SCRIPT_PATH executable."
         chmod u=rwx,go=rx $DAEMON_SCRIPT_PATH
-        sed -i -e "s@^ROOT=.*@ROOT=$ROOT@g; s@^ACTIVATE=.*@ACTIVATE=$VENV/bin/activate@g" $DAEMON_SCRIPT_PATH
+        sed -i -e "s@^ROOT=.*@ROOT=$APPS/\$NAME@g; s@^ACTIVATE=.*@ACTIVATE=\$ROOT/venv/bin/activate@g" $DAEMON_SCRIPT_PATH
     else
         exit 1
     fi

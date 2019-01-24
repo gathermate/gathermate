@@ -25,8 +25,8 @@ class Manager(object):
         # type: (flask.config.Config) -> None
         if not config:
             raise MyFlaskException('Config is not set.')
-        self.config = config
-        self.gatherer_classes = self._register_modules('gatherers')
+        self.__config = config
+        self.__gatherer_classes = self._register_modules('gatherers')
 
     def _register_modules(self, package):
         # type: (Text) -> Dict[Text, Type[gatherer.Gatherer]]
@@ -66,16 +66,16 @@ class Manager(object):
         if not host:
             raise MyFlaskException('Target URL is wrong : %s' % target.text)
         try:
-            class_ = self.gatherer_classes[host]
+            class_ = self.__gatherer_classes[host]
         except KeyError:
             MyFlaskException.trace_error()
             class_ = self._find_gatherer(host)
         log.debug("%s class matches with [%s].", class_.__name__, target.text)
-        return self._train_gatherer(class_, self.config.get('GATHERERS'))
+        return self._train_gatherer(class_, self.__config.get('GATHERERS'))
 
     def _find_gatherer(self, alias):
         # type: (Text) -> Type[gatherer.Gatherer]
-        for host, class_ in self.gatherer_classes.items():
+        for host, class_ in self.__gatherer_classes.items():
             if alias in host:
                 log.debug("%s class matches with [%s].", class_.__name__, alias)
                 return class_
@@ -84,7 +84,7 @@ class Manager(object):
     def _train_gatherer(self, class_, config):
         # type: (Type[gatherer.Gatherer], Dict[Text, object]) -> Type[gatherer.Gatherer]
         instance_config = self._get_default_config(class_.__name__, config)
-        gatherer = class_(instance_config, fetchers.hire_fetcher(self.config))
+        gatherer = class_(instance_config, fetchers.hire_fetcher(self.__config))
         log.debug("%s instance has been created.", type(gatherer).__name__)
         return gatherer
 
@@ -92,11 +92,11 @@ class Manager(object):
         # type: (Text, Dict[Text, object]) -> Dict[Text, object]
         default_config = {
             'ENCODING': 'utf-8',
-            'RSS_WANT': self.config.get('RSS_WANT', []),
-            'RSS_AGGRESSIVE': self.config.get('RSS_AGGRESSIVE', False),
-            'RSS_ASYNC': self.config.get('RSS_ASYNC', False),
-            'RSS_WORKERS': self.config.get('RSS_WORKERS', 1),
-            'RSS_LENGTH': self.config.get('RSS_LENGTH', 5),
+            'RSS_WANT': self.__config.get('RSS_WANT', []),
+            'RSS_AGGRESSIVE': self.__config.get('RSS_AGGRESSIVE', False),
+            'RSS_ASYNC': self.__config.get('RSS_ASYNC', False),
+            'RSS_WORKERS': self.__config.get('RSS_WORKERS', 1),
+            'RSS_LENGTH': self.__config.get('RSS_LENGTH', 5),
         }
         if config and config.get(name, None):
             for k, v in config.get(name).items():

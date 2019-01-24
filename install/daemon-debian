@@ -2,9 +2,9 @@
 
 PATH=/bin:/usr/bin:/sbin:/usr/sbin
 
+NAME=my-flask-server
 DAEMON=gunicorn
 # 설치한 폴더명을 아래에 입력해 주세요. (기본값: /opt/apps/my-flask-server)
-NAME=my-flask-server
 ROOT=/opt/apps/$NAME
 ACTIVATE=$ROOT/venv/bin/activate
 

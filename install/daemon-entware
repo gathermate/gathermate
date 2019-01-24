@@ -2,11 +2,11 @@
 
 PATH=/opt/sbin:/opt/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
+NAME=my-flask-server
 ENABLED=yes
 PROCS=gunicorn
-DESC=$PROCS
+DESC=$NAME
 # 설치한 폴더명을 아래에 입력해 주세요. (기본값: /opt/apps/my-flask-server)
-NAME=my-flask-server
 ROOT=/opt/apps/$NAME
 ACTIVATE=$ROOT/venv/bin/activate
 PRECMD="source $ACTIVATE"
@@ -32,6 +32,5 @@ export GATHERMATE_ETO_ID=
 export GATHERMATE_ETO_PW=
 export GATHERMATE_CINE_ID=
 export GATHERMATE_CINE_PW=
-
 
 source /opt/etc/init.d/rc.func
