@@ -185,12 +185,8 @@ class FlaskManager(Manager):
     def request_by_alias(self, order, site, board, query):
         # type: (Text, Text, Text, ImmutableMultiDict) -> Optional[Text, Response, Iterable]
         class_ = self._find_gatherer(site)
-        new_query = {}
-        for tuple_ in query.iterlists():
-            k, v = tuple_
-            new_query[k] = v
         if order in ['list', 'rss']:
             target = ud.URL(class_.LIST_URL % board)
         else:
             target = None
-        return self._get_data(order, target, new_query)
+        return self._get_data(order, target, {k: v for k, v in query.iterlists()})
