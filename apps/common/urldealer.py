@@ -161,7 +161,7 @@ def unsplit_qs(qs_dict):
     if not qs_dict:
         return ''
     sorted_query = sorted(
-        (pair for pair in qs_dict.items())
+        (pair for pair in qs_dict.iteritems())
     )
     qs = urllib.urlencode(sorted_query, True)
     return qs

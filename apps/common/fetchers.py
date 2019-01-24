@@ -107,9 +107,7 @@ class Fetcher(object):
 
     def _get_headers(self, url, referer):
         # type: (urldealer.URL, Text) -> Dict[Text, Text]
-        headers = {}
-        for k, v in self.HEADERS.items():
-            headers[k] = v
+        headers = { k: v for k, v in self.HEADERS.iteritems() }
         headers['referer'] = referer if referer else ''
         cookie = self._get_cookie(url)
         if cookie:
