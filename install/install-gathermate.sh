@@ -44,7 +44,7 @@ init_entware(){
     REQUIRE_COMMANDS="$REQUIRE_COMMANDS $PIP"
     DAEMON_SCRIPT=S89$NAME
     PACKAGE_MANAGER=opkg
-    REQUIREMENTS=requirements_entware.txt
+    REQUIREMENTS=requirements-entware.txt
     INIT_PATH=$OPT/etc/init.d
     CACHE_PATH=$OPT/tmp
     eval "$GIT"_packages=\"git git-http\"
@@ -261,7 +261,7 @@ copy_config(){
         fi
     fi
     echo "$PREFIX Copy $ROOT/install/default_$CONFIG to $instance_config"
-    if ! cp $ROOT/install/default_$CONFIG $instance_config; then
+    if ! cp $ROOT/install/default-$CONFIG $instance_config; then
         exit 1
     fi
 }

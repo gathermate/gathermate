@@ -108,7 +108,7 @@ source /opt/apps/my-flask-server/venv/bin/activate
 가상환경 내에서 `python` 추가 패키지를 설치합니다. 또한 `opkg`로 설치한 `lxml` 패키지도 가상환경 폴더에 복사해 주세요.
    
 ```shell 
-pip install -r /opt/apps/my-flask-server/install/requirements_entware.txt
+pip install -r /opt/apps/my-flask-server/install/requirements-entware.txt
 cp -r /opt/lib/python2.7/site-packages/lxml* /opt/apps/my-flask-server/venv/lib/python2.7/site-packages/ 
 ```
 
@@ -116,11 +116,11 @@ cp -r /opt/lib/python2.7/site-packages/lxml* /opt/apps/my-flask-server/venv/lib/
 
 **설정하기를 읽어본 후 실행하기를 권장합니다.**
 
-기본 설정 파일 `/opt/apps/my-flask-server/install/default_config.py`를 `/opt/apps/my-flask-server/instance/` 폴더로 복사하면서 파일 이름을 `config.py`로 변경합니다.
+기본 설정 파일 `/opt/apps/my-flask-server/install/default-config.py`를 `/opt/apps/my-flask-server/instance/` 폴더로 복사하면서 파일 이름을 `config.py`로 변경합니다.
 
 ```shell
 mkdir /opt/apps/my-flask-server/instance
-cp /opt/apps/my-flask-server/install/default_config.py /opt/apps/my-flask-server/instance/config.py
+cp /opt/apps/my-flask-server/install/default-config.py /opt/apps/my-flask-server/instance/config.py
 ```
 
 `/opt/apps/my-flask-server/install` 폴더의 `daemon-entware` 스크립트를 `/opt/etc/init.d` 폴더로 복사하면서 파일 이름을 `S89my-flask-server`로 변경합니다. 
@@ -203,10 +203,10 @@ pip install -r /opt/apps/my-flask-server/install/requirements.txt
 **설정하기를 읽어본 후 실행하기를 권장합니다.**
 
 
-기본 설정 파일 `/opt/apps/my-flask-server/install/default_config.py`를 `/opt/apps/my-flask-server/instance/` 폴더로 복사하면서 파일 이름을 `config.py`로 변경합니다.
+기본 설정 파일 `/opt/apps/my-flask-server/install/default-config.py`를 `/opt/apps/my-flask-server/instance/` 폴더로 복사하면서 파일 이름을 `config.py`로 변경합니다.
 ```shell
 mkdir /opt/apps/my-flask-server/instance
-cp /opt/apps/my-flask-server/install/default_config.py /opt/apps/my-flask-server/instance/config.py
+cp /opt/apps/my-flask-server/install/default-config.py /opt/apps/my-flask-server/instance/config.py
 ```
 
 `/opt/apps/my-flask-server/install` 폴더의 `daemon-debian` 스크립트를 `/etc/init.d` 폴더로 복사하면서 파일 이름을 `my-flask-server`로 변경합니다. 
@@ -234,12 +234,12 @@ service my-flask-server start
 
 실행하기 전에 **반드시** 해야 할 작업이 있습니다.
 
-먼저 `default_config.py`를 `instance`폴더로 복사하면서 `config.py`로 이름을 변경해 주세요.
+먼저 `default-config.py`를 `instance`폴더로 복사하면서 `config.py`로 이름을 변경해 주세요.
 스크립트로 자동 설치했다면 건너뛰어도 됩니다.
 
 ```shell
 mkdir /opt/apps/my-flask-server/instance
-cp /opt/apps/my-flask-server/install/default_config.py /opt/apps/my-flask-server/instance/config.py 
+cp /opt/apps/my-flask-server/install/default-config.py /opt/apps/my-flask-server/instance/config.py 
 ```
 
  그런 다음 `instance/config.py` 내의 민감한 정보를 즉시 변경해 주세요.
@@ -376,7 +376,7 @@ Google App Engine의 Python 2 Standard 환경에 맞추어져 있습니다.
 ##### GAE 파이썬 패키지 설치
 
 ```shell
-pip install -t /opt/apps/my-flask-server/venv/gae/lib -r /opt/apps/my-flask-server/install/requirements_gae.txt --no-dependencies
+pip install -t /opt/apps/my-flask-server/venv/gae/lib -r /opt/apps/my-flask-server/install/requirements-gae.txt --no-dependencies
 ```
 
 ##### GAE 테스트 서버
