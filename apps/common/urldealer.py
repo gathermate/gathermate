@@ -115,8 +115,7 @@ class URL(object):
 
     def update_query(self, post_dict):
         # type: (Dict[Text, Text]) -> None
-        for k in post_dict.keys():
-            self.query_dict[k] = post_dict[k]
+        self.query_dict.update(post_dict)
 
     def update_qs(self, qs):
         # type: (str) -> None
@@ -144,44 +143,34 @@ def quote(qs):
 def join_qs(old, new):
     # type: (str, str) -> str
     old_dict = split_qs(old)
-    new_dict = split_qs(new)
-    for k in new_dict.keys():
-        old_dict[k] = new_dict[k]
+    old_dict.update(split_qs(new))
     return unsplit_qs(old_dict)
-
 
 def join(old, new):
     # type: (str, str) -> str
     return urlparse.urljoin(old, new)
 
-
 def split_qs(qs):
-    # type: (str) -> Dict[Text, Text]
+    # type: (str) -> Dict[Text, list]]
     if not qs:
         return {}
-    qs_dict = urlparse.parse_qs(qs, keep_blank_values=True)
-    for k in qs_dict.keys():
-        qs_dict[k] = qs_dict[k][0]
-    return qs_dict
-
+    return urlparse.parse_qs(qs, keep_blank_values=True)
 
 def unsplit_qs(qs_dict):
-    # type: (Dict[Text, Text]) -> str
+    # type: (Dict[Text, list]) -> str
     if not qs_dict:
         return ''
     sorted_query = sorted(
         (pair for pair in qs_dict.items())
     )
-    qs = urllib.urlencode(sorted_query, False)
+    qs = urllib.urlencode(sorted_query, True)
     return qs
-
 
 def remove_qs(qs, key):
     # type: (str, str) -> str
     qs_dict = split_qs(qs)
     qs_dict.pop(key)
     return unsplit_qs(qs_dict)
-
 
 def split(url):
     # type: (str) -> Dict[Text, Text]
@@ -198,7 +187,6 @@ def split(url):
     url_dict[PORT] = parsed.port
     return url_dict
 
-
 def unsplit_dict(url_dict):
     # type: (Dict[Text, Text]) -> str
     # <scheme>://<username>:<password>@<host>:<port>/<path>;<parameters>?<query>#<fragment>
@@ -210,7 +198,6 @@ def unsplit_dict(url_dict):
                                query,
                                url_dict.get(FRAGMENT)))
     return url
-
 
 def unsplit(url_tuple):
     # type: (Tuple[Text]) -> Dict[Text, Text]

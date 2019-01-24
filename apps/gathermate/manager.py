@@ -4,6 +4,7 @@ import inspect
 import importlib
 import glob
 import logging as log
+import re
 
 import packer
 import gatherer as gtr
@@ -75,7 +76,7 @@ class Manager(object):
 
     def _find_gatherer(self, alias):
         # type: (Text) -> Type[gatherer.Gatherer]
-        for host, class_ in self.__gatherer_classes.items():
+        for host, class_ in self.__gatherer_classes.iteritems():
             if alias in host:
                 log.debug("%s class matches with [%s].", class_.__name__, alias)
                 return class_
@@ -98,39 +99,38 @@ class Manager(object):
             'RSS_WORKERS': self.__config.get('RSS_WORKERS', 1),
             'RSS_LENGTH': self.__config.get('RSS_LENGTH', 5),
         }
-        if config and config.get(name, None):
-            for k, v in config.get(name).items():
-                default_config[k] = v
+        if config.get(name, None):
+            default_config.update(config.get(name))
         return default_config
 
     def _order_rss(self, target, query_dict):
-        # type: (urldealer.URL, Dict[Text, Union[Text, int]]) -> str
+        # type: (urldealer.URL, Dict[Text, list]) -> str
         gatherer = self._hire_gatherer(target)
         gatherer.isRSS = True
-        length = int(query_dict.get('length', 0))
+        length = int(query_dict.get('length', [0])[0])
         if not length == 0:
             gatherer.length = length
         listing = gatherer.parse_list(target)
         return packer.pack_rss(gatherer.parse_items(listing))
 
     def _order_item(self, target, query_dict):
-        # type: (urldealer.URL, Dict[Text, Union[Text, int]]) -> List[object]
+        # type: (urldealer.URL, Dict[Text, list]) -> List[object]
         gatherer = self._hire_gatherer(target)
         items = gatherer.parse_item(target)
         return packer.pack_item(items)
 
     def _order_list(self, target, query_dict):
-        # type: (urldealer.URL, Dict[Text, Union[Text, int]]) -> Dict[Text, object]
+        # type: (urldealer.URL, Dict[Text, list]) -> Dict[Text, object]
         gatherer = self._hire_gatherer(target)
         listing = gatherer.parse_list(target)
         return packer.pack_list(listing)
 
     def _order_down(self, target, query_dict):
-        # type: (urldealer.URL, Dict[Text, Union[Text, int]]) -> Response
-        ticket = query_dict.get('ticket', None)
+        # type: (urldealer.URL, Dict[Text, list[Text]]) -> Response
+        ticket = query_dict.get('ticket', [None])[0]
         if ticket:
-            ticket = ud.split_qs(ud.unquote(query_dict.get('ticket')))
-            gatherer = self._hire_gatherer(ud.URL(ticket['referer']))
+            ticket = ud.split_qs(ud.unquote(ticket))
+            gatherer = self._hire_gatherer(ud.URL(ticket['referer'][0]))
             return gatherer.parse_file(target, ticket)
         # RSS_AGGRESSIVE = False
         gatherer = self._hire_gatherer(target)
@@ -141,17 +141,17 @@ class Manager(object):
         return gatherer.parse_file(ud.URL(item['link']), item['ticket'])
 
     def _order_page(self, target, query_dict):
-        # type: (urldealer.URL, Dict[Text, Union[Text, int]]) -> Iterable
+        # type: (urldealer.URL, Dict[Text, list]) -> Iterable
         gatherer = self._hire_gatherer(target)
         return gatherer.get_page(gatherer.fetch(target))
 
     @tb.timeit
     def _get_data(self, order, target, query_dict):
-        # type: (Text, urldealer.URL, Union[Dict, ImmutableMultiDict]) -> Optional[Text, Response, Iterable]
-        search_key = query_dict.get('search', None)
+        # type: (Text, urldealer.URL, Dict[Text, list[Text]]) -> Optional[Text, Response, Iterable]
+        search_key = query_dict.get('search', [None])[0]
         if search_key:
             target.update_qs('search={}'.format(search_key))
-        page_num = int(query_dict.get('page', 0))
+        page_num = int(query_dict.get('page', [0])[0])
         if page_num > 0:
             target.update_qs('page={}'.format(page_num))
         log.info('%s mode', order.upper())
@@ -172,7 +172,7 @@ class FlaskManager(Manager):
         # type: (Text, Text) -> Optional[Text, Response, Iterable]
         request = ud.URL(request_url)
         try:
-            url = request.query_dict['url']
+            url = request.query_dict['url'][0]
             if url:
                 target = ud.URL(ud.unquote(url))
             else:
@@ -185,8 +185,12 @@ class FlaskManager(Manager):
     def request_by_alias(self, order, site, board, query):
         # type: (Text, Text, Text, ImmutableMultiDict) -> Optional[Text, Response, Iterable]
         class_ = self._find_gatherer(site)
+        new_query = {}
+        for tuple_ in query.iterlists():
+            k, v = tuple_
+            new_query[k] = v
         if order in ['list', 'rss']:
             target = ud.URL(class_.LIST_URL % board)
         else:
             target = None
-        return self._get_data(order, target, query)
+        return self._get_data(order, target, new_query)

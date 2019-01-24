@@ -87,8 +87,10 @@ class Fetcher(object):
                     MyFlaskException.trace_error()
                 except Exception as e:
                     MyFlaskException.trace_error()
-                    if self.module.__name__ == 'requests' and type(e) is self.module.exceptions.ConnectionError:
-                        log.warning('Retry fetching...')
+                    if self.module.__name__ == 'requests':
+                        if type(e) is self.module.exceptions.ConnectionError or \
+                           type(e) is self.module.exceptions.ChunkedEncodingError:
+                            log.warning('Retry fetching...')
                         continue
                     raise MyFlaskException('%s,  while fetching [%s]', e.message, url.text)
                 break

@@ -90,5 +90,5 @@ class Etoland(Gatherer):
                 MyFlaskException.trace_error()
 
     def get_file(self, url, ticket):
-        # type: (urldealer.Url, Dict[Text, object]) -> fetchers.Response
-        return self.fetch(url, referer=ticket['referer'])
+        # type: (urldealer.Url, Dict[Text, list[Text]]) -> fetchers.Response
+        return self.fetch(url, referer=ticket['referer'][0])

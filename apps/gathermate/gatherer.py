@@ -31,8 +31,8 @@ class Gatherer(object):
 
     def handle_query(self, url):
         # type: (urldealer.URL) -> None
-        page_num = url.query_dict.pop('page', None)
-        search_key = url.query_dict.pop('search', None)
+        page_num = url.query_dict.pop('page', [None])[0]
+        search_key = url.query_dict.pop('search', [None])[0]
         if search_key:
             self.handle_search(url, search_key)
         if page_num:
@@ -154,7 +154,7 @@ class Gatherer(object):
 
     def _parse_item_from_list(self, articles):
         new_articles = []
-        for id_num, article in articles.items():
+        for id_num, article in articles.iteritems():
             item = {}
             item['name'] = article['title']
             item['link'] = article['link']
@@ -203,7 +203,7 @@ class Gatherer(object):
 
     ESCAPE_REGEXP = re.compile(r'\%..')
     def parse_file(self, url, ticket):
-        # type: (urldealer.URL, Dict[Text, Union[Text, Dict[Text, Text]]]) -> Response
+        # type: (urldealer.URL, Dict[Text, list[Text]]) -> Response
         down_response = self.get_file(url, ticket)
         if not down_response or not down_response.headers.get('Content-Disposition'):
             log.error('HEADERS : %s', down_response.headers)
