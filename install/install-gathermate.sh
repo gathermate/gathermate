@@ -378,7 +378,6 @@ if [ $? != 0 ]; then
     exit 1
 fi
 eval set -- "$opts"
-echo "  After set: [$1] [$2] [$3] [$4] [$5]"
 while true; do
     case "$1" in
         -i|--install)
