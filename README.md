@@ -99,6 +99,7 @@ git clone https://github.com/gathermate/gathermate.git /opt/apps/my-flask-server
 
 #### 2. 파이썬 2.7 설치
 `python 2.7`, `python-pip`을 설치합니다. Entware는 추가로 `python-lxml`을 설치합니다. `lxml`을 [Entware][entware] 패키지에서 설치하는 이유는 `pip`으로 설치할 경우 컴파일 오류가 발생하기 때문입니다. `lxml`을 컴파일하려면 헤더 파일이 필요한데 [Entware][entware]에는 기본 탑재되어 있지 않습니다. 그래도 정말 컴파일 하기를 원한다면 [Using gcc](https://github.com/Entware/Entware-ng/wiki/Using-gcc-(native-compilation))를 참조하세요.
+
 [entware]: https://github.com/Entware/Entware
     
 ```shell
@@ -245,30 +246,30 @@ AUTH_ID = 'admin' # instance/config.py
     <tbody>
         <tr>
             <td rowspan="2"><center><b>목록</b><center></td>
-            <td>gather/<code style="background-color:mistyrose;">사이트</code>/<code style="background-color:mistyrose;">게시판</code>?search=<code style="background-color:mistyrose;">검색어</code>&page=<code style="background-color:mistyrose;">3</code></td>
+            <td>gather/`사이트`/<code>게시판</code>?search=<code>검색어</code>&page=<code>3</code></td>
         </tr>
         <tr>
-            <td>gather/list?url=<code style="background-color:mistyrose;">encoded-url</code>&search=<code style="background-color:mistyrose;">검색어</code>&page=<code style="background-color:mistyrose;">2</code></td>
+            <td>gather/list?url=<code>encoded-url</code>&search=<code>검색어</code>&page=<code>2</code></td>
         </tr>
         <tr>
             <td rowspan="2"><center><b>RSS</b></center></td>
-            <td>gather/<code style="background-color:mistyrose;">사이트</code>/<code style="background-color:mistyrose;">게시판</code>/rss?search=<code style="background-color:mistyrose;">검색어</code>&page=<code style="background-color:mistyrose;">3</code>&length=<code style="background-color:mistyrose;">5</code></td>
+            <td>gather/<code>사이트</code>/<code>게시판</code>/rss?search=<code>검색어</code>&page=<code>3</code>&length=<code>5</code></td>
         </tr>
         <tr>
-            <td>gather/rss?url=<code style="background-color:mistyrose;">encoded-url</code>&search=<code style="background-color:mistyrose;">검색어</code>&page=<code style="background-color:mistyrose;">1</code>&length=<code style="background-color:mistyrose;">5</code>
+            <td>gather/rss?url=<code>encoded-url</code>&search=<code>검색어</code>&page=<code>1</code>&length=<code>5</code>
             </td>
         </tr>
         <tr>
             <td><center><b>글</b></center></td>
-            <td>gather/item?url=<code style="background-color:mistyrose;">encoded-url</code></td>
+            <td>gather/item?url=<code>encoded-url</code></td>
         </tr>
         <tr>
             <td><center><b>다운로드</b></center></td>
-            <td>gather/down?url=<code style="background-color:mistyrose;">encoded-url</code>&ticket=<code style="background-color:mistyrose;">encoded-query-string</code></td>
+            <td>gather/down?url=<code>encoded-url</code>&ticket=<code>encoded-query-string</code></td>
         </tr>
         <tr>
             <td><center><b>사용자 정의</b></center></td>
-            <td>gather/page?url=<code style="background-color:mistyrose;">encoded-url</code></td>
+            <td>gather/page?url=<code>encoded-url</code></td>
         </tr>
     </tbody>
 </table>
