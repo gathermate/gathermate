@@ -246,7 +246,7 @@ AUTH_ID = 'admin' # instance/config.py
     </thead>
     <tbody>
         <tr>
-            <td rowspan="2"><center>목록<center></td>
+            <td rowspan="2"><b>목록</b></td>
             <td>gather/<code>사이트</code>/<code>게시판</code>?search=<code>검색어</code>&page=<code>3</code></td>
             <td rowspan="2">get_list()</td>
         </tr>
@@ -254,7 +254,7 @@ AUTH_ID = 'admin' # instance/config.py
             <td>gather/list?url=<code>encoded-url</code>&search=<code>검색어</code>&page=<code>2</code></td>
         </tr>
         <tr>
-            <td rowspan="2"><center><b>RSS</b></center></td>
+            <td rowspan="2"><b>RSS</b></td>
             <td>gather/<code>사이트</code>/<code>게시판</code>/rss?search=<code>검색어</code>&page=<code>3</code>&length=<code>5</code></td>
             <td rowspan="2">get_list()<br />get_item()</td>
         </tr>
@@ -263,17 +263,17 @@ AUTH_ID = 'admin' # instance/config.py
             </td>            
         </tr>
         <tr>
-            <td><center><b>글</b></center></td>
+            <td><b>글</b></td>
             <td>gather/item?url=<code>encoded-url</code></td>
             <td>get_item()</td>
         </tr>
         <tr>
-            <td><center><b>다운로드</b></center></td>
+            <td><b>다운로드</b></td>
             <td>gather/down?url=<code>encoded-url</code>&ticket=<code>encoded-query-string</code></td>
-            <td>get_file()</td>
+            <td>get_file()<br />get_item()</td>
         </tr>
         <tr>
-            <td><center><b>사용자 정의</b></center></td>
+            <td><b>사용자 정의</b></td>
             <td>gather/page?url=<code>encoded-url</code></td>
             <td>get_page()</td>
         </tr>
