@@ -246,7 +246,7 @@ AUTH_ID = 'admin' # instance/config.py
     <tbody>
         <tr>
             <td rowspan="2"><center><b>목록</b><center></td>
-            <td>gather/`사이트`/<code>게시판</code>?search=<code>검색어</code>&page=<code>3</code></td>
+            <td>gather/<code>사이트</code>/<code>게시판</code>?search=<code>검색어</code>&page=<code>3</code></td>
         </tr>
         <tr>
             <td>gather/list?url=<code>encoded-url</code>&search=<code>검색어</code>&page=<code>2</code></td>
@@ -274,10 +274,10 @@ AUTH_ID = 'admin' # instance/config.py
     </tbody>
 </table>
 
-- <code style="background-color:mistyrose;">사이트</code>가 `Gatherer`의 `URL` 속성과 매치가 된다면 해당 클래스로 요청을 처리합니다. 예를 들어 `ple-1`은 `https://www.sample-1.co.kr`, `https://www.samplesample.com` 중에서 첫번째와 매치됩니다.
-- <code style="background-color:mistyrose;">게시판</code>은 해당 사이트에서 사용하는 게시판 아이디를 그대로 입력해 주세요.
-- <code style="background-color:mistyrose;">encoded-url</code>과 <code style="background-color:mistyrose;">encoded-query-string</code>에는 URL 인코딩된 값을 넣어야 합니다. URL 인코딩이란 `:`, `/`, `=` 등 URL을 인식하는데 방해가 되는 문자들을 16진수로 변환시키는 것을 말합니다. 예를 들어 `https://www.google.com/?search=torrent`를 인코딩 할 경우 `https%3A%2F%2Fwww.google.com%2F%3Fsearch%3Dtorrent`의 형태가 됩니다. `http://서버주소:8181/gather/encode` 페이지에서 간단한 URL 인코딩이 가능합니다. 혹은 [G Suite 도구상자](https://toolbox.googleapps.com/apps/encode_decode/)를 이용하세요.
-- <code style="background-color:mistyrose;">검색어</code>와 `page` 인수에 입력된 값은 목표 사이트의 설정에 따라 변환되어 URL 쿼리로 삽입됩니다.
+- `사이트`가 `Gatherer`의 `URL` 속성과 매치가 된다면 해당 클래스로 요청을 처리합니다. 예를 들어 `ple-1`은 `https://www.sample-1.co.kr`, `https://www.samplesample.com` 중에서 첫번째와 매치됩니다.
+- `게시판`은 해당 사이트에서 사용하는 게시판 아이디를 그대로 입력해 주세요.
+- `encoded-url`과 `encoded-query-string`에는 URL 인코딩된 값을 넣어야 합니다. URL 인코딩이란 `:`, `/`, `=` 등 URL을 인식하는데 방해가 되는 문자들을 16진수로 변환시키는 것을 말합니다. 예를 들어 `https://www.google.com/?search=torrent`를 인코딩 할 경우 `https%3A%2F%2Fwww.google.com%2F%3Fsearch%3Dtorrent`의 형태가 됩니다. `http://서버주소:8181/gather/encode` 페이지에서 간단한 URL 인코딩이 가능합니다. 혹은 [G Suite 도구상자](https://toolbox.googleapps.com/apps/encode_decode/)를 이용하세요.
+- `검색어`와 `page` 인수에 입력된 값은 목표 사이트의 설정에 따라 변환되어 URL 쿼리로 삽입됩니다.
 - `ticket` 인수는 파일을 다운로드 할 때 필요한 정보입니다.
 - `length` 인수는 RSS에서만 적용되며 해당 리스트에서 수집할 게시물의 수 입니다.
 
