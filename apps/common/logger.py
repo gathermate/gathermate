@@ -2,14 +2,15 @@
 
 import logging
 
-def config(backend, level):
+def config(software, level):
+    logging.debug('Server Software: %s', software)
     root = logging.getLogger()
     # chardet decode() logs TMI on DEBUG level.
     chardet_logger = logging.getLogger('chardet.charsetprober')
     chardet_logger.setLevel('INFO')
-    if backend == 'GoogleAppEngine':
+    if software == 'GoogleAppEngine':
         return
-    if backend.startswith('gunicorn/'):
+    if software.startswith('gunicorn/'):
         '''
         Gunicorn handler is about how logs are outputted.
         Root logger is about how logs are inputted.
@@ -19,7 +20,6 @@ def config(backend, level):
         gunicorn_logger = logging.getLogger('gunicorn.error')
         root.handlers = gunicorn_logger.handlers
         root.setLevel(gunicorn_logger.level)
-        chardet_logger.handlers = gunicorn_logger.handlers
         return
     formatter = logging.Formatter(
         '%(asctime)s '

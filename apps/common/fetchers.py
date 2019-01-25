@@ -14,8 +14,8 @@ fetcher = None
 
 def hire_fetcher(config):
     global fetcher
-    backend = config.get('BACKEND', '')
-    if backend == 'GoogleAppEngine':
+    software = config.get('SOFTWARE', '')
+    if software == 'GoogleAppEngine':
         fetcher = Urlfetch(config.get('FETCHER'),
                            importlib.import_module('google.appengine.api.urlfetch'))
     else:

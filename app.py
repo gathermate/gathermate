@@ -18,7 +18,7 @@ from apps.common import urldealer as ud
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
-def create_app(backend, cache_type):
+def create_app(software, config, cache_type):
     # type: () -> flask.app.Flask
     # Make flask instance
     app = Flask(__name__,
@@ -26,10 +26,10 @@ def create_app(backend, cache_type):
                 static_folder='static',
                 template_folder='templates')
     # Set configuration.
-    app.config.from_object('default_config.' + backend)
+    app.config.from_object('default_config.' + config)
     app.config.from_pyfile('config.py', silent=True)
-    app.config['BACKEND'] = backend
-    logger.config(backend, app.config['LOG_LEVEL'])
+    app.config['SOFTWARE'] = software
+    logger.config(software, app.config['LOG_LEVEL'])
     logging.debug('Config: %s', app.config['NAME'])
     cache.init_app(app, config=cache_type)
     with app.app_context():
@@ -63,14 +63,15 @@ def create_app(backend, cache_type):
     return app
 
 # Before create flask...
-backend = os.environ.get('SERVER_SOFTWARE', '')
-if backend.startswith('Google App Engine/') or backend.startswith('Development/'):
-    backend = 'GoogleAppEngine'
+software = os.environ.get('SERVER_SOFTWARE', '')
+if software.startswith('Google App Engine/') or software.startswith('Development/'):
+    software = 'GoogleAppEngine'
+    config = software
     cache_type = {'CACHE_TYPE': 'memcached'}
 else:
-    backend = 'Localhost'
+    config = 'Localhost'
     cache_type = {'CACHE_TYPE': 'simple'}
-app = create_app(backend, cache_type)
+app = create_app(software, config, cache_type)
 if __name__ == '__main__':
     app.run()
 
