@@ -260,8 +260,11 @@ copy_config(){
             exit 1
         fi
     fi
-    echo "$PREFIX Copy $ROOT/install/default_$CONFIG to $instance_config"
-    if ! cp $ROOT/install/default-$CONFIG $instance_config; then
+    echo "$PREFIX Copy $ROOT/install/user_$CONFIG to $instance_config"
+    if cp $ROOT/install/user_$CONFIG $instance_config; then
+        sed -i -e "s@^NAME.*@NAME = \'instance/config.py\'@g;" $instance_config
+    else
+        echo "$PREFIX Could not copy $ROOT/install/user_$CONFIG to $instance_config"
         exit 1
     fi
 }

@@ -15,9 +15,14 @@ libraries:
     version: "latest"
   - name: futures
     version: "latest"
-
-# urllib3 is using URLFetch on Google App Engine sandbox instead of sockets.
-# To use sockets directly instead of URLFetch see https://urllib3.readthedocs.io/en/latest/reference/urllib3.contrib.html.
-# Using sockets is only possible in paid GAE account.
 env_variables:
+    # urllib3 is using URLFetch on Google App Engine sandbox instead of sockets.
+    # To use sockets directly instead of URLFetch see https://urllib3.readthedocs.io/en/latest/reference/urllib3.contrib.html.
+    # Using sockets is only possible in paid GAE account.
     GAE_USE_SOCKETS_HTTPLIB : 'false'
+    GATHERMATE_AUTH_ID: 'admin'
+    GATHERMATE_AUTH_PW: 'password'
+    GATHERMATE_ETO_ID: ''
+    GATHERMATE_ETO_PW: ''
+    GATHERMATE_CINE_ID: ''
+    GATHERMATE_CINE_PW: ''
