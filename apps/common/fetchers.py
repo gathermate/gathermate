@@ -203,4 +203,4 @@ class Urlfetch(Fetcher):
     # Override
     def _get_retry_exceptions(self):
         # type: () -> list[Exception]
-        return [self.module.DNSLookupFailedError]
+        return []
