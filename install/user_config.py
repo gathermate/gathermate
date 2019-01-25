@@ -68,7 +68,7 @@ RSS_LENGTH = 5
 # 아래 리스트의 정규 표현식으로 파일 이름을 순차적으로 검사합니다.
 # 제일 먼저 매치되는 파일을 다운로드 하거나 매치되는 파일이 없으면
 # 첫번째 파일을 다운로드 합니다.
-RSS_WANT = ['1080(?i)P', '(?i)bluray']
+RSS_WANT = ['1080(?i)P', '(?i)bluray', '\.(?i)torrent$']
 
 # 아래의 확장자를 가진 파일만 표시합니다.
 ACCEPTED_EXT = ['.torrent', '.smi', '.srt', '.zip', '.rar']

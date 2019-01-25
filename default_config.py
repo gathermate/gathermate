@@ -4,7 +4,7 @@ import os
 
 class Flask(object):
     SECRET_KEY = os.urandom(32).encode('hex')
-    LOG_LEVEL = 'DEBUG'
+    LOG_LEVEL = 'INFO'
     MANAGERS = {
         'Gathermate': 'apps.gathermate.manager',
     }
@@ -16,6 +16,7 @@ class Flask(object):
         },
     }
 
+
 class Localhost(Flask):
     NAME = 'Localhost @ default'
     TIMEOUT = 5
@@ -26,23 +27,13 @@ class Localhost(Flask):
     RSS_WORKERS = 5
     RSS_LENGTH = 5
     RSS_WANT = ['1080(?i)P', '(?i)bluray']
-    ACCEPTED_EXT = ['.torrent', '.smi', '.srt', '.zip', '.rar']
+    ACCEPTED_EXT = ['.torrent', '.smi', '.srt',]
     FETCHER = {
         'CACHE_TIMEOUT': 60,
         'COOKIE_TIMEOUT': 3600,
         'DEADLINE': 60,
     }
-    GATHERERS = {
-        'Etoland': {
-            'ENCODING': 'euc-kr',
-            'mb_id': os.environ.get('GATHERMATE_ETO_ID', None),
-            'mb_password': os.environ.get('GATHERMATE_ETO_PW', None),
-        },
-        'Cineaste': {
-            'mb_id': os.environ.get('GATHERMATE_CINE_ID', None),
-            'mb_password': os.environ.get('GATHERMATE_CINE_PW', None),
-        },
-    }
+    GATHERERS = {}
 
 
 class GoogleAppEngine(Localhost):
