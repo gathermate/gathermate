@@ -29,11 +29,6 @@ export GATHERMATE_CINE_PW=
 
 . /lib/lsb/init-functions
 
-if [ -e "/etc/default/$APPNAME" ]
-then
-    . /etc/default/$APPNAME
-fi
-
 case "$1" in
   start)
         log_daemon_msg "Starting gunicorn" "$APPNAME"
