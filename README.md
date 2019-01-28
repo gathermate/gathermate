@@ -50,9 +50,13 @@ opt/
 
 ### 스크립트로 일괄 설치하기
 
-##### 아래의 명령어로 `/opt/apps`폴더에 `install-gathermate.sh` 스크립트를 다운로드합니다.
+##### 아래의 명령어 중 하나로 `/opt/apps`폴더에 `install-gathermate.sh` 스크립트를 다운로드합니다.
 ```shell
 curl -L https://raw.githubusercontent.com/gathermate/gathermate/master/install/install-gathermate.sh > /opt/apps/install-gathermate.sh
+```
+
+```shell
+wget -O /opt/apps/install-gathermate.sh https://raw.githubusercontent.com/gathermate/gathermate/master/install/install-gathermate.sh
 ```
 
 ##### 설치 스크립트에 실행권한을 부여합니다.

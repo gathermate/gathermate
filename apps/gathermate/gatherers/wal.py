@@ -79,9 +79,8 @@ class Wal(Gatherer):
             try:
                 value = e.get('value')
                 query = ud.URL(value)
-                xt = query.query_dict.get('xt', None)
-                name = query.query_dict.get('dn')
-
+                xt = query.query_dict.get('xt', [])[0]
+                name = query.query_dict.get('dn', [])[0]
                 if xt and len(xt) > 10:
                     name = name if name else xt
                     yield {'name': name, 'link': ud.unquote(value), 'type': 'magnet'}
