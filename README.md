@@ -343,7 +343,7 @@ mkdir -p /opt/apps/my-flask-server/venv/gae/lib
 cp -r /opt/apps/my-flask-server/venv/lib/python2.7/site-packages/chardet /opt/apps/my-flask-server/venv/lib/python2.7/site-packages/concurrent /opt/apps/my-flask-server/venv/lib/python2.7/site-packages/flask_caching /opt/apps/my-flask-server/venv/gae/lib/
 ```
 
-##### GAE 테스트 서버 ()
+##### GAE 테스트 서버
 ```shell
 dev_appserver.py --log_level=debug app.yaml
 ```
