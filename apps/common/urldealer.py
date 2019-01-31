@@ -26,6 +26,7 @@ class URL(object):
     @scheme.setter
     def scheme(self, v):
         self.url[SCHEME] = v
+        return self
 
     @property
     def netloc(self):
@@ -34,6 +35,7 @@ class URL(object):
     @netloc.setter
     def netloc(self, v):
         self.url[NETLOC] = v
+        return self
 
     @property
     def username(self):
@@ -42,6 +44,7 @@ class URL(object):
     @username.setter
     def username(self, v):
         self.url[USERNAME] = v
+        return self
 
     @property
     def password(self):
@@ -50,6 +53,7 @@ class URL(object):
     @password.setter
     def password(self, v):
         self.url[PASSWORD] = v
+        return self
 
     @property
     def hostname(self):
@@ -58,6 +62,7 @@ class URL(object):
     @hostname.setter
     def hostname(self, v):
         self.url[HOSTNAME] = v
+        return self
 
     @property
     def fragment(self):
@@ -66,6 +71,7 @@ class URL(object):
     @fragment.setter
     def fragment(self, v):
         self.url[FRAGMENT] = v
+        return self
 
     @property
     def query_dict(self):
@@ -74,6 +80,7 @@ class URL(object):
     @query_dict.setter
     def query_dict(self, v):
         self.url[QUERY] = v
+        return self
 
     @property
     def path(self):
@@ -82,6 +89,7 @@ class URL(object):
     @path.setter
     def path(self, v):
         self.url[PATH] = v
+        return self
 
     @property
     def query(self):
@@ -92,6 +100,7 @@ class URL(object):
     def query(self, v):
         # type: (str) -> None
         self.url[QUERY] = split_qs(v)
+        return self
 
     @property
     def port(self):
@@ -102,6 +111,7 @@ class URL(object):
     def port(self, v):
         # type: (int) -> None
         self.url[PORT] = v
+        return self
 
     @property
     def text(self):
@@ -112,15 +122,18 @@ class URL(object):
     def text(self, v):
         # type: (str) -> None
         self.url = split(v)
+        return self
 
     def update_query(self, post_dict):
-        # type: (Dict[Text, Text]) -> None
+        # type: (Dict[Text, Text]) -> URL
         self.query_dict.update(post_dict)
+        return self
 
     def update_qs(self, qs):
-        # type: (str) -> None
+        # type: (str) -> URL
         qs_dict = split_qs(qs)
         self.update_query(qs_dict)
+        return self
 
     def __str__(self):
         # type: () -> str

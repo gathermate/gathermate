@@ -13,7 +13,6 @@ from apps.common.auth import auth
 from apps.common.cache import cache
 from apps.common.exceptions import MyFlaskException
 from apps.common import logger
-from apps.common import urldealer as ud
 
 reload(sys)
 sys.setdefaultencoding('utf-8')
@@ -29,6 +28,7 @@ def create_app(software, config, cache_type):
     app.config.from_object('default_config.' + config)
     app.config.from_pyfile('config.py', silent=True)
     app.config['SOFTWARE'] = software
+    app.config['ROOT_DIR'] = os.path.dirname(os.path.abspath(__file__))
     logger.config(software, app.config['LOG_LEVEL'])
     logging.debug('Config: %s', app.config['NAME'])
     cache.init_app(app, config=cache_type)
@@ -38,10 +38,7 @@ def create_app(software, config, cache_type):
         cache.APP_TIMEOUT = app.config.get('TIMEOUT', 10)
         cache.FETCHER_TIMEOUT = app.config['FETCHER'].get('CACHE_TIMEOUT', 120)
         cache.FETCHER_COOKIE_TIMEOUT = app.config['FETCHER'].get('COOKIE_TIMEOUT', 3600)
-        cache.create_key = lambda url_text, payload=None : \
-            '{}-{}'.format(cache.APP_SECRET_KEY,
-                           '{}?{}'.format(url_text,
-                                          ud.unsplit_qs(payload)) if payload else url_text)
+        cache.create_key = lambda key: '{}-{}'.format(cache.APP_SECRET_KEY, key)
     auth.init_app(app)
     # Register blueprints from config.
     for name, settings in app.config['BLUEPRINTS'].items():
@@ -108,4 +105,6 @@ def teardown_requst_to_do(exception):
 
 @app.errorhandler(Exception)
 def unhandled_exception(e):
+    # type: (Type[Exception]) -> Text
+    MyFlaskException.trace_error()
     return e.message

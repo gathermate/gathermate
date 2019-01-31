@@ -67,7 +67,7 @@ class Fetcher(object):
         if self.counter > self.THRESHOLD:
             log.error('Fetching counter exceeds threshold by a request. : %d', self.counter)
             raise MyFlaskException('Too many fetchings by a request.')
-        key = cache.create_key(url.text, payload=payload)
+        key = cache.create_key(ud.URL(url.text).update_query(payload).text if payload else url.text)
         @cache.cached(timeout=self.timeout, key_prefix=key, forced_update=lambda:forced_update)
         def cached_fetch():
             # type: () -> Response
@@ -137,22 +137,18 @@ class Fetcher(object):
 
     def _get_cookie(self, url):
         # type: (urldealer.URL) -> Text
-        cookie = cache.get(cache.create_key(url.hostname) + '-cookies')
+        cookie = cache.get(cache.create_key(url.hostname + '-cookies'))
         if cookie:
             return cookie
         return Cookie.SimpleCookie().output(self.COOKIE_ATTRS, header='', sep=';')
 
     def _set_cookie(self, url, new_cookie):
         # type: (urldealer.URL, str) -> None
-        key = cache.create_key(url.hostname) + '-cookies'
+        key = cache.create_key(url.hostname + '-cookies')
         old_cookie = Cookie.SimpleCookie(str(cache.get(key)))
         old_cookie.load(new_cookie)
         cookie = old_cookie.output(self.COOKIE_ATTRS, header='', sep=';').strip()
         cache.set(key, cookie, timeout=self.cookie_timeout)
-
-    def json_dump(self, _dict):
-        # type: (Dict[object, object]) -> Text
-        return json.dump(_dict)
 
     def _fetch(self, url, method='GET', payload=None, deadline=30, headers=None, follow_redirects=False):
         # type: (urldealer.URL, str, Dict[str, str], int, Dict[str, str], bool) -> Response
@@ -173,7 +169,7 @@ class Requests(Fetcher):
             timeout=deadline,
             data=payload if method.upper() == 'POST' else None,
             params=payload if method.upper() == 'GET' else None,
-            json=self.json_dump(payload) if method.upper() == 'JSON' and payload else None,
+            json=payload if method.upper() == 'JSON' and payload else None,
             headers=headers,
             allow_redirects=follow_redirects)
         return Response(r.headers, r.content, r.status_code, url.text, r.url)

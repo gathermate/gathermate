@@ -14,6 +14,7 @@ from flask import flash
 from apps.common.cache import cache
 from apps.common.auth import auth
 from apps.common.exceptions import MyFlaskException
+from apps.common import urldealer as ud
 
 name = 'Gathermate'
 
@@ -25,7 +26,8 @@ gathermate = Blueprint(
 
 def make_cache_key():
     # type: () -> Text
-    return cache.create_key(request.url, payload=request.form)
+    key = ud.URL(request.url).update_query(request.form).text if request.form else request.url
+    return cache.create_key(key)
 
 @gathermate.route('/', strict_slashes=False)
 @auth.requires_auth

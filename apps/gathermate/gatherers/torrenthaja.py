@@ -14,7 +14,7 @@ def register():
     return 'Gatherer'
 
 class Torrenthaja(Gatherer):
-    URL = u'https://torrenthaja.com/'
+    URL = 'https://torrenthaja.com/'
     LIST_URL = ud.join(URL, '/bbs/board.php?bo_table=%s')
     SEARCH_QUERY = u'sca=&sop=and&sfl=wr_subject&stx=%s'
     PAGE_QUERY = u'page=%d'
