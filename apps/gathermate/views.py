@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
+
 from io import BytesIO
+import logging as log
 
 from flask import Blueprint
 from flask import render_template
@@ -46,7 +48,10 @@ def quote():
 @auth.requires_auth
 def rss_by_alias(site, board):
     # type: (Text, Text) -> Text
-    data = app.managers[name].request_by_alias('rss', site, board, request.args)
+    query = request.args.copy()
+    query['site'] = site
+    query['board'] = board
+    data = app.managers[name].request('rss', query)
     return order_rss(data)
 
 @gathermate.route('/<string:site>/<string:board>', methods=['GET'])
@@ -54,7 +59,10 @@ def rss_by_alias(site, board):
 @auth.requires_auth
 def list_by_alias(site, board):
     # type: (Text, Text) -> Text
-    data = app.managers[name].request_by_alias('list', site, board, request.args)
+    query = request.args.copy()
+    query['site'] = site
+    query['board'] = board
+    data = app.managers[name].request('list', query)
     return order_list(data)
 
 @gathermate.route('/<string:order>', methods=['GET'])
@@ -63,7 +71,8 @@ def list_by_alias(site, board):
 def order(order):
     # type: (Text) -> Union[unicode, flask.wrappers.Response]
     ''' Do not name order()'s args with query names ex) path, netloc, scheme etc... '''
-    data = app.managers[name].request(order, request.url)
+    query = request.args.copy()
+    data = app.managers[name].request(order, query)
     return globals()['order_{}'.format(order)](data)
 
 def order_rss(data):
