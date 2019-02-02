@@ -116,8 +116,8 @@ def unhandled_exception(e):
     return e.message
 
 @app.cli.command('send')
-@click.argument('sender')
-@click.argument('message')
+@click.argument('sender', nargs=1)
+@click.argument('message', nargs=1)
 def send_message(sender, message):
     app.managers['Callmewhen'].request('send',
                                        {'msg':message, 'sender': '{}#{}'.format(sender, 'CLI')})
