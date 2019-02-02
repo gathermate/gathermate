@@ -3,7 +3,7 @@
 import os
 
 class Flask(object):
-    SECRET_KEY = os.urandom(32).encode('hex')
+    SECRET_KEY = os.urandom(8).encode('hex')
     LOG_LEVEL = 'DEBUG'
     MANAGERS = {
         'Gathermate': 'apps.gathermate.manager',

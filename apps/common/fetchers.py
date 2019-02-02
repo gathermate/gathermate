@@ -25,16 +25,16 @@ def hire_fetcher(config):
 
 
 class Response(object):
-    '''
-    This class is just to avoid cache error : PicklingError
-    '''
-    def __init__(self, headers, content, code, url, final_url):
-        # type: (Dict[Text, Text], str, int, Text, Text) -> None
-        self.headers = headers
-        self.content = content
-        self.status_code = code
+
+    def __init__(self, url, response):
+        # type: (str, Union[requests.models.Response, google.appengine.api.urlfetch._URLFetchResult]) -> None
         self.url = url
-        self.final_url = final_url
+        self.origin = response
+        self.headers = {k: v for k, v in response.headers.iteritems()}
+        self.content = response.content
+        self.status_code = response.status_code
+        self.final_url = response.url
+
 
 class Fetcher(object):
     HEADERS = {
@@ -162,17 +162,17 @@ class Requests(Fetcher):
 
     # Override
     def _fetch(self, url, deadline=30, method='GET', payload=None, headers=None, follow_redirects=False):
-        # type: (urldealer.URL, int, str, Dict[Text, Text], Dict[Text, Text], bool) -> Response
+        # type: (urldealer.URL, int, str, Dict[str, str], Dict[str, str], bool) -> Response
         r = self.module.request(
-            method.upper(),
+            'POST' if method.upper() == 'JSON' else method.upper(),
             url.text,
             timeout=deadline,
             data=payload if method.upper() == 'POST' else None,
             params=payload if method.upper() == 'GET' else None,
-            json=payload if method.upper() == 'JSON' and payload else None,
+            json=payload if method.upper() == 'JSON' else None,
             headers=headers,
             allow_redirects=follow_redirects)
-        return Response(r.headers, r.content, r.status_code, url.text, r.url)
+        return Response(url.text, r)
 
     # Override
     def _get_retry_exceptions(self):
@@ -183,18 +183,22 @@ class Urlfetch(Fetcher):
 
     # Override
     def _fetch(self, url, deadline=30, method='GET', payload=None, headers=None, follow_redirects=False):
-        # type: (urldealer.URL, int, str, Dict[Text, Text], Dict[Text, Text], bool) -> Response
-        if payload:
+        # type: (urldealer.URL, int, str, Dict[str, str], Dict[str, str], bool) -> Response
+        if method.upper() == 'JSON':
+            payload = json.dumps(payload)
+            headers['Content-Type'] = 'application/json'
+            method = 'POST'
+        else:
             payload = ud.unsplit_qs(payload)
         r = self.module.fetch(
             url.text,
             deadline=deadline,
             payload=payload,
-            method='POST' if method.upper() == 'JSON' else method,
+            method=method.upper(),
             headers=headers,
             follow_redirects=follow_redirects)
         r.url = r.final_url if r.final_url else url.text
-        return Response(r.headers, r.content, r.status_code, url.text, r.url)
+        return Response(url.text, r)
 
     # Override
     def _get_retry_exceptions(self):

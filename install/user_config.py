@@ -7,16 +7,21 @@ import os
 NAME = 'install/user_config.py'
 
 # 캐쉬된 데이터의 키 값으로 활용됩니다.
-SECRET_KEY = os.urandom(32).encode('hex')
+SECRET_KEY = os.urandom(8).encode('hex')
 
 # 개발 서버와 GAE의 로그 레벨입니다.
 # gunicorn으로 실행시 gunicorn의 로그 레벨을 따릅니다.
 LOG_LEVEL = 'DEBUG'
 
+# 메세지를 보낼 텔레그램 봇 토큰입니다.
+# 에러 발생시 봇을 통해 알람을 받을 수 있습니다.
+TELEGRAM_BOT_TOKEN = None
+
 # Manager 모듈을 불러오기 위한 값입니다.
 # 각 앱의 매니저 모듈을 패키지 주소 형식으로 등록해 주세요.
 MANAGERS = {
     'Gathermate': 'apps.gathermate.manager',
+    'Telegram-bot': 'apps.callmewhen.manager',
 }
 
 # 플라스크에 등록할 블루프린트들입니다.

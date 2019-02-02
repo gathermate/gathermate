@@ -19,8 +19,8 @@ class Auth(object):
                         and password == self.app.config['AUTH_PW']
 
         def authenticate():
-            log.info('[%s] was denied with [%s]',
-                     request.remote_addr, request.full_path)
+            denied = '[{}] was denied with [{}]'.format(request.remote_addr, request.full_path)
+            log.info(denied)
             return Response('Could not verify your access level.',
                             401,
                             {'WWW-Authenticate': 'Basic realm="Login Required"'})

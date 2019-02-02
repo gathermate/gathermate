@@ -57,6 +57,10 @@ def create_app(software, config, cache_type):
     app.managers = {}
     for name, module in app.config['MANAGERS'].items():
         app.managers[name] = importlib.import_module(module).hire_manager(app.config)
+    # Register a function sending messages to telegram bot.
+    app.send = lambda sender, msg: \
+        app.managers['Telegram-bot'].request('send',
+                                             {'msg':msg, 'sender': '{}@{}'.format(sender, request.host)})
     return app
 
 # Before create flask...
@@ -87,9 +91,9 @@ def index(path):
 def before_request_to_do():
     # type: () -> None
     logging.debug('%(line)s Start of the request', {'line': '-'*30})
-    logging.info(
-        '[%s] requested [%s] from [%s]',
-        request.remote_addr, request.full_path, request.referrer)
+    client = '{} requested {} from {}'.format(request.remote_addr, request.full_path, request.referrer)
+    logging.info(client)
+
 
 @app.after_request
 def after_request_to_do(response):
@@ -107,4 +111,6 @@ def teardown_requst_to_do(exception):
 def unhandled_exception(e):
     # type: (Type[Exception]) -> Text
     MyFlaskException.trace_error()
+    app.send('app.py', e.message)
     return e.message
+

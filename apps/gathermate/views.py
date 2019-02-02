@@ -114,6 +114,7 @@ def unhandled_exception(e):
     # type: (Type[Exception]) -> Text
     MyFlaskException.trace_error()
     flash(e.message)
+    app.send('gathermate', e.message)
     path = request.path.split('/')
     content = None
     if type(e) is MyFlaskException and e.response:
