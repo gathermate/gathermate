@@ -59,8 +59,8 @@ def create_app(software, config, cache_type):
         app.managers[name] = importlib.import_module(module).hire_manager(app.config)
     # Register a function sending messages to telegram bot.
     app.send = lambda sender, msg: \
-        app.managers['Telegram-bot'].request('send',
-                                             {'msg':msg, 'sender': '{}@{}'.format(sender, request.host)})
+        app.managers['Callmewhen'].request('send',
+                                           {'msg':msg, 'sender': '{}@{}'.format(sender, request.host)})
     return app
 
 # Before create flask...

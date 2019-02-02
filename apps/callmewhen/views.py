@@ -8,7 +8,7 @@ from apps.common.cache import cache
 from apps.common.auth import auth
 from apps.common import urldealer as ud
 
-name = 'Telegram-bot'
+name = 'Callmewhen'
 
 telegram = Blueprint(
     name,

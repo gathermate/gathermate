@@ -5,8 +5,10 @@ import os
 class Flask(object):
     SECRET_KEY = os.urandom(8).encode('hex')
     LOG_LEVEL = 'DEBUG'
+    TELEGRAM_BOT_TOKEN = None
     MANAGERS = {
         'Gathermate': 'apps.gathermate.manager',
+        'Callmewhen': 'apps.callmewhen.manager',
     }
     BLUEPRINTS = {
         'Gathermate': {

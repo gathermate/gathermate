@@ -19,7 +19,32 @@ class CallMeWhenManager(Manager):
     def __init__(self, config):
         # type: (flask.config.Config) -> None
         super(CallMeWhenManager, self).__init__(config)
-        self.__token = config['TELEGRAM_BOT_TOKEN']
+
+    def request(self, order, query):
+        # type: (str, werkzeug.datastructures.MultiDict) -> None
+        if order == 'send':
+            messenser = Telegram(self.config)
+            return messenser.send(query.get('sender', None), query.get('msg', ''))
+        return 'Done.'
+
+class Messenser(object):
+
+    def __init__(self, config):
+        # type: (flask.config.Config) -> None
+        self.config = config
+
+    def fetch(self, *args, **kwargs):
+        fetcher = fetchers.hire_fetcher(self.config)
+        return fetcher.fetch(*args, **kwargs)
+
+    def send(self):
+        raise NotImplementedError
+
+class Telegram(Messenser):
+    def __init__(self, config):
+        # type: (flask.config.Config) -> None
+        super(Telegram, self).__init__(config)
+        self.__token = self.config['TELEGRAM_BOT_TOKEN']
         self.base_url = 'https://api.telegram.org/bot%s/' % self.token
         self.chat_ids = []
         self.key = cache.create_key('telegram-chat-ids')
@@ -32,11 +57,13 @@ class CallMeWhenManager(Manager):
     def token(self, value):
         raise MyFlaskException('Not allowed.')
 
-    def sendMessage(self, text, chat_id, sender=None, parse_mode=None, disable_web_page_preview=False,
+    def send(self, sender, text, parse_mode=None, disable_web_page_preview=False,
                     disable_notification=False, reply_to_message_id=None, reply_markup=None):
+        if not self.getUpdates():
+            return 'Telegram bot token wasn\'t set.'
         url = ud.URL(self.base_url + 'sendMessage')
         message = {
-            'chat_id': chat_id,
+            'chat_id': self.chat_ids[0],
             'text': '{}: {}'.format(sender, text) if sender else text,
             'parse_mode': parse_mode or '',
             'disable_web_page_preview': disable_web_page_preview,
@@ -48,6 +75,9 @@ class CallMeWhenManager(Manager):
         return self.handle_response(response)
 
     def getUpdates(self):
+        if self.token is None:
+            log.warning('Telegram bot token wasn\'t set.')
+            return False
         url = ud.URL(self.base_url + 'getUpdates')
         return self.handle_response(self.fetch(url))
 
@@ -64,25 +94,8 @@ class CallMeWhenManager(Manager):
             raise MyFlaskException('Telegram responded : %s' % js)
         return (response.content, response.status_code, response.headers)
 
-    def fetch(self, *args, **kwargs):
-        fetcher = fetchers.hire_fetcher(self.config)
-        return fetcher.fetch(*args, **kwargs)
-
     def get_chat_ids(self, result):
         if result:
             return set([item['message']['chat']['id'] for item in result])
         else:
             raise MyFlaskException('There is no message to update. You should send a new message to bot.')
-
-    def request(self, order, query):
-        # type: (str, werkzeug.datastructures.MultiDict) -> None
-        if self.token is None:
-            log.warning('Telegram bot token wasn\'t set.')
-            return 'No bot token.'
-        self.getUpdates()
-        if order == 'send':
-            for chat_id in self.chat_ids:
-                return self.sendMessage(query.get('msg', 'No messages.'),
-                                        chat_id,
-                                        sender=query.get('sender', None))
-        return 'Done.'

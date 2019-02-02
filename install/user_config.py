@@ -21,7 +21,7 @@ TELEGRAM_BOT_TOKEN = None
 # 각 앱의 매니저 모듈을 패키지 주소 형식으로 등록해 주세요.
 MANAGERS = {
     'Gathermate': 'apps.gathermate.manager',
-    'Telegram-bot': 'apps.callmewhen.manager',
+    'Callmewhen': 'apps.callmewhen.manager',
 }
 
 # 플라스크에 등록할 블루프린트들입니다.
