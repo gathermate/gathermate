@@ -4,6 +4,7 @@ import logging
 import sys
 import importlib
 
+import click
 from flask import Flask
 from flask import request
 from flask import send_from_directory
@@ -60,7 +61,7 @@ def create_app(software, config, cache_type):
     # Register a function sending messages to telegram bot.
     app.send = lambda sender, msg: \
         app.managers['Callmewhen'].request('send',
-                                           {'msg':msg, 'sender': '{}@{}'.format(sender, request.host)})
+                                           {'msg':msg, 'sender': '{}#{}'.format(sender, request.host)})
     return app
 
 # Before create flask...
@@ -114,3 +115,9 @@ def unhandled_exception(e):
     app.send('app.py', e.message)
     return e.message
 
+@app.cli.command('send')
+@click.argument('sender')
+@click.argument('message')
+def send_message(sender, message):
+    app.managers['Callmewhen'].request('send',
+                                       {'msg':message, 'sender': '{}#{}'.format(sender, 'CLI')})
