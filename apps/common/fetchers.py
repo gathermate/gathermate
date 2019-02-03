@@ -75,7 +75,7 @@ class Fetcher(object):
             log.debug('Fetching [...{0}{1}]'
                       .format(url.path, '?%s' % url.query if url.query else ''))
             r = None
-            for _ in range(1):
+            for _ in range(2):
                 try:
                     r = self._fetch(url,
                                     deadline=self.deadline,

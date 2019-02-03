@@ -21,11 +21,10 @@ class CallMeWhenManager(Manager):
         super(CallMeWhenManager, self).__init__(config)
 
     def request(self, order, query):
-        # type: (str, werkzeug.datastructures.MultiDict) -> None
+        # type: (str, Type[Dict[str, Union[List[str], str]]]) -> ?
         if order == 'send':
             messenser = Telegram(self.config)
             return messenser.send(query.get('sender', None), query.get('msg', ''))
-        return 'Done.'
 
 class Messenser(object):
 
@@ -44,25 +43,25 @@ class Telegram(Messenser):
     def __init__(self, config):
         # type: (flask.config.Config) -> None
         super(Telegram, self).__init__(config)
-        self.__token = self.config['TELEGRAM_BOT_TOKEN']
-        self.base_url = 'https://api.telegram.org/bot%s/' % self.token
-        self.chat_ids = []
-        self.key = cache.create_key('telegram-chat-ids')
+        self.__TOKEN = self.config['TELEGRAM_BOT_TOKEN']
+        self.BASE_URL = 'https://api.telegram.org/bot%s/' % self.TOKEN
+        self.KEY = cache.create_key('telegram-chat-ids')
 
     @property
-    def token(self):
-        return self.__token
+    def TOKEN(self):
+        return self.__TOKEN
 
-    @token.setter
-    def token(self, value):
+    @TOKEN.setter
+    def TOKEN(self, value):
         raise MyFlaskException('Not allowed.')
 
     def send(self, sender, text, parse_mode=None, disable_web_page_preview=False,
                     disable_notification=False, reply_to_message_id=None, reply_markup=None):
-        if self.getUpdates() and len(self.chat_ids) != 0:
-            url = ud.Url(self.base_url + 'sendMessage')
+        chat_id = self.get_chat_id()
+        if chat_id is not 0:
+            url = ud.Url(self.BASE_URL + 'sendMessage')
             message = {
-                'chat_id': self.chat_ids[0],
+                'chat_id': chat_id,
                 'text': '{}: {}'.format(sender, text) if sender else text,
                 'parse_mode': parse_mode or '',
                 'disable_web_page_preview': disable_web_page_preview,
@@ -72,32 +71,36 @@ class Telegram(Messenser):
             }
             response = self.fetch(url, payload=message, method='JSON', forced_update=True)
             return self.handle_response(response)
-        return 'Could not update chats.'
-
-    def getUpdates(self):
-        if self.token is None:
-            log.warning('Telegram bot token wasn\'t set.')
-            return False
-        url = ud.Url(self.base_url + 'getUpdates')
-        return self.handle_response(self.fetch(url, forced_update=True))
 
     def handle_response(self, response):
         js = json.loads(response.content)
-        if js.get('ok', False):
-            cached = cache.get(self.key)
-            if not cached:
-                self.chat_ids = list(self.get_chat_ids(js.get('result')))
-                cache.set(self.key, ','.join([str(id_) for id_ in self.chat_ids]), timeout=0)
-            else:
-                self.chat_ids = map(int, cached.split(','))
-        else:
-            return 'Telegram responded : %s' % js
-        headers = {k: v for k, v in response.headers.iteritems()}
-        return (response.content, response.status_code, headers)
+        if not js.get('ok', False):
+            log.warning('Telegram responded : %s', js)
+            return False
+        return js
 
-    def get_chat_ids(self, result):
-        if result:
-            return set([item['message']['chat']['id'] for item in result])
-        else:
-            log.warning('There is no message to update. You should send a new message to bot.')
-            return []
+
+    def update(self):
+        if self.TOKEN is None:
+            log.warning('Telegram bot token wasn\'t set.')
+            return
+        url = ud.Url(self.BASE_URL + 'getUpdates')
+        js = self.handle_response(self.fetch(url, forced_update=True))
+        if js:
+            result = js.get('result')
+            if len(result) > 0:
+                chat_id = js.get('result')[0]['message']['chat']['id']
+                cache.set(self.KEY, str(chat_id), timeout=0)
+            else:
+                log.warning('There is no message to update. You should send a new message to bot.')
+
+    def get_chat_id(self):
+        chat_id = 0
+        for _ in range(2):
+            cached = cache.get(self.KEY)
+            if cached is not None:
+                chat_id = int(cached)
+                break
+            else:
+                self.update()
+        return chat_id

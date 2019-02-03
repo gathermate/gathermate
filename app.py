@@ -60,8 +60,12 @@ def create_app(software, config, cache_type):
     # Register a function for sending messages to telegram bot.
     def send(sender, msg):
         if app.config.get('NOTIFY', False) and app.managers.get('Callmewhen', None):
-            app.managers['Callmewhen'].request('send',
-                                               {'msg':msg, 'sender': sender})
+            result = app.managers['Callmewhen'].request('send',
+                                                        {'msg':msg, 'sender': sender})
+            if result:
+                logging.debug('The message was sent.')
+            else:
+                logging.warning('The message wasn\'t sent.')
     app.send = send
     return app
 
