@@ -18,7 +18,7 @@ telegram = Blueprint(
 
 def make_cache_key():
     # type: () -> Text
-    key = ud.URL(request.url).update_query(request.form).text if request.form else request.url
+    key = ud.Url(request.url).update_query(request.form).text if request.form else request.url
     return cache.create_key(key)
 
 @telegram.route('/<string:order>', methods=['GET'])

@@ -64,9 +64,9 @@ class Torrentmi(Gatherer):
         '''
 
     def get_file(self, url, ticket):
-        # type: (urldealer.Url, Dict[unicode, List[unicode]]) -> fetchers.Response
+        # type: (urldealer.Url, Type[Dict[Text, Union[Text, List[Text]]]]) -> fetchers.Response
         root = self.fetch_and_etree(url,
-                                    referer=ticket['referer'][0],
+                                    referer=ticket['referer'],
                                     encoding='utf-8')
 
         key_xpath = r'//form/input[@name="key"]/@value'

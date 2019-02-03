@@ -30,7 +30,7 @@ class Gatherer(object):
             self.want_regex = self._get_want_regex([])
 
     def handle_query(self, url):
-        # type: (urldealer.URL) -> None
+        # type: (urldealer.Url) -> None
         page_num = url.query_dict.pop('page', [None])[0]
         search_key = url.query_dict.pop('search', [None])[0]
         if search_key:
@@ -43,15 +43,15 @@ class Gatherer(object):
         self.login_info = {}
 
     def handle_search(self, url, keyword):
-        # type: (urldealer.URL, Text) -> None
+        # type: (urldealer.Url, Text) -> None
         url.update_qs(self.SEARCH_QUERY % keyword)
 
     def handle_page(self, url, num):
-        # type: (urldealer.URL, Text) -> None
+        # type: (urldealer.Url, Text) -> None
         url.update_qs(self.PAGE_QUERY % int(num))
 
     def parse_list(self, url):
-        # type: (urldealer.URL) -> Union[Dict[Text, Dict[Text, Text]], Dict[Text, Union[int, Dict[Text, object]]]]
+        # type: (urldealer.Url) -> Union[Dict[Text, Dict[Text, Text]], Dict[Text, Union[int, Dict[Text, object]]]]
         self.handle_query(url)
         response = self.fetch(url)
         current_ids = []
@@ -81,7 +81,7 @@ class Gatherer(object):
         }
 
     def _paginate(self, url, content):
-        # type: (urldealer.URL, str) -> None
+        # type: (urldealer.Url, str) -> None
         PAGE_REGEXP = re.compile(re.sub('%d', '(\d{1,5})', self.PAGE_QUERY))
         match = PAGE_REGEXP.search(url.text)
         self.current_page = int(match.group(1)) if match else 1
@@ -96,7 +96,7 @@ class Gatherer(object):
             log.debug('There are no page hints.')
 
     def _check_length(self, url, articles, current_ids):
-        # type: (urldealer.URL, Dict[Text, Dict[Text, Text]], List[Text]) -> None
+        # type: (urldealer.Url, Dict[Text, Dict[Text, Text]], List[Text]) -> None
         total = len(articles)
         if total < 1:
             raise MyFlaskException('There are no articles that could be parsed : {}'.format(url.text),
@@ -129,7 +129,7 @@ class Gatherer(object):
         log.debug('%d articles were deleted.', len(current_ids))
 
     def _add_list(self, url):
-        # type: (urldealer.URL) -> None
+        # type: (urldealer.Url) -> None
         if not self.max_page > self.next_page:
             log.debug('There is no more pages.')
             return
@@ -141,7 +141,7 @@ class Gatherer(object):
         # type: (Dict[Text, Dict[Text, Text]]) -> Iterable
         if not self.config.get('RSS_AGGRESSIVE'):
             return self._parse_item_from_list(articles)
-        urls = [ud.URL(article['link']) for article in articles.values()]
+        urls = [ud.Url(article['link']) for article in articles.values()]
         if self.config.get('RSS_ASYNC', False):
             with futures.ThreadPoolExecutor(max_workers=self.config.get('RSS_WORKERS', 1),
                                             thread_name_prefix="_get_item_async") as exe:
@@ -163,7 +163,7 @@ class Gatherer(object):
         return new_articles
 
     def parse_item(self, article_url):
-        # type: (Union[urldealer.URL, List[urldealer.URL]]) -> List[Dict[Text, Text]]
+        # type: (Union[urldealer.Url, List[urldealer.Url]]) -> List[Dict[Text, Text]]
         items = []
         try:
             r = self.fetch(article_url)
@@ -174,7 +174,7 @@ class Gatherer(object):
                     item['ticket'] = {}
                 item['ticket']['referer'] = article_url.text
                 log.debug('[%s] @ [%s]', item['name'], item['link'])
-                if item['type'] == 'file' and not ud.URL(item['link']).netloc:
+                if item['type'] == 'file' and not ud.Url(item['link']).netloc:
                     item['link'] = unicode(ud.join(article_url.text, item['link']))
         except:
             MyFlaskException.trace_error()
@@ -182,7 +182,7 @@ class Gatherer(object):
         if len(items) == 0:
             log.error('No items found : %s' % article_url)
         if self.isRSS and not self.config.get('RSS_AGGRESSIVE'):
-            items = self._want(items)
+            items = [self._want(items)]
         return items
 
     def _want(self, items):
@@ -203,7 +203,7 @@ class Gatherer(object):
 
     ESCAPE_REGEXP = re.compile(r'\%..')
     def parse_file(self, url, ticket):
-        # type: (urldealer.URL, Dict[unicode, List[unicode]]) -> Response
+        # type: (urldealer.Url, Type[Dict[Text, Union[Text, List[Text]]]]) -> Response
         down_response = self.get_file(url, ticket)
         if not down_response or not down_response.headers.get('Content-Disposition'):
             log.error('HEADERS : %s', down_response.headers)
@@ -222,7 +222,7 @@ class Gatherer(object):
         return etree.HTML(response.content.decode(encoding, 'replace'))
 
     def fetch_and_etree(self, url, referer=None, encoding='utf-8'):
-        # type: (Union[Text, urldealer.URL], Text, Text) -> lxml.etree._Element
+        # type: (Union[Text, urldealer.Url], Text, Text) -> lxml.etree._Element
         return self.etree(self.fetch(url, referer=referer), encoding=encoding)
 
     def get_id_num(self, text):
@@ -231,13 +231,13 @@ class Gatherer(object):
         return int(result.group(1)) if result else -1
 
     def _log_result(self, url):
-        # type: (urldealer.URL) -> None
+        # type: (urldealer.Url) -> None
         log.debug('Parsing [...%s%s] is done.',
                   url.path, '?%s' % url.query if url.query else '')
 
     def credential(self):
         # type: () -> None
-        url = ud.URL(self.login_info.get('url'))
+        url = ud.Url(self.login_info.get('url'))
         self.fetcher.fetch(url,
                            referer=self.login_info.get('referer', self.URL),
                            method=self.login_info.get('method', 'POST').upper(),
@@ -250,8 +250,8 @@ class Gatherer(object):
         return self.login_info['denied'].search(r.content) or False
 
     def fetch(self, url, **kwargs):
-        # type: (Union[urldealer.URL, Text], Optional[Dict[Text, object]]) -> Response
-        url = ud.URL(url) if not type(url) is ud.URL else url
+        # type: (Union[urldealer.Url, Text], Optional[Dict[Text, object]]) -> Response
+        url = ud.Url(url) if not type(url) is ud.Url else url
         r = self.fetcher.fetch(url, **kwargs)
         if self.login_info and self.check_login(r):
             log.debug('Login is required.')
@@ -289,7 +289,7 @@ class Gatherer(object):
         raise NotImplementedError
 
     def get_file(self, url, ticket):
-        # type: (urldealer.URL, Dict[Text, Union[Text, Dict[Text, Text]]]) -> Response
+        # type: (urldealer.Url, Dict[Text, Union[Text, Dict[Text, Text]]]) -> Response
         raise NotImplementedError
 
     def get_page(self, response):

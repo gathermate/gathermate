@@ -61,7 +61,7 @@ class Tfreeca(Gatherer):
             except:
                 MyFlaskException.trace_error()
 
-        url = ud.URL(r.url)
+        url = ud.Url(r.url)
         if not url.query_dict.get('bo_table', [''])[0] == 'captions':
             iframe_xpath = r'//iframe[contains(@src, "info.php")]/@src'
             iframe_url = tree.xpath(iframe_xpath)[0]
@@ -91,11 +91,11 @@ class Tfreeca(Gatherer):
                 MyFlaskException.trace_error()
 
     def get_file(self, url, ticket):
-        # type: (urldealer.Url, Dict[unicode, List[unicode]]) -> fetchers.Response
+        # type: (urldealer.Url, Type[Dict[Text, Union[Text, List[Text]]]]) -> fetchers.Response
         key_xpath = r'//form/input[@name="key"]/@value'
 
         tree = self.fetch_and_etree(url,
-                                    referer=ticket['referer'][0],
+                                    referer=ticket['referer'],
                                     encoding=self.encoding)
 
         key = tree.xpath(key_xpath)

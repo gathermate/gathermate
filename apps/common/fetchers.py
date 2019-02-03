@@ -62,12 +62,12 @@ class Fetcher(object):
         log.debug('Using {} module as current fetcher.'.format(type(self).__name__))
 
     def fetch(self, url, referer=None, method='GET', payload=None, forced_update=False, follow_redirects=False):
-        # type: (urldealer.URL, str, str, Dict[Text, Text], bool) -> Response
+        # type: (urldealer.Url, str, str, Dict[Text, Text], bool) -> Response
         self.counter += 1
         if self.counter > self.THRESHOLD:
             log.error('Fetching counter exceeds threshold by a request. : %d', self.counter)
             raise MyFlaskException('Too many fetchings by a request.')
-        key = cache.create_key(ud.URL(url.text).update_query(payload).text if payload else url.text)
+        key = cache.create_key(ud.Url(url.text).update_query(payload).text if payload else url.text)
         @cache.cached(timeout=self.timeout, key_prefix=key, forced_update=lambda:forced_update)
         def cached_fetch():
             # type: () -> Response
@@ -106,7 +106,7 @@ class Fetcher(object):
         return cached_fetch()
 
     def _get_headers(self, url, referer):
-        # type: (urldealer.URL, Text) -> Dict[Text, Text]
+        # type: (urldealer.Url, Text) -> Dict[Text, Text]
         headers = { k: v for k, v in self.HEADERS.iteritems() }
         headers['referer'] = referer if referer else ''
         cookie = self._get_cookie(url)
@@ -121,7 +121,7 @@ class Fetcher(object):
         return u'{0:,.2f} {1:s}'.format(size, unit)
 
     def _handle_response(self, url, r):
-        # type: (urldealer.URL, Response) -> None
+        # type: (urldealer.Url, Response) -> None
         self.current_response = r
         status_code = str(r.status_code)
         if status_code[0] in ['4', '5']:
@@ -136,14 +136,14 @@ class Fetcher(object):
             self._set_cookie(url, set_cookie)
 
     def _get_cookie(self, url):
-        # type: (urldealer.URL) -> Text
+        # type: (urldealer.Url) -> Text
         cookie = cache.get(cache.create_key(url.hostname + '-cookies'))
         if cookie:
             return cookie
         return Cookie.SimpleCookie().output(self.COOKIE_ATTRS, header='', sep=';')
 
     def _set_cookie(self, url, new_cookie):
-        # type: (urldealer.URL, str) -> None
+        # type: (urldealer.Url, str) -> None
         key = cache.create_key(url.hostname + '-cookies')
         old_cookie = Cookie.SimpleCookie(str(cache.get(key)))
         old_cookie.load(new_cookie)
@@ -151,7 +151,7 @@ class Fetcher(object):
         cache.set(key, cookie, timeout=self.cookie_timeout)
 
     def _fetch(self, url, method='GET', payload=None, deadline=30, headers=None, follow_redirects=False):
-        # type: (urldealer.URL, str, Dict[str, str], int, Dict[str, str], bool) -> Response
+        # type: (urldealer.Url, str, Dict[str, str], int, Dict[str, str], bool) -> Response
         raise NotImplementedError
 
     def _get_retry_exceptions(self):
@@ -162,7 +162,7 @@ class Requests(Fetcher):
 
     # Override
     def _fetch(self, url, deadline=30, method='GET', payload=None, headers=None, follow_redirects=False):
-        # type: (urldealer.URL, int, str, Dict[str, str], Dict[str, str], bool) -> Response
+        # type: (urldealer.Url, int, str, Dict[str, str], Dict[str, str], bool) -> Response
         r = self.module.request(
             'POST' if method.upper() == 'JSON' else method.upper(),
             url.text,
@@ -183,7 +183,7 @@ class Urlfetch(Fetcher):
 
     # Override
     def _fetch(self, url, deadline=30, method='GET', payload=None, headers=None, follow_redirects=False):
-        # type: (urldealer.URL, int, str, Dict[str, str], Dict[str, str], bool) -> Response
+        # type: (urldealer.Url, int, str, Dict[str, str], Dict[str, str], bool) -> Response
         if method.upper() == 'JSON':
             payload = json.dumps(payload)
             headers['Content-Type'] = 'application/json'

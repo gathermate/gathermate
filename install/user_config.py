@@ -13,6 +13,9 @@ SECRET_KEY = os.urandom(8).encode('hex')
 # gunicorn으로 실행시 gunicorn의 로그 레벨을 따릅니다.
 LOG_LEVEL = 'DEBUG'
 
+# 알림 온/오프 설정입니다.
+NOTIFY = True
+
 # 메세지를 보낼 텔레그램 봇 토큰입니다.
 # 에러 발생시 봇을 통해 알람을 받을 수 있습니다.
 TELEGRAM_BOT_TOKEN = None

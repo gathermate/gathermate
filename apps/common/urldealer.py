@@ -2,6 +2,8 @@
 import urllib
 import urlparse
 
+from apps.common.datastructures import MultiDict
+
 SCHEME = 'scheme'
 NETLOC = 'netloc'
 PATH = 'path'
@@ -12,8 +14,7 @@ PASSWORD = 'password'
 HOSTNAME = 'hostname'
 PORT = 'port'
 
-
-class URL(object):
+class Url(object):
     def __init__(self, url=''):
         # type: (str) -> None
         if url:
@@ -116,7 +117,7 @@ class URL(object):
     @property
     def text(self):
         # type: () -> str
-        return unsplit_dict(self.url)
+        return unsplit(self.url)
 
     @text.setter
     def text(self, v):
@@ -138,6 +139,12 @@ class URL(object):
     def __str__(self):
         # type: () -> str
         return self.text
+
+    def __repr__(self):
+        # type: () -> str
+        return '<{}.{} \'{}\'>'.format(self.__module__,
+                                       self.__class__.__name__,
+                                       self.text)
 
     def get(self, key):
         # type: (str) -> Union[Text, None]
@@ -164,13 +171,11 @@ def join(old, new):
     return urlparse.urljoin(old, new)
 
 def split_qs(qs):
-    # type: (str) -> Dict[unicode, List[unicode]]
-    if not qs:
-        return {}
-    return urlparse.parse_qs(qs, keep_blank_values=True)
+    # type: (str) -> MultiDict[unicode, List[unicode]]
+    return MultiDict(urlparse.parse_qs(qs, keep_blank_values=True))
 
 def unsplit_qs(qs_dict):
-    # type: (Dict[Text, list]) -> str
+    # type: (Dict[Text, List[]]) -> str
     if not qs_dict:
         return ''
     sorted_query = sorted(
@@ -186,7 +191,7 @@ def remove_qs(qs, key):
     return unsplit_qs(qs_dict)
 
 def split(url):
-    # type: (str) -> Dict[Text, Text]
+    # type: (str) -> Dict[str, Union[unicode, MultiDict[unicode, List[unicode]]]
     parsed = urlparse.urlsplit(str(url), scheme='http')
     url_dict = {
         SCHEME: parsed.scheme,
@@ -201,7 +206,7 @@ def split(url):
     url_dict[PATH] = parsed.path if not url_dict[NETLOC] == parsed.path else ''
     return url_dict
 
-def unsplit_dict(url_dict):
+def unsplit(url_dict):
     # type: (Dict[Text, Text]) -> str
     # <scheme>://<username>:<password>@<host>:<port>/<path>;<parameters>?<query>#<fragment>
     # urlparse.urlunparse((scheme, netloc, path, params, query, fragment))
@@ -212,14 +217,3 @@ def unsplit_dict(url_dict):
                                query,
                                url_dict.get(FRAGMENT)))
     return url
-
-def unsplit(url_tuple):
-    # type: (Tuple[Text]) -> Dict[Text, Text]
-    url_dict = {
-        SCHEME: url_tuple[0],
-        NETLOC: url_tuple[1],
-        PATH: url_tuple[2],
-        QUERY: split_qs(url_tuple[3]),
-        FRAGMENT: url_tuple[4],
-    }
-    return unsplit_dict(url_dict)

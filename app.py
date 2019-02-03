@@ -33,13 +33,12 @@ def create_app(software, config, cache_type):
     logger.config(software, app.config['LOG_LEVEL'])
     logging.debug('Config: %s', app.config['NAME'])
     cache.init_app(app, config=cache_type)
-    with app.app_context():
-        cache.clear()
-        cache.APP_SECRET_KEY = app.config.get('SECRET_KEY', '')
-        cache.APP_TIMEOUT = app.config.get('TIMEOUT', 10)
-        cache.FETCHER_TIMEOUT = app.config['FETCHER'].get('CACHE_TIMEOUT', 120)
-        cache.FETCHER_COOKIE_TIMEOUT = app.config['FETCHER'].get('COOKIE_TIMEOUT', 3600)
-        cache.create_key = lambda key: '{}-{}'.format(cache.APP_SECRET_KEY, key)
+    cache.clear()
+    cache.APP_SECRET_KEY = app.config.get('SECRET_KEY', '')
+    cache.APP_TIMEOUT = app.config.get('TIMEOUT', 10)
+    cache.FETCHER_TIMEOUT = app.config['FETCHER'].get('CACHE_TIMEOUT', 120)
+    cache.FETCHER_COOKIE_TIMEOUT = app.config['FETCHER'].get('COOKIE_TIMEOUT', 3600)
+    cache.create_key = lambda key: '{}-{}'.format(cache.APP_SECRET_KEY, key)
     auth.init_app(app)
     # Register blueprints from config.
     for name, settings in app.config['BLUEPRINTS'].items():
@@ -58,10 +57,12 @@ def create_app(software, config, cache_type):
     app.managers = {}
     for name, module in app.config['MANAGERS'].items():
         app.managers[name] = importlib.import_module(module).hire_manager(app.config)
-    # Register a function sending messages to telegram bot.
-    app.send = lambda sender, msg: \
-        app.managers['Callmewhen'].request('send',
-                                           {'msg':msg, 'sender': '{}#{}'.format(sender, request.host)})
+    # Register a function for sending messages to telegram bot.
+    def send(sender, msg):
+        if app.config.get('NOTIFY', False) and app.managers.get('Callmewhen', None):
+            app.managers['Callmewhen'].request('send',
+                                               {'msg':msg, 'sender': sender})
+    app.send = send
     return app
 
 # Before create flask...
@@ -74,6 +75,8 @@ else:
     config = 'Localhost'
     cache_type = {'CACHE_TYPE': 'simple'}
 app = create_app(software, config, cache_type)
+
+# Run as main.
 if __name__ == '__main__':
     app.run()
 
@@ -112,12 +115,11 @@ def teardown_requst_to_do(exception):
 def unhandled_exception(e):
     # type: (Type[Exception]) -> Text
     MyFlaskException.trace_error()
-    app.send('app.py', e.message)
+    app.send('{}#{}'.format(__name__, request.host), e.message)
     return e.message
 
 @app.cli.command('send')
 @click.argument('sender', nargs=1)
 @click.argument('message', nargs=1)
 def send_message(sender, message):
-    app.managers['Callmewhen'].request('send',
-                                       {'msg':message, 'sender': '{}#{}'.format(sender, 'CLI')})
+    app.send(sender + '#CLI', message)

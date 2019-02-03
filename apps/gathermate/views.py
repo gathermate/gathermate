@@ -17,6 +17,7 @@ from apps.common.cache import cache
 from apps.common.auth import auth
 from apps.common.exceptions import MyFlaskException
 from apps.common import urldealer as ud
+from apps.common.datastructures import MultiDict
 
 name = 'Gathermate'
 
@@ -28,19 +29,19 @@ gathermate = Blueprint(
 
 def make_cache_key():
     # type: () -> Text
-    key = ud.URL(request.url).update_query(request.form).text if request.form else request.url
+    key = ud.Url(request.url).update_query(request.form).text if request.form else request.url
     return cache.create_key(key)
 
 @gathermate.route('/', strict_slashes=False)
 @auth.requires_auth
 def index():
-    # type: () -> Text
+    # type: () -> str
     return render_template('gathermate_index.html')
 
 @gathermate.route('/encode', methods=['GET'])
 @auth.requires_auth
 def quote():
-    # type: () -> Text
+    # type: () -> str
     return render_template('gathermate_encode.html')
 
 @gathermate.route('/<string:site>/<string:board>/rss', methods=['GET'])
@@ -48,7 +49,7 @@ def quote():
 @auth.requires_auth
 def rss_by_alias(site, board):
     # type: (Text, Text) -> Text
-    query = request.args.copy()
+    query = MultiDict(request.args)
     query['site'] = site
     query['board'] = board
     data = app.managers[name].request('rss', query)
@@ -59,7 +60,7 @@ def rss_by_alias(site, board):
 @auth.requires_auth
 def list_by_alias(site, board):
     # type: (Text, Text) -> Text
-    query = request.args.copy()
+    query = MultiDict(request.args)
     query['site'] = site
     query['board'] = board
     data = app.managers[name].request('list', query)
@@ -71,7 +72,7 @@ def list_by_alias(site, board):
 def order(order):
     # type: (Text) -> Union[unicode, flask.wrappers.Response]
     ''' Do not name order()'s args with query names ex) path, netloc, scheme etc... '''
-    query = request.args.copy()
+    query = MultiDict(request.args)
     data = app.managers[name].request(order, query)
     return globals()['order_{}'.format(order)](data)
 
@@ -114,7 +115,7 @@ def unhandled_exception(e):
     # type: (Type[Exception]) -> Text
     MyFlaskException.trace_error()
     flash(e.message)
-    app.send('gathermate', e.message)
+    app.send('{}#{}'.format(name, request.host), e.message)
     path = request.path.split('/')
     content = None
     if type(e) is MyFlaskException and e.response:

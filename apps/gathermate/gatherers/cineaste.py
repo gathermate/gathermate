@@ -59,8 +59,8 @@ class Cineaste(Gatherer):
                 MyFlaskException.trace_error()
 
     def get_file(self, url, ticket):
-        # type: (urldealer.Url, Dict[unicode, List[unicode]]) -> fetchers.Response
-        self.fetch(url, referer=ticket['referer'][0])
+        # type: (urldealer.Url, Type[Dict[Text, Union[Text, List[Text]]]]) -> fetchers.Response
+        self.fetch(url, referer=ticket['referer'])
         old_url = url.text
         url.update_qs('ds=1&js=on')
         time.sleep(1)

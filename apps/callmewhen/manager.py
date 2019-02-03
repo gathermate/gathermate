@@ -59,27 +59,27 @@ class Telegram(Messenser):
 
     def send(self, sender, text, parse_mode=None, disable_web_page_preview=False,
                     disable_notification=False, reply_to_message_id=None, reply_markup=None):
-        if not self.getUpdates():
-            return 'Telegram bot token wasn\'t set.'
-        url = ud.URL(self.base_url + 'sendMessage')
-        message = {
-            'chat_id': self.chat_ids[0],
-            'text': '{}: {}'.format(sender, text) if sender else text,
-            'parse_mode': parse_mode or '',
-            'disable_web_page_preview': disable_web_page_preview,
-            'disable_notification': disable_notification,
-            'reply_to_message_id': reply_to_message_id or '',
-            'reply_markup': reply_markup or '',
-        }
-        response = self.fetch(url, payload=message, method='JSON', forced_update=True)
-        return self.handle_response(response)
+        if self.getUpdates() and len(self.chat_ids) != 0:
+            url = ud.Url(self.base_url + 'sendMessage')
+            message = {
+                'chat_id': self.chat_ids[0],
+                'text': '{}: {}'.format(sender, text) if sender else text,
+                'parse_mode': parse_mode or '',
+                'disable_web_page_preview': disable_web_page_preview,
+                'disable_notification': disable_notification,
+                'reply_to_message_id': reply_to_message_id or '',
+                'reply_markup': reply_markup or '',
+            }
+            response = self.fetch(url, payload=message, method='JSON', forced_update=True)
+            return self.handle_response(response)
+        return 'Could not update chats.'
 
     def getUpdates(self):
         if self.token is None:
             log.warning('Telegram bot token wasn\'t set.')
             return False
-        url = ud.URL(self.base_url + 'getUpdates')
-        return self.handle_response(self.fetch(url))
+        url = ud.Url(self.base_url + 'getUpdates')
+        return self.handle_response(self.fetch(url, forced_update=True))
 
     def handle_response(self, response):
         js = json.loads(response.content)
@@ -91,7 +91,7 @@ class Telegram(Messenser):
             else:
                 self.chat_ids = map(int, cached.split(','))
         else:
-            raise MyFlaskException('Telegram responded : %s' % js)
+            return 'Telegram responded : %s' % js
         headers = {k: v for k, v in response.headers.iteritems()}
         return (response.content, response.status_code, headers)
 
@@ -99,4 +99,5 @@ class Telegram(Messenser):
         if result:
             return set([item['message']['chat']['id'] for item in result])
         else:
-            raise MyFlaskException('There is no message to update. You should send a new message to bot.')
+            log.warning('There is no message to update. You should send a new message to bot.')
+            return []

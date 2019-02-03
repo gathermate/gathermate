@@ -78,7 +78,7 @@ class Wal(Gatherer):
         for e in root.xpath(magnet_xpath):
             try:
                 value = e.get('value')
-                query = ud.URL(value)
+                query = ud.Url(value)
                 xt = query.query_dict.get('xt', [])[0]
                 name = query.query_dict.get('dn', [])[0]
                 if xt and len(xt) > 10:
@@ -88,5 +88,5 @@ class Wal(Gatherer):
                 MyFlaskException.trace_error()
 
     def get_file(self, url, ticket):
-        # type: (urldealer.Url, Dict[unicode, List[unicode]]) -> fetchers.Response
-        return self.fetch(url, referer=ticket['referer'][0])
+        # type: (urldealer.Url, Type[Dict[Text, Union[Text, List[Text]]]]) -> fetchers.Response
+        return self.fetch(url, referer=ticket['referer'])

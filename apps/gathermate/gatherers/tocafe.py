@@ -79,5 +79,5 @@ class Tocafe(Gatherer):
                 MyFlaskException.trace_error()
 
     def get_file(self, url, ticket):
-        # type: (urldealer.Url, Dict[unicode, List[unicode]]) -> fetchers.Response
-        return self.fetch(url, referer=ticket['referer'][0])
+        # type: (urldealer.Url, Type[Dict[Text, Union[Text, List[Text]]]]) -> fetchers.Response
+        return self.fetch(url, referer=ticket['referer'])

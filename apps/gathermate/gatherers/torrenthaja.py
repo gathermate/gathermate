@@ -92,13 +92,13 @@ class Torrenthaja(Gatherer):
                 MyFlaskException.trace_error()
 
     def get_file(self, url, ticket):
-        # type: (urldealer.Url, Dict[unicode, List[unicode]]) -> fetchers.Response
-        payload = ticket.get('payload', [None])[0]
-        method = ticket.get('method', ['GET'])[0]
+        # type: (urldealer.Url, Type[Dict[Text, Union[Text, List[Text]]]]) -> fetchers.Response
+        payload = ticket.get('payload', None)
+        method = ticket.get('method', 'GET')
         if payload:
             payload = ud.split_qs(payload)
         return self.fetch(url,
-                          referer=ticket['referer'][0],
+                          referer=ticket['referer'],
                           method=method,
                           payload=payload)
 

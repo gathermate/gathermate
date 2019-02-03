@@ -27,7 +27,7 @@ class Etoland(Gatherer):
                 'y': 0,
             },
             'url': 'https://www.etoland.co.kr/bbs/login_check2.php',
-            'denied': re.compile('<script language=[\'"]javascript[\'"]>alert\(\'.*?권한.*?\'\);<\/script>'.encode(self.encoding)),
+            'denied': re.compile('alert\([\'"].+권한.+[\'"]\);'.encode(self.encoding)),
         }
 
     def handle_search(self, url, keyword):
@@ -89,5 +89,5 @@ class Etoland(Gatherer):
                 MyFlaskException.trace_error()
 
     def get_file(self, url, ticket):
-        # type: (urldealer.Url, Dict[unicode, List[unicode]]) -> fetchers.Response
-        return self.fetch(url, referer=ticket['referer'][0])
+        # type: (urldealer.Url, Type[Dict[Text, Union[Text, List[Text]]]]) -> fetchers.Response
+        return self.fetch(url, referer=ticket['referer'])
