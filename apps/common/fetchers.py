@@ -30,7 +30,7 @@ class Response(object):
         # type: (str, Union[requests.models.Response, google.appengine.api.urlfetch._URLFetchResult]) -> None
         self.url = url
         self.origin = response
-        self.headers = {k: v for k, v in response.headers.iteritems()}
+        self.headers = response.headers
         self.content = response.content
         self.status_code = response.status_code
         self.final_url = response.url

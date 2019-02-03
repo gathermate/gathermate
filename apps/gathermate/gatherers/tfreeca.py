@@ -91,7 +91,7 @@ class Tfreeca(Gatherer):
                 MyFlaskException.trace_error()
 
     def get_file(self, url, ticket):
-        # type: (urldealer.Url, Dict[Text, list[Text]]) -> fetchers.Response
+        # type: (urldealer.Url, Dict[unicode, List[unicode]]) -> fetchers.Response
         key_xpath = r'//form/input[@name="key"]/@value'
 
         tree = self.fetch_and_etree(url,

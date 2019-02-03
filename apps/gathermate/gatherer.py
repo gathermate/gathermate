@@ -196,14 +196,14 @@ class Gatherer(object):
         return items[0]
 
     def _get_want_regex(self, want_list):
-        # type: (List[Text]) -> List[_sre.SRE_Pattern]
+        # type: (List[str]) -> List[_sre.SRE_Pattern]
         if not want_list:
             return [re.compile(r'\.torrent$')]
         return [re.compile(keyword) for keyword in want_list]
 
     ESCAPE_REGEXP = re.compile(r'\%..')
     def parse_file(self, url, ticket):
-        # type: (urldealer.URL, Dict[Text, list[Text]]) -> Response
+        # type: (urldealer.URL, Dict[unicode, List[unicode]]) -> Response
         down_response = self.get_file(url, ticket)
         if not down_response or not down_response.headers.get('Content-Disposition'):
             log.error('HEADERS : %s', down_response.headers)

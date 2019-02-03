@@ -164,7 +164,7 @@ def join(old, new):
     return urlparse.urljoin(old, new)
 
 def split_qs(qs):
-    # type: (str) -> Dict[Text, list]]
+    # type: (str) -> Dict[unicode, List[unicode]]
     if not qs:
         return {}
     return urlparse.parse_qs(qs, keep_blank_values=True)
@@ -187,7 +187,7 @@ def remove_qs(qs, key):
 
 def split(url):
     # type: (str) -> Dict[Text, Text]
-    parsed = urlparse.urlsplit(url, scheme='http')
+    parsed = urlparse.urlsplit(str(url), scheme='http')
     url_dict = {
         SCHEME: parsed.scheme,
         NETLOC: parsed.netloc if parsed.netloc else parsed.path,

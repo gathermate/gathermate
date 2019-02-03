@@ -92,7 +92,8 @@ class Telegram(Messenser):
                 self.chat_ids = map(int, cached.split(','))
         else:
             raise MyFlaskException('Telegram responded : %s' % js)
-        return (response.content, response.status_code, response.headers)
+        headers = {k: v for k, v in response.headers.iteritems()}
+        return (response.content, response.status_code, headers)
 
     def get_chat_ids(self, result):
         if result:
