@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
+import logging as log
 from copy import deepcopy
+
 
 class MultiDict(dict):
     """
@@ -129,9 +131,7 @@ class MultiDict(dict):
                 raise KeyError(key)
             return list_[0]
         except KeyError:
-            if default is not None:
-                return default
-            raise KeyError(key)
+            return default
 
     def popitem(self):
         try:

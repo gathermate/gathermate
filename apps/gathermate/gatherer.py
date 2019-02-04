@@ -31,8 +31,8 @@ class Gatherer(object):
 
     def handle_query(self, url):
         # type: (urldealer.Url) -> None
-        page_num = url.query_dict.pop('page', [None])[0]
-        search_key = url.query_dict.pop('search', [None])[0]
+        page_num = url.query_dict.pop('page', None)
+        search_key = url.query_dict.pop('search', None)
         if search_key:
             self.handle_search(url, search_key)
         if page_num:
