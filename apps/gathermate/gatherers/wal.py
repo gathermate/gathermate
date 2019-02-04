@@ -4,6 +4,7 @@ import re
 from apps.gathermate.gatherer import Gatherer
 from apps.common.exceptions import MyFlaskException
 from apps.common import urldealer as ud
+from apps.common import toolbox as tb
 
 def register():
     return 'Gatherer'
@@ -71,9 +72,15 @@ class Wal(Gatherer):
                     link = ud.join(self.URL, match.group(1))
                     name = match.group(2)
                     yield {'name': name, 'link': link, 'type': 'file'}
+
+                a = e.getparent().getnext().find('a')
+                link = a.get('href')
+                if tb.is_magnet(link):
+                    yield {'name': name, 'link': link, 'type': 'magnet'}
+
             except:
                 MyFlaskException.trace_error()
-
+        '''
         magnet_xpath = r'//input[contains(@value, "magnet:?xt")]'
         for e in root.xpath(magnet_xpath):
             try:
@@ -86,6 +93,7 @@ class Wal(Gatherer):
                     yield {'name': name, 'link': ud.unquote(value), 'type': 'magnet'}
             except:
                 MyFlaskException.trace_error()
+        '''
 
     def get_file(self, url, ticket):
         # type: (urldealer.Url, Type[Dict[Text, Union[Text, List[Text]]]]) -> fetchers.Response
