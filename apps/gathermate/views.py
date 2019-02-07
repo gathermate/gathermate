@@ -36,6 +36,8 @@ def make_cache_key():
 @auth.requires_auth
 def index():
     # type: () -> str
+    result = app.send('{}#{}'.format(name, request.host), 'Hi')
+    log.debug(result)
     return render_template('gathermate_index.html')
 
 @gathermate.route('/encode', methods=['GET'])

@@ -4,14 +4,14 @@ import time
 import logging as log
 import re
 
-from apps.gathermate.gatherer import Gatherer
+from apps.gathermate.gatherer import BoardGatherer
 from apps.common.exceptions import MyFlaskException
 from apps.common import urldealer as ud
 
 def register():
-    return 'Gatherer'
+    return 'Gatherer', Tfreeca
 
-class Tfreeca(Gatherer):
+class Tfreeca(BoardGatherer):
     URL = 'https://www.tfreeca3.com/home.php'
     LIST_URL = ud.join(URL, '/board.php?mode=list&b_id=%s')
     ID_REGEXP = re.compile(r'.*id=(\d{2,7})')

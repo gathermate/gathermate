@@ -34,19 +34,14 @@ class Manager(object):
             fname, fext = os.path.splitext(os.path.basename(file))
             module = importlib.import_module('{}.{}'.format(package, fname))
             try:
-                type_ = module.register()
+                type_, class_ = module.register()
             except AttributeError:
                 MyFlaskException.trace_error()
                 log.warning('[%s%s] has not register() function.', fname, fext)
                 continue
             if type_ == module_type:
-                if parent_class is not None:
-                    for name, class_ in self._get_class_of(module, parent_class):
-                        modules[name] = class_
-                        log.debug("%s class is registered as %s.", name, type_)
-                else:
-                    modules[fname] = module
-                    log.debug('%s is registered as %s.', fname, type_)
+                modules.update({class_.__name__: class_})
+                log.debug("%s class is registered as %s.", class_.__name__, type_)
         return modules
 
     def _get_class_of(self, module, class_):

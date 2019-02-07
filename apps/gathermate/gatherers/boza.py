@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
 import re
+import logging as log
 
-from apps.gathermate.gatherer import Gatherer
+from apps.gathermate.gatherer import BoardGatherer
 from apps.common.exceptions import MyFlaskException
 from apps.common import urldealer as ud
 
 def register():
-    return 'Gatherer'
+    return 'Gatherer', Boza
 
-class Boza(Gatherer):
+class Boza(BoardGatherer):
     URL = 'https://torrentboza.com/'
     LIST_URL = ud.join(URL, '/bbs/board.php?bo_table=%s')
     SEARCH_QUERY = 'sca=&sfl=wr_subject&sop=and&stx=%s'
@@ -56,4 +57,6 @@ class Boza(Gatherer):
 
     def get_file(self, url, ticket):
         # type: (urldealer.Url, Type[Dict[Text, Union[Text, List[Text]]]]) -> fetchers.Response
+        if self.config.get('RSS_AGGRESSIVE'):
+            self.fetch(ud.Url(ticket['referer']), referer=self.URL)
         return self.fetch(url, referer=ticket['referer'])

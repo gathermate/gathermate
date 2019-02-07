@@ -6,7 +6,8 @@ class Flask(object):
     SECRET_KEY = os.urandom(8).encode('hex')
     LOG_LEVEL = 'DEBUG'
     NOTIFY = False
-    TELEGRAM_BOT_TOKEN = None
+    TELEGRAM_BOT_TOKEN = ''
+    TELEGRAM_CHAT_ID = 123456789
     MANAGERS = {
         'Gathermate': 'apps.gathermate.manager',
         'Callmewhen': 'apps.callmewhen.manager',

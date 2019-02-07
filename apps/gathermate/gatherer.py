@@ -15,12 +15,102 @@ class Gatherer(object):
     def __init__(self, config, fetcher):
         # type: (Dict[str, object], Type[fetchers.Fetcher]) -> None
         self.encoding = config.get('ENCODING', 'utf-8')
-        self.length = int(config.get('RSS_LENGTH', 1))
         self.config = config
         self.fetcher = fetcher
+        self.set_login(config)
+
+    def set_login(self, config):
+        # type: (Dict[str, object]) -> None
+        self.login_info = {}
+
+    ESCAPE_REGEXP = re.compile(r'\%..')
+    def parse_file(self, url, ticket):
+        # type: (urldealer.Url, Type[Dict[Text, Union[Text, List[Text]]]]) -> Response
+        down_response = self.get_file(url, ticket)
+        if not down_response or not down_response.headers.get('Content-Disposition'):
+            log.error('HEADERS : %s', down_response.headers)
+            raise MyFlaskException('Could not download : {}'.format(url.text),
+                     response=self.fetcher.current_response)
+        filename = tb.filename_from_headers(down_response.headers)
+        if not self.ESCAPE_REGEXP.search(filename):
+            filename = ud.quote(filename)
+        down_response.filename = filename
+        log.info('Downloading : [%s]', filename)
+        down_response.headers['content-type'] = tb.get_mime(filename)
+        return down_response
+
+    def etree(self, response, encoding='utf-8'):
+        # type: (Response, Text) -> lxml.etree._Element
+        return etree.HTML(response.content.decode(encoding, 'replace'))
+
+    def fetch_and_etree(self, url, referer=None, encoding='utf-8'):
+        # type: (Union[Text, urldealer.Url], Text, Text) -> lxml.etree._Element
+        return self.etree(self.fetch(url, referer=referer), encoding=encoding)
+
+    def _log_result(self, url):
+        # type: (urldealer.Url) -> None
+        log.debug('Parsing [...%s%s] is done.',
+                  url.path, '?%s' % url.query if url.query else '')
+
+    def credential(self):
+        # type: () -> None
+        url = ud.Url(self.login_info.get('url'))
+        self.fetcher.fetch(url,
+                           referer=self.login_info.get('referer', self.URL),
+                           method=self.login_info.get('method', 'POST').upper(),
+                           payload=self.login_info.get('payload', None),
+                           follow_redirects=self.login_info.get('follow_redirects', False),
+                           forced_update=True)
+
+    def check_login(self, r):
+        # type: (Response) -> Optional(re.MatchObject, boolean)
+        return self.login_info['denied'].search(r.content) or False
+
+    def fetch(self, url, **kwargs):
+        # type: (Union[urldealer.Url, Text], Optional[Dict[Text, object]]) -> Response
+        url = ud.Url(url) if not type(url) is ud.Url else url
+        r = self.fetcher.fetch(url, **kwargs)
+        if self.login_info and self.check_login(r):
+            log.debug('Login is required.')
+            self.credential()
+            log.debug('Refetching [%s]', url.text)
+            r = self.fetcher.fetch(url, forced_update=True, **kwargs)
+            if self.check_login(r):
+                raise MyFlaskException('Could not login.',
+                         response=self.fetcher.current_response)
+        return r
+
+    def safe_loop(self, elements, **kwargs):
+        # type: (lxml.etree.Element, Optional[Dict[Text, object]]) -> Callable
+        def handle_element(f):
+            @wraps(f)
+            def decorate():
+                self.extract_info = {}
+                for idx, element in enumerate(elements):
+                    self.extract_info['idx'] = idx
+                    try:
+                        item = f(element)
+                        if item:
+                            yield item
+                    except:
+                        MyFlaskException.trace_error()
+            return decorate
+        return handle_element
+
+    def get_page(self, response):
+        # type: (Response) -> Iterable
+        root = self.etree(response, encoding=self.encoding)
+        return etree.tostring(root,
+                              pretty_print=True,
+                              encoding=self.encoding)
+
+
+class BoardGatherer(Gatherer):
+    def __init__(self, config, fetcher):
+        super(BoardGatherer, self).__init__(config, fetcher)
+        self.length = int(config.get('RSS_LENGTH', 1))
         self.check_length_count = 0
         self.next_page = 2
-        self.set_login(config)
         self.isRSS = False
         self.articles = {}
         try:
@@ -28,6 +118,18 @@ class Gatherer(object):
         except:
             MyFlaskException.trace_error()
             self.want_regex = self._get_want_regex([])
+
+    def get_list(self, response):
+        # type: (Response) -> Generator
+        raise NotImplementedError
+
+    def get_item(self, response):
+        # type: (Response) -> Generator
+        raise NotImplementedError
+
+    def get_file(self, url, ticket):
+        # type: (urldealer.Url, Dict[Text, Union[Text, Dict[Text, Text]]]) -> Response
+        raise NotImplementedError
 
     def handle_query(self, url):
         # type: (urldealer.Url) -> None
@@ -38,10 +140,6 @@ class Gatherer(object):
         if page_num:
             self.handle_page(url, page_num)
 
-    def set_login(self, config):
-        # type: (Dict[str, object]) -> None
-        self.login_info = {}
-
     def handle_search(self, url, keyword):
         # type: (urldealer.Url, Text) -> None
         url.update_qs(self.SEARCH_QUERY % keyword)
@@ -49,6 +147,11 @@ class Gatherer(object):
     def handle_page(self, url, num):
         # type: (urldealer.Url, Text) -> None
         url.update_qs(self.PAGE_QUERY % int(num))
+
+    def get_id_num(self, text):
+        # type: (Text) -> int
+        result = self.ID_REGEXP.search(text)
+        return int(result.group(1)) if result else -1
 
     def parse_list(self, url):
         # type: (urldealer.Url) -> Union[Dict[Text, Dict[Text, Text]], Dict[Text, Union[int, Dict[Text, object]]]]
@@ -152,16 +255,6 @@ class Gatherer(object):
                 result.append(self.parse_item(url))
             return result
 
-    def _parse_item_from_list(self, articles):
-        new_articles = []
-        for id_num, article in articles.iteritems():
-            item = {}
-            item['name'] = article['title']
-            item['link'] = article['link']
-            item['type'] = 'unknown'
-            new_articles.append([item])
-        return new_articles
-
     def parse_item(self, article_url):
         # type: (Union[urldealer.Url, List[urldealer.Url]]) -> List[Dict[Text, Text]]
         items = []
@@ -201,100 +294,13 @@ class Gatherer(object):
             return [re.compile(r'\.torrent$')]
         return [re.compile(keyword) for keyword in want_list]
 
-    ESCAPE_REGEXP = re.compile(r'\%..')
-    def parse_file(self, url, ticket):
-        # type: (urldealer.Url, Type[Dict[Text, Union[Text, List[Text]]]]) -> Response
-        down_response = self.get_file(url, ticket)
-        if not down_response or not down_response.headers.get('Content-Disposition'):
-            log.error('HEADERS : %s', down_response.headers)
-            raise MyFlaskException('Could not download : {}'.format(url.text),
-                     response=self.fetcher.current_response)
-        filename = tb.filename_from_headers(down_response.headers)
-        if not self.ESCAPE_REGEXP.search(filename):
-            filename = ud.quote(filename)
-        down_response.filename = filename
-        log.info('Downloading : [%s]', filename)
-        down_response.headers['content-type'] = tb.get_mime(filename)
-        return down_response
 
-    def etree(self, response, encoding='utf-8'):
-        # type: (Response, Text) -> lxml.etree._Element
-        return etree.HTML(response.content.decode(encoding, 'replace'))
-
-    def fetch_and_etree(self, url, referer=None, encoding='utf-8'):
-        # type: (Union[Text, urldealer.Url], Text, Text) -> lxml.etree._Element
-        return self.etree(self.fetch(url, referer=referer), encoding=encoding)
-
-    def get_id_num(self, text):
-        # type: (Text) -> int
-        result = self.ID_REGEXP.search(text)
-        return int(result.group(1)) if result else -1
-
-    def _log_result(self, url):
-        # type: (urldealer.Url) -> None
-        log.debug('Parsing [...%s%s] is done.',
-                  url.path, '?%s' % url.query if url.query else '')
-
-    def credential(self):
-        # type: () -> None
-        url = ud.Url(self.login_info.get('url'))
-        self.fetcher.fetch(url,
-                           referer=self.login_info.get('referer', self.URL),
-                           method=self.login_info.get('method', 'POST').upper(),
-                           payload=self.login_info.get('payload', None),
-                           follow_redirects=self.login_info.get('follow_redirects', False),
-                           forced_update=True)
-
-    def check_login(self, r):
-        # type: (Response) -> Optional(re.MatchObject, boolean)
-        return self.login_info['denied'].search(r.content) or False
-
-    def fetch(self, url, **kwargs):
-        # type: (Union[urldealer.Url, Text], Optional[Dict[Text, object]]) -> Response
-        url = ud.Url(url) if not type(url) is ud.Url else url
-        r = self.fetcher.fetch(url, **kwargs)
-        if self.login_info and self.check_login(r):
-            log.debug('Login is required.')
-            self.credential()
-            log.debug('Refetching [%s]', url.text)
-            r = self.fetcher.fetch(url, forced_update=True, **kwargs)
-            if self.check_login(r):
-                raise MyFlaskException('Could not login.',
-                         response=self.fetcher.current_response)
-        return r
-
-    def safe_loop(self, elements, **kwargs):
-        # type: (lxml.etree.Element, Optional[Dict[Text, object]]) -> Callable
-        def handle_element(f):
-            @wraps(f)
-            def decorate():
-                self.extract_info = {}
-                for idx, element in enumerate(elements):
-                    self.extract_info['idx'] = idx
-                    try:
-                        item = f(element)
-                        if item:
-                            yield item
-                    except:
-                        MyFlaskException.trace_error()
-            return decorate
-        return handle_element
-
-    def get_list(self, response):
-        # type: (Response) -> Generator
-        raise NotImplementedError
-
-    def get_item(self, response):
-        # type: (Response) -> Generator
-        raise NotImplementedError
-
-    def get_file(self, url, ticket):
-        # type: (urldealer.Url, Dict[Text, Union[Text, Dict[Text, Text]]]) -> Response
-        raise NotImplementedError
-
-    def get_page(self, response):
-        # type: (Response) -> Iterable
-        root = self.etree(response, encoding=self.encoding)
-        return etree.tostring(root,
-                              pretty_print=True,
-                              encoding=self.encoding)
+    def _parse_item_from_list(self, articles):
+        new_articles = []
+        for id_num, article in articles.iteritems():
+            item = {}
+            item['name'] = article['title']
+            item['link'] = article['link']
+            item['type'] = 'unknown'
+            new_articles.append([item])
+        return new_articles

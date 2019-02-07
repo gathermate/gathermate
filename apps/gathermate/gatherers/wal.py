@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
 import re
 
-from apps.gathermate.gatherer import Gatherer
+from apps.gathermate.gatherer import BoardGatherer
 from apps.common.exceptions import MyFlaskException
 from apps.common import urldealer as ud
 from apps.common import toolbox as tb
 
 def register():
-    return 'Gatherer'
+    return 'Gatherer', Wal
 
 
-class Wal(Gatherer):
+class Wal(BoardGatherer):
     URL = 'https://m.torrentwal.com/'
     LIST_URL = ud.join(URL, '%s/torrent1.htm')
     ID_REGEXP = re.compile(r'(\d{2,8}).html')

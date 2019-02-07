@@ -6,7 +6,7 @@ from apps.gathermate.gatherer import Gatherer
 from apps.common.exceptions import MyFlaskException
 
 def register():
-    return 'Gatherer'
+    return 'Gatherer', Quotes
 
 class Quotes(Gatherer):
     URL = 'http://quotes.toscrape.com/'

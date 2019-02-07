@@ -5,15 +5,15 @@ import logging as log
 
 from lxml import etree
 
-from apps.gathermate.gatherer import Gatherer
+from apps.gathermate.gatherer import BoardGatherer
 from apps.common.exceptions import MyFlaskException
 from apps.common import urldealer as ud
 from apps.common import toolbox as tb
 
 def register():
-    return 'Gatherer'
+    return 'Gatherer', Tocafe
 
-class Tocafe(Gatherer):
+class Tocafe(BoardGatherer):
     URL = 'https://tocafe.net'
     LIST_URL = ud.join(URL, 'bbs/board.php?bo_table=%s')
     ID_REGEXP = re.compile(r'wr_id=(\d{2,7})')
@@ -45,9 +45,8 @@ class Tocafe(Gatherer):
                 link = a.get('href')
                 id_ = self.get_id_num(link)
                 category = e.find('a[1]').text.strip()
-                volume = e.find('span[1]').text.strip()
                 date = e.getparent().find('div[3]/span[2]/i').tail.strip()
-                etc = '{} {} {}'.format(category, volume, date)
+                etc = '{} {}'.format(category, date)
 
                 yield {'id': id_, 'title': title, 'link': link, 'etc': etc}
 

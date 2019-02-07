@@ -18,7 +18,11 @@ NOTIFY = True
 
 # 메세지를 보낼 텔레그램 봇 토큰입니다.
 # 에러 발생시 봇을 통해 알람을 받을 수 있습니다.
-TELEGRAM_BOT_TOKEN = None
+TELEGRAM_BOT_TOKEN = ''
+
+# 자신의 텔레그램 chat_id를 입력해 주세요.
+# install 폴더의 telegram.sh 스크립트로 확인 가능.
+TELEGRAM_CHAT_ID = 123456789
 
 # Manager 모듈을 불러오기 위한 값입니다.
 # 각 앱의 매니저 모듈을 패키지 주소 형식으로 등록해 주세요.

@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 import re
 
-from apps.gathermate.gatherer import Gatherer
+from apps.gathermate.gatherer import BoardGatherer
 from apps.common.exceptions import MyFlaskException
 from apps.common import urldealer as ud
 
 def register():
-    return 'Gatherer'
+    return 'Gatherer', Etoland
 
 
-class Etoland(Gatherer):
+class Etoland(BoardGatherer):
     URL = "http://www.etoland.co.kr"
     LIST_URL = ud.join(URL, '/bbs/board.php?bo_table=%s')
     ID_REGEXP = re.compile(r'wr_id=(\d{2,8})')

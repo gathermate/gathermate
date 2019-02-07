@@ -5,15 +5,15 @@ import logging as log
 
 from lxml import etree
 
-from apps.gathermate.gatherer import Gatherer
+from apps.gathermate.gatherer import BoardGatherer
 from apps.common.exceptions import MyFlaskException
 from apps.common import urldealer as ud
 from apps.common import toolbox as tb
 
 def register():
-    return 'Gatherer'
+    return 'Gatherer', Torrenthaja
 
-class Torrenthaja(Gatherer):
+class Torrenthaja(BoardGatherer):
     URL = 'https://torrenthaja.com/'
     LIST_URL = ud.join(URL, '/bbs/board.php?bo_table=%s')
     SEARCH_QUERY = u'sca=&sop=and&sfl=wr_subject&stx=%s'
@@ -97,6 +97,8 @@ class Torrenthaja(Gatherer):
         method = ticket.get('method', 'GET')
         if payload:
             payload = ud.split_qs(payload)
+        if self.config.get('RSS_AGGRESSIVE'):
+            self.fetch(ud.Url(ticket['referer']), referer=self.URL)
         return self.fetch(url,
                           referer=ticket['referer'],
                           method=method,
