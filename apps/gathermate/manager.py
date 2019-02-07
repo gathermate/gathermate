@@ -20,7 +20,7 @@ class GathermateManager(Manager):
     def __init__(self, config):
         # type: (flask.config.Config) -> None
         super(GathermateManager, self).__init__(config)
-        gatherers = self._register_modules('apps.gathermate.gatherers', 'Gatherer')
+        gatherers = self._register_modules('apps.gathermate.boards', 'Gatherer')
         self.__gatherer_classes = {ud.Url(class_.URL).hostname: class_ for name, class_ in gatherers.iteritems()}
 
     def _hire_gatherer(self, target):

@@ -24,18 +24,16 @@ opt/
     apps/
         my-flask-server/
             apps/
+                callmewhen/
                 common/
                 gathermate/
-                    gatherers/
+                    boards/
                     static/
                     templates/
             install/
             instance/
             static/
-            templates/            
-            var/
-                log/
-                run/
+            templates/                        
             venv/
                 bin/
                 gae/
