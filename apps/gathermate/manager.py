@@ -68,7 +68,7 @@ class GathermateManager(Manager):
         return default_config
 
     def _order_rss(self, target, query):
-        # type: (urldealer.Url, urldealer.MultiDict[unicode, List[unicode]]) -> str
+        # type: (urldealer.Url, apps.common.datastructures.MultiDict[unicode, List[unicode]]) -> str
         gatherer = self._hire_gatherer(target)
         gatherer.isRSS = True
         length = query.get('length', None, type=int)
@@ -78,21 +78,21 @@ class GathermateManager(Manager):
         return packer.pack_rss(gatherer.parse_items(listing))
 
     def _order_item(self, target, query):
-        # type: (urldealer.Url, urldealer.MultiDict[unicode, List[unicode]])
+        # type: (urldealer.Url, apps.common.datastructures.MultiDict[unicode, List[unicode]])
         # -> List[Dict[str, Union[str, unicode]]]
         gatherer = self._hire_gatherer(target)
         items = gatherer.parse_item(target)
         return packer.pack_item(items)
 
     def _order_list(self, target, query):
-        # type: (urldealer.Url, urldealer.MultiDict[unicode, List[unicode]])
+        # type: (urldealer.Url, apps.common.datastructures.MultiDict[unicode, List[unicode]])
         # -> Dict[str, Union[int, List[Tuple[int, Dict[str, Union[int, str, unicode]]]]]]
         gatherer = self._hire_gatherer(target)
         listing = gatherer.parse_list(target)
         return packer.pack_list(listing)
 
     def _order_down(self, target, query):
-        # type: (urldealer.Url, urldealer.MultiDict[unicode, List[unicode]]) -> fetchers.Response
+        # type: (urldealer.Url, apps.common.datastructures.MultiDict[unicode, List[unicode]]) -> fetchers.Response
         ticket = query.get('ticket')
         if ticket:
             ticket = ud.split_qs(ud.unquote(ticket))
@@ -101,26 +101,28 @@ class GathermateManager(Manager):
         # RSS_AGGRESSIVE = False
         gatherer = self._hire_gatherer(target)
         gatherer.isRSS = True
-        item = gatherer.parse_item(target)[0]
-        if item['type'] in ['magnet', 'link']:
-            return item['link']
-        return gatherer.parse_file(ud.Url(item['link']), item['ticket'])
+        items = gatherer.parse_item(target)
+        if len(items) is 0:
+            raise MyFlaskException('No items found.')
+        if items[0]['type'] in ['magnet', 'link']:
+            return items[0]['link']
+        return gatherer.parse_file(ud.Url(items[0]['link']), items[0]['ticket'])
 
     def _order_page(self, target, query):
-        # type: (urldealer.Url, urldealer.MultiDict[unicode, List[unicode]]) -> Iterable
+        # type: (urldealer.Url, apps.common.datastructures.MultiDict[unicode, List[unicode]]) -> Iterable
         gatherer = self._hire_gatherer(target)
         return gatherer.get_page(gatherer.fetch(target))
 
     @tb.timeit
     def _get_data(self, order, target, query):
-        # type: (Text, urldealer.Url, urldealer.MultiDict[unicode, List[unicode]])
+        # type: (Text, urldealer.Url, apps.common.datastructures.MultiDict[unicode, List[unicode]])
         # -> Union[str, fetchers.Response, Iterable]
         data = getattr(self, '_order_{}'.format(order))(target, query)
         log.info('Cumulative fetching size : %s', fetchers.fetcher.size_text(fetchers.fetcher.cum_size))
         return data
 
     def request(self, order, query):
-        # type: (str, urldealer.MultiDict[unicode, List[unicode]]) -> Union[str, fetchers.Response, Iterable]
+        # type: (str, apps.common.datastructures.MultiDict[unicode, List[unicode]]) -> Union[str, fetchers.Response, Iterable]
         if query.get('url'):
             target = ud.Url(ud.unquote(query['url']))
         elif query.get('site'):

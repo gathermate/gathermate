@@ -241,7 +241,7 @@ class BoardGatherer(Gatherer):
         self.parse_list(url)
 
     def parse_items(self, articles):
-        # type: (Dict[Text, Dict[Text, Text]]) -> Iterable
+        # type: (Dict[str, Dict[str, str]]) -> Iterable
         if not self.config.get('RSS_AGGRESSIVE'):
             return self._parse_item_from_list(articles)
         urls = [ud.Url(article['link']) for article in articles.values()]
@@ -256,7 +256,7 @@ class BoardGatherer(Gatherer):
             return result
 
     def parse_item(self, article_url):
-        # type: (Union[urldealer.Url, List[urldealer.Url]]) -> List[Dict[Text, Text]]
+        # type: (Union[urldealer.Url, List[urldealer.Url]]) -> List[Optional[Dict[str, str]]]
         items = []
         try:
             r = self.fetch(article_url)
@@ -272,17 +272,18 @@ class BoardGatherer(Gatherer):
         except:
             MyFlaskException.trace_error()
         self._log_result(article_url)
-        if len(items) == 0:
-            log.error('No items found : %s' % article_url)
-        if self.isRSS and not self.config.get('RSS_AGGRESSIVE'):
-            items = [self._want(items)]
+        if len(items) is not 0:
+            if self.isRSS and not self.config.get('RSS_AGGRESSIVE'):
+                return [self._want(items)]
+        else:
+            log.error('No items found : %s', article_url)
         return items
 
     def _want(self, items):
-        # type: (List[Dict[Text, Text]]) -> Dict[Text, Text]
+        # type: (List[Dict[str, str]]) -> Optional[Dict[str, str]]
         for want in self.want_regex:
             for item in items:
-                match = want.search(item['name'])
+                match = want.search(item['name'].lower())
                 if match:
                     log.debug('[%s] matched.', match.group(0))
                     return item
