@@ -88,6 +88,16 @@ class Etoland(BoardGatherer):
             except:
                 MyFlaskException.trace_error()
 
+        url = ud.Url(r.url)
+        if url.query_dict.get('bo_table').startswith('data_'):
+            elements = root.xpath(r'//a[contains(@href, "https://www.google.com")]/font/..')
+            for e in elements:
+                try:
+                    link = e.get('href')
+                    yield {'name': link, 'link': link, 'type': 'link'}
+                except:
+                    MyFlaskException.trace_error()
+
     def get_file(self, url, ticket):
         # type: (urldealer.Url, Type[Dict[Text, Union[Text, List[Text]]]]) -> fetchers.Response
         return self.fetch(url, referer=ticket['referer'])
