@@ -13,6 +13,7 @@ Gathermate
 - flask
 - flask-Caching
 - gunicorn
+- tld
 
 ---
 
@@ -41,6 +42,7 @@ opt/
                         chardet/
                         concurrent/
                         flask_caching/
+                        tld/
                 include/
                 lib/
                 local/

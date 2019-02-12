@@ -6,7 +6,7 @@ import logging as log
 import httplib
 import importlib
 
-import tldextract as te
+from tld import get_fld
 
 from apps.common.exceptions import MyFlaskException
 from apps.common.cache import cache
@@ -153,16 +153,16 @@ class Fetcher(object):
 
     def _get_cookie(self, url):
         # type: (urldealer.Url) -> Text
-        ext = te.extract(url.hostname)
-        cookie = cache.get(cache.create_key(ext.registered_domain + '-cookies'))
+        domain = get_fld(url.hostname, fix_protocol=True)
+        cookie = cache.get(cache.create_key(domain + '-cookies'))
         if cookie:
             return cookie
         return Cookie.SimpleCookie().output(self.COOKIE_ATTRS, header='', sep=';')
 
     def _set_cookie(self, url, new_cookie):
         # type: (urldealer.Url, str) -> None
-        ext = te.extract(url.hostname)
-        key = cache.create_key(ext.registered_domain + '-cookies')
+        domain = get_fld(url.hostname, fix_protocol=True)
+        key = cache.create_key(domain + '-cookies')
         old_cookie = Cookie.SimpleCookie(str(cache.get(key)))
         old_cookie.load(new_cookie)
         cookie = old_cookie.output(self.COOKIE_ATTRS, header='', sep=';').strip()

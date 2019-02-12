@@ -1,3 +1,5 @@
 chardet
 flask-Caching
 futures
+tld
+six
