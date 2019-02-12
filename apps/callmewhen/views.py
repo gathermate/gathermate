@@ -7,10 +7,11 @@ from flask import current_app as app
 from apps.common.cache import cache
 from apps.common.auth import auth
 from apps.common import urldealer as ud
+from apps.common.datastructures import MultiDict
 
 name = 'Callmewhen'
 
-telegram = Blueprint(
+cmw = Blueprint(
     name,
     __name__,
     template_folder='templates',
@@ -21,10 +22,10 @@ def make_cache_key():
     key = ud.Url(request.url).update_query(request.form).text if request.form else request.url
     return cache.create_key(key)
 
-@telegram.route('/<string:order>', methods=['GET'])
+@cmw.route('/<string:order>', methods=['GET'])
 @cache.cached(key_prefix=make_cache_key, timeout=cache.APP_TIMEOUT)
 @auth.requires_auth
 def send(order):
     # type: () -> Text
-    args = request.args.copy()
-    return app.managers[name].request(order, args)
+    query = MultiDict(request.args)
+    return app.managers[name].request(order, query)

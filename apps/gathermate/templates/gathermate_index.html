@@ -20,16 +20,6 @@
 {%- endmacro %}
 
 {%- set menu = [
-  ['tmovie', '영화'], ['tent', '예능'], ['tdrama', '드라마'], ['tv', 'TV'], ['tani', '애니'], ['tmusic', '음악'], ['util', '유틸'],
-] -%}
-      {{ render_index('https://www.tfreeca3.com/home.php', 'tfreeca', '티프리x', menu) }}
-
-{%- set menu = [
-  ['tmovie', '영화'], ['tent', '예능'], ['tdrama', '드라마'], ['tv', 'TV'], ['tani', '애니'], ['tmusic', '음악'], ['util', '유틸'],
-] -%}
-      {{ render_index('https://www.torrentmi.com/', 'torrentmi', '토x트미', menu) }}
-
-{%- set menu = [
   ['torrent_popular', '인기', 'list', 'https%3A%2F%2Fm.torrentwal.com'], ['torrent_movie', '영화'], ['torrent_variety', '예능'],  ['torrent_tv', '드라마'], ['torrent_docu', '다큐'], ['torrent_sports', '스포츠'], ['torrent_util', '유틸'],  ['torrent_ani', '애니'], ['torrent_song', '음원'], ['torrent_game', '게임'], ['torrent_mid', '해외TV'],  ['torrent_child', '어린이'], ['torrent_etc', '기타'], ['torrent_iphone', '휴대기기'], ['torrent_book', '도서'],
 ] -%}
       {{ render_index('https://torrentwal.com/', 'wal', '토x트왈', menu) }}
@@ -54,6 +44,16 @@
   ['data_worldtv', '해외TV릴'], ['data_game', '게임릴'], ['data_worldmusic', '해외음원릴'],
 ] -%}
       {{ render_index('http://www.etoland.co.kr/', 'etoland', '이x랜드', menu) }}
+
+{%- set menu = [
+  ['tmovie', '영화'], ['tent', '예능'], ['tdrama', '드라마'], ['tv', 'TV'], ['tani', '애니'], ['tmusic', '음악'], ['util', '유틸'],
+] -%}
+      {{ render_index('https://www.tfreeca3.com/home.php', 'tfreeca', '티프리x', menu) }}
+
+{%- set menu = [
+  ['tmovie', '영화'], ['tent', '예능'], ['tdrama', '드라마'], ['tv', 'TV'], ['tani', '애니'], ['tmusic', '음악'], ['util', '유틸'],
+] -%}
+      {{ render_index('https://www.torrentmi.com/', 'torrentmi', '토x트미', menu) }}
 
 {%- set menu = [
   ['psd_caption', '자막자료실'], ['psd_dramacap', '드라마자막']

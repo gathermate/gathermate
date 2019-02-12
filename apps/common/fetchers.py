@@ -6,14 +6,20 @@ import logging as log
 import httplib
 import importlib
 
+import tldextract as te
+
 from apps.common.exceptions import MyFlaskException
 from apps.common.cache import cache
 from apps.common import urldealer as ud
 
 fetcher = None
 
-def hire_fetcher(config):
+def hire_fetcher(config=None):
     global fetcher
+    if config is None:
+        fetcher = Requests({},
+                           importlib.import_module('requests'))
+        return fetcher
     software = config.get('SOFTWARE', '')
     if software == 'GoogleAppEngine':
         fetcher = Urlfetch(config.get('FETCHER'),
@@ -61,58 +67,68 @@ class Fetcher(object):
         self.current_response = None
         log.debug('Using {} module as current fetcher.'.format(type(self).__name__))
 
-    def fetch(self, url, referer=None, method='GET', payload=None, forced_update=False, follow_redirects=False):
-        # type: (urldealer.Url, str, str, Dict[Text, Text], bool) -> Response
+    def fetch(self, url, referer=None, method='GET', payload=None, headers=None, forced_update=False, follow_redirects=False, cached=True):
+        # type: (Union[urldealer.Url, str], str, str, Dict[str, str], Dict[str, str], boolean, boolean, boolean) -> Response
+        url = ud.Url(url) if not type(url) is ud.Url else url
         self.counter += 1
         if self.counter > self.THRESHOLD:
             log.error('Fetching counter exceeds threshold by a request. : %d', self.counter)
             raise MyFlaskException('Too many fetchings by a request.')
-        key = cache.create_key(ud.Url(url.text).update_query(payload).text if payload else url.text)
-        @cache.cached(timeout=self.timeout, key_prefix=key, forced_update=lambda:forced_update)
-        def cached_fetch():
-            # type: () -> Response
-            log.debug('This fetching will update its cache.')
-            log.debug('Fetching [...{0}{1}]'
-                      .format(url.path, '?%s' % url.query if url.query else ''))
-            r = None
-            for _ in range(2):
-                try:
-                    r = self._fetch(url,
-                                    deadline=self.deadline,
-                                    payload=payload,
-                                    method=method,
-                                    headers=self._get_headers(url, referer),
-                                    follow_redirects=follow_redirects)
-                except httplib.BadStatusLine:
-                    MyFlaskException.trace_error()
-                except Exception as e:
-                    MyFlaskException.trace_error()
-                    if type(e) in self._get_retry_exceptions():
-                        log.warning('Retry fetching...')
-                        continue
-                    raise MyFlaskException('%s,  while fetching [%s]', e.message, url.text)
-                break
-            if not r:
-                raise MyFlaskException('Failed to fetch [%s]', url.text)
-            r.key = key
-            current_size = len(r.content)
-            log.debug('Fetched {0:s} from [...{1}{2}]'
-                      .format(self.size_text(current_size),
-                              url.path,
-                              '?%s' % url.query if url.query else ''))
-            self.cum_size += current_size
-            self._handle_response(url, r)
-            return r
-        return cached_fetch()
+        if cached:
+            key = cache.create_key(ud.Url(url.text).update_query(payload).text if payload else url.text)
+            cached_fetch = cache.cached(timeout=self.timeout, key_prefix=key, forced_update=lambda:forced_update)(self.cacheable_fetch)
+            return cached_fetch(url, referer, method, payload, headers, follow_redirects, key)
+        else:
+            log.debug('This fetching will be not cached.')
+            return self.cacheable_fetch(url, referer, method, payload, headers, follow_redirects)
 
-    def _get_headers(self, url, referer):
-        # type: (urldealer.Url, Text) -> Dict[Text, Text]
-        headers = { k: v for k, v in self.HEADERS.iteritems() }
-        headers['referer'] = referer if referer else ''
+    def cacheable_fetch(self, url, referer=None, method='GET', payload=None, headers=None, follow_redirects=False, key=None):
+        # type: () -> Response
+        log.debug('Fetching [...{0}{1}]'.format(url.path,
+                                                '?%s' % url.query if url.query else ''))
+        r = None
+        for _ in range(2):
+            try:
+                r = self._fetch(url,
+                                deadline=self.deadline,
+                                payload=payload,
+                                method=method,
+                                headers=self._get_headers(url, referer, headers),
+                                follow_redirects=follow_redirects)
+            except httplib.BadStatusLine:
+                MyFlaskException.trace_error()
+            except Exception as e:
+                MyFlaskException.trace_error()
+                if type(e) in self._get_retry_exceptions():
+                    log.warning('Retry fetching...')
+                    continue
+                raise MyFlaskException('%s,  while fetching [%s]', e.message, url.text)
+            break
+        if not r:
+            raise MyFlaskException('Failed to fetch [%s]', url.text)
+        r.key = key
+        current_size = len(r.content)
+        log.debug('Fetched {0:s} from [...{1}{2}]'
+                  .format(self.size_text(current_size),
+                          url.path,
+                          '?%s' % url.query if url.query else ''))
+        self.cum_size += current_size
+        self._handle_response(url, r)
+        return r
+
+    def _get_headers(self, url, referer, headers):
+        # type: (urldealer.Url, str, Dict[str, str]) -> Dict[str, str]
+        new_headers = { k: v for k, v in self.HEADERS.iteritems() }
+        new_headers['referer'] = referer if referer else ''
+        if headers is not None:
+            new_headers.update(headers)
+            new_cookie = new_headers.pop('cookie', None)
+            if new_cookie is not None:
+                self._set_cookie(url, str(new_cookie))
         cookie = self._get_cookie(url)
-        if cookie:
-            headers['cookie'] = cookie
-        return headers
+        if cookie != '':
+            new_headers['cookie'] = cookie
+        return new_headers
 
     def size_text(self, byte):
         #type: (int) -> Text
@@ -137,14 +153,16 @@ class Fetcher(object):
 
     def _get_cookie(self, url):
         # type: (urldealer.Url) -> Text
-        cookie = cache.get(cache.create_key(url.hostname + '-cookies'))
+        ext = te.extract(url.hostname)
+        cookie = cache.get(cache.create_key(ext.registered_domain + '-cookies'))
         if cookie:
             return cookie
         return Cookie.SimpleCookie().output(self.COOKIE_ATTRS, header='', sep=';')
 
     def _set_cookie(self, url, new_cookie):
         # type: (urldealer.Url, str) -> None
-        key = cache.create_key(url.hostname + '-cookies')
+        ext = te.extract(url.hostname)
+        key = cache.create_key(ext.registered_domain + '-cookies')
         old_cookie = Cookie.SimpleCookie(str(cache.get(key)))
         old_cookie.load(new_cookie)
         cookie = old_cookie.output(self.COOKIE_ATTRS, header='', sep=';').strip()

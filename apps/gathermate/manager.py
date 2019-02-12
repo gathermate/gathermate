@@ -48,7 +48,7 @@ class GathermateManager(Manager):
         # type: (Type[gatherer.Gatherer], Dict[str, Dict[str, Optional[bool, str, int, List[str]]]])
         # -> Type[gatherer.Gatherer]
         instance_config = self._get_default_config(class_.__name__, config)
-        gatherer = class_(instance_config, fetchers.hire_fetcher(self.config))
+        gatherer = class_(instance_config, fetchers.hire_fetcher(config=self.config))
         log.debug("%s instance has been created.", type(gatherer).__name__)
         return gatherer
 
