@@ -84,8 +84,7 @@ class Fetcher(object):
 
     def cacheable_fetch(self, url, referer=None, method='GET', payload=None, headers=None, follow_redirects=False, key=None):
         # type: () -> Response
-        log.debug('Fetching [...{0}{1}]'.format(url.path,
-                                                '?%s' % url.query if url.query else ''))
+        log.debug('Fetching [%s://%s%s...]', url.scheme, url.netloc, url.path)
         r = None
         for _ in range(2):
             try:
@@ -108,10 +107,11 @@ class Fetcher(object):
             raise MyFlaskException('Failed to fetch [%s]', url.text)
         r.key = key
         current_size = len(r.content)
-        log.debug('Fetched {0:s} from [...{1}{2}]'
-                  .format(self.size_text(current_size),
-                          url.path,
-                          '?%s' % url.query if url.query else ''))
+        log.debug('Fetched %s from [%s://%s%s...]',
+                  self.size_text(current_size),
+                  url.scheme,
+                  url.netloc,
+                  url.path)
         self.cum_size += current_size
         self._handle_response(url, r)
         return r
@@ -141,11 +141,11 @@ class Fetcher(object):
         self.current_response = r
         status_code = str(r.status_code)
         if status_code[0] in ['4', '5']:
-            raise MyFlaskException('''
-                Destination URL not working.
-                Content size: %d,
-                Status Code: %d,
-                Headers: %s''' % (len(r.content), r.status_code, r.headers), response=r)
+            raise MyFlaskException('Destination URL not working.\n' +
+                                   'Content size: %d,\n' % len(r.content) +
+                                   'Status Code: %d,\n' % r.status_code +
+                                   'Headers: %s,\n' % r.headers +
+                                   'Content: \n%s\n' % r.content, response=r)
         self.url = url.text
         set_cookie = r.headers.get('set-cookie')
         if set_cookie:

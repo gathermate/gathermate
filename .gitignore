@@ -2,5 +2,4 @@
 instance/
 *.pyc
 venv/
-apps/proxy/
 tests/
