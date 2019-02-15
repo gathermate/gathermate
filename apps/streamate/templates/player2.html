@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>HTTP Live Stream Player</title>
+  <link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.ico') }}" type="image/x-icon" />
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+  <link href="https://vjs.zencdn.net/7.4.1/video-js.css" rel="stylesheet">
+  <link href="{{ url_for('.static', filename='css/streamate.css') }}" rel="stylesheet">
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+  <!-- https://videojs.com/getting-started/ -->
+  <script src="{{ url_for('.static', filename='js/video.min.js') }}"></script>
+  <!-- https://github.com/streamroot/videojs-hlsjs-plugin -->
+  <script src="{{ url_for('.static', filename='js/videojs-hlsjs-plugin.js') }}"></script>
+  <!-- https://github.com/streamroot/videojs-quality-picker -->
+  <script src="{{ url_for('.static', filename='js/vjs-quality-picker.js') }}"></script>
+  <!-- https://github.com/verlok/lazyload -->
+  <script src="https://cdn.jsdelivr.net/npm/vanilla-lazyload@10.20.0/dist/lazyload.min.js"></script>
+  <script src="{{ url_for('.static', filename='js/streamate.js') }}"></script>
+</head>
+<body class="bg-light">
+  <header>
+    <nav>
+      <ul class="nav nav-pills nav-fill">
+        <li class="nav-item">
+          <a class="nav-link active" href="#">Pooq</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link disabled" href="#">Oksusu</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link disabled" href="#">Tving</a>
+        </li>
+      </ul>
+    </nav>
+  </header>
+  <section class="main-player">
+    <div class="p-5 video-wrap">
+      <div class="player">
+        <video id="video" class="lazy video-js vjs-fluid vjs-big-play-centered" width="640" height="480" autoplay controls preload="auto" data-setup='{"playbackRates": [1, 0.75, 0.5, 0.25]}'>
+          <p class='vjs-no-js'>
+            To view this video please enable JavaScript, and consider upgrading to a web browser that
+            <a href='https://videojs.com/html5-video-support/' target='_blank'>supports HTML5 video</a>
+          </p>
+        </video>
+      </div>
+    </div>
+    <div class="px-5 user-inputs">
+      <div class="input-group mb-3">
+        <input type="text" class="form-control" placeholder="Media URL (e.g http://...m3u8)" aria-label="Meia URL" aria-describedby="button-addon2" id="media-load-url" onkeydown="loadFromUrlEnter(this)">
+        <div class="input-group-append">
+          <button class="btn btn-outline-secondary" type="button" id="media-load-button" onclick="loadFromUrl(document.getElementById('media-load-url'))">Load</button>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section>
+    <div class="px-5 channels d-inline-flex align-content-start flex-wrap">
+      <!-- {u'livemarks': [], u'playratio': u'0.03', u'endtime': u'16:00', u'license': u'y', u'tvimage': u'', u'title': u'2019 \n\uc804\uad6d \uc7a5\uc560\uc778\n\ub3d9\uacc4\uccb4\uc721\ub300\ud68c', u'image': u'wchimg.pooq.co.kr/pooqlive/thumbnail/K01.jpg', u'channelid': u'K01', u'targetage': u'0', u'programid': u'K01_T2019-0035', u'starttime': u'14:30', u'channelname': u'KBS 1TV', u'type': u'video', u'price': u'1'} -->
+      {% for item in data.list %}
+      <div class="card w-25 p-2 d-inline-block shadow rounded">
+        <img class="lazy w-100" data-src="{{ url_for('.streamer', streamer=streamer, resource=item.image) }}" class="card-img-top" alt="{{ item.title }}">
+        <div class="card-body p-2">
+          <a href="javascript:void(0);" onclick="playChannel('{{ streamer }}', '{{ item.channelid }}')" class="stretched-link" title="{{ item.title }}"><h5 class="card-title" onclick="playChannel('{{ streamer }}', '{{ item.channelid }}')">{{ item.channelname }}</h5></a>
+          <p class="card-text">{{ item.title }}</p>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  <footer class="mb-5">
+  </footer>
+</body>
+</html>

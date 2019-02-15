@@ -153,7 +153,7 @@ class Fetcher(object):
 
     def _get_cookie(self, url):
         # type: (urldealer.Url) -> Text
-        domain = get_fld(url.hostname, fix_protocol=True)
+        domain = get_fld(url.text, fix_protocol=True)
         cookie = cache.get(cache.create_key(domain + '-cookies'))
         if cookie:
             return cookie

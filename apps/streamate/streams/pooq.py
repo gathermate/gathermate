@@ -1,44 +1,17 @@
 # -*- coding: utf-8 -*-
-
-import logging as log
-import json
 import re
+import json
+import logging as log
 import datetime
 
 import m3u8
 
-from apps.common.manager import Manager
-from apps.common import toolbox as tb
 from apps.common import urldealer as ud
-from apps.common import fetchers
+from apps.streamate.streamer import Streamer
 from apps.common.cache import cache
 
-
-def hire_manager(config):
-    # type: (flask.config.Config, Text) -> Manager
-    return ProxyManager(config)
-
-
-class ProxyManager(Manager):
-
-    def request(self, site, query):
-        # type: (str, Type[Dict[str, Union[List[str], str]]]) -> ?
-        if site == 'pooq':
-            return Pooq(query, self.config).proxy()
-        elif site == 'http':
-            pass
-        return "Couldn't understand what you want."
-
-
-class Streamer(object):
-    def __init__(self, config):
-        self.config = config
-
-    def fetch(self, url, **kwargs):
-        return fetchers.hire_fetcher(config=self.config).fetch(url, cached=False, **kwargs)
-
-    def proxy(self):
-        pass
+def register():
+    return 'Streamer', Pooq
 
 class Pooq(Streamer):
 
@@ -52,30 +25,6 @@ class Pooq(Streamer):
         pooqzone='none',
         drm='wm')
 
-    BOOKMARK_DATA = dict(
-        itemType=3,
-        userNo=0,
-        profileId=0,
-        playId='',
-        guid='',
-        cornerId='',
-        channelType='L',
-        contentId='',
-        programId='K02',
-        deviceType=1,
-        ipAddress='',
-        concurrencyGroup=1,
-        issue='',
-        isCharged='n',
-        priceType='n',
-        pooqzoneType='',
-        logType='I',
-        extra=dict(osV='Windows 10', appV='1.1.6', apiV=3),
-        isABR='Y',
-        BR=1000,
-        mediaTime='00:00:30',
-        logDate='2019-02-13 12:47:27+0900')
-
     BASE_URL = 'https://www.pooq.co.kr/'
     API_URL = 'https://apis.pooq.co.kr'
     PLAYER_URL = 'https://www.pooq.co.kr/player/live.html?channelid=%s'
@@ -83,16 +32,16 @@ class Pooq(Streamer):
     LOGIN_CHECK_URL = 'https://member.pooq.co.kr/me'
     LOGIN_REFERER = 'https://www.pooq.co.kr/member/login.html?referer=http%3A%2F%2Fwww.pooq.co.kr%2Findex.html'
     JS_ALERT = re.compile(r'alert\(["\'](.+)[\'"]\)')
-    CACHE_TIMEOUT = 3600*6
-    API_CACHE_KEY = 'pooq-api-data'
+    CACHE_KEY = 'pooq-data'
 
-    def __init__(self, query, config):
-        super(Pooq, self).__init__(config)
-        # CHANNEL is always required.
-        self.CHANNEL = query.get('ch', '')
+    def __init__(self, config, query):
+        self.config = config
+        self.API_QUERY['credential'] = self.get_cache().get('login', {}).get('credential', 'none')
+        self.CHANNEL = query.get('channel', '')
         self.PLAYLIST = query.get('list', '')
         self.MEDIA = query.get('media', '')
-        self.API_QUERY['credential'] = self.get_cached_api().get('login', {}).get('credential', 'none')
+        self.RESOURCE = query.get('resource', '')
+
 
     def proxy(self):
         '''
@@ -103,7 +52,6 @@ class Pooq(Streamer):
         > live/channels/K01 > streaming > m3u8 > media > bookmark(log interval 10s) > media ...
         > live/channels/K01 (next program starts)
         '''
-
         for index in range(2):
             if self.API_QUERY['credential'] == 'none' or self.API_QUERY['credential'] is None:
                 if index is 2:
@@ -111,7 +59,6 @@ class Pooq(Streamer):
                 self.api_login()
             else:
                 break
-
         if self.MEDIA:
             log.debug('Proxy this media : %s', self.MEDIA)
             return self.handle_media(self.MEDIA)
@@ -119,13 +66,28 @@ class Pooq(Streamer):
             log.debug('Proxy this playlist : %s', self.PLAYLIST)
             response = self.fetch(self.PLAYLIST, referer=self.PLAYER_URL % self.CHANNEL)
             return self.handle_playlist(response)
-        else:
+        if self.CHANNEL == 'all':
+            log.debug('All channels...')
+            js = self.api_all_channels()
+            '''
+            for item in js.get('list'):
+                item.get('image') = ud.quote(item.get('image'))
+                '''
+            return js
+        if self.CHANNEL:
             log.debug('Fetch playlist from API.')
             js = self.api_streaming(self.CHANNEL)
             playurl = js.get('playurl')
             cookie = js.get('awscookie')
-            response = self.fetch(playurl, referer=self.PLAYER_URL % self.CHANNEL, headers={'cookie': cookie})
+            response = self.fetch(playurl,
+                                  referer=self.PLAYER_URL % self.CHANNEL,
+                                  headers={'cookie': cookie})
             return self.handle_playlist(response)
+        if self.RESOURCE:
+            url = ud.Url(self.RESOURCE)
+            log.debug('Fetch : %s', url.text)
+            return self.fetch(url, referer=self.BASE_URL)
+        return "Coudn't understand what you want."
 
     def check_login(self):
         response = self.fetch(self.LOGIN_CHECK_URL, referer=self.BASE_URL)
@@ -142,25 +104,13 @@ class Pooq(Streamer):
         if mlist.is_variant:
             for playlist in mlist.playlists:
                 # Input URL argument at the end unless encoding it.
-                playlist.uri = '?ch={}&list={}'.format(self.CHANNEL,
+                playlist.uri = '{}?list={}'.format(self.CHANNEL,
                                                        ud.join(response.url, playlist.uri))
         else:
             for segment in mlist.segments:
-                segment.uri = '?ch={}&media={}'.format(self.CHANNEL,
+                segment.uri = '{}?media={}'.format(self.CHANNEL,
                                                        ud.join(response.url, segment.uri))
         return mlist.dumps()
-
-
-    def old_handle_playlist(self, response):
-        mlist = m3u8.loads(response.content)
-        if mlist.is_variant:
-            url = ud.Url(ud.join(response.url, mlist.playlists[3].uri))
-            response = self.fetch(url, referer=self.PLAYER_URL % self.CHANNEL)
-            playlist = m3u8.loads(response.content)
-            for segment in playlist.segments:
-                segment.uri = '?ch={}&media={}'.format(self.CHANNEL,
-                                                       ud.join(response.url, segment.uri))
-            return playlist.dumps()
 
     def handle_media(self, url):
         url = ud.Url(url)
@@ -179,6 +129,7 @@ class Pooq(Streamer):
         api = ud.Url(ud.join(self.API_URL, '/live/channels/%s' % channel))
         return self.request_api(api, referer=self.PLAYER_URL % channel)
 
+    @cache.cached(key_prefix=cache.create_key('pooq-channels-epg'), timeout=60)
     def api_epg(self, channel):
         api = ud.Url(ud.join(self.API_URL, '/live/epgs/channels/%s' % channel))
         stime = datetime.datetime.strftime(datetime.datetime.today(), '%Y-%m-%d %H:%M')
@@ -188,7 +139,7 @@ class Pooq(Streamer):
 
     def api_streaming(self, channel):
         api = ud.Url(ud.join(self.API_URL, '/streaming'))
-        guid = self.get_cached_api().get('guid', {}).get('guid', None)
+        guid = self.get_cache().get('guid', {}).get('guid', None)
         if guid is None:
             guid = self.api_guid().get('guid')
         query = dict(contentid=channel,
@@ -203,10 +154,11 @@ class Pooq(Streamer):
                      ishevc='n')
         return self.request_api(api, referer=self.PLAYER_URL % channel, query=query)
 
+    @cache.cached(key_prefix=cache.create_key('pooq-all-channels'), timeout=60)
     def api_all_channels(self):
         api = ud.Url(ud.join(self.API_URL, '/live/all-channels'))
         query = dict(genre='all', type='all', free='all', offset=0, limit=999)
-        return self.request_api(api, query=query)
+        return self.request_api(api, query=query, referer=self.PLAYER_URL % 'K01')
 
     def api_login(self):
         '''
@@ -234,7 +186,6 @@ class Pooq(Streamer):
         response = self.fetch(api, method='JSON', payload=payload, referer=self.LOGIN_REFERER)
         js = self.caching_api(response, 'login')
         self.API_QUERY.update(credential=js.get('credential'))
-        js.update(isPooqZone='false')
         set_cookie = 'cs=%s' % ud.quote(json.dumps(js))
         self.fetch(self.BASE_URL, headers={'cookie':set_cookie}, referer=self.LOGIN_REFERER)
         return js
@@ -254,21 +205,37 @@ class Pooq(Streamer):
 
     def caching_api(self, response, cache_id):
         js = json.loads(response.content)
-        cached = self.get_cached_api()
+        cached = self.get_cache()
         temp = cached.get(cache_id, {})
         temp.update(js)
         cached[cache_id] = temp
-        self.set_cached_api(cached)
+        self.set_cache(cached, timeout=0)
         return js
 
-    def get_cached_api(self):
-        cached = cache.get(cache.create_key(self.API_CACHE_KEY))
-        if cached is None:
-            return {}
-        return json.loads(str(cached))
-
-    def set_cached_api(self, value):
-        cache.set(cache.create_key(self.API_CACHE_KEY), json.dumps(value), timeout=self.CACHE_TIMEOUT)
+    # pooq loggging data sample
+    BOOKMARK_DATA = dict(
+        itemType=3,
+        userNo=0,
+        profileId=0,
+        playId='',
+        guid='',
+        cornerId='',
+        channelType='L',
+        contentId='',
+        programId='K02',
+        deviceType=1,
+        ipAddress='',
+        concurrencyGroup=1,
+        issue='',
+        isCharged='n',
+        priceType='n',
+        pooqzoneType='',
+        logType='I',
+        extra=dict(osV='Windows 10', appV='1.1.6', apiV=3),
+        isABR='Y',
+        BR=1000,
+        mediaTime='00:00:30',
+        logDate='2019-02-13 12:47:27+0900')
 
 """
 API_COMMAND
