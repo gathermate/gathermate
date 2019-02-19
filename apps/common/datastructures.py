@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 
-import logging as log
+import logging
 from copy import deepcopy
 
+log = logging.getLogger(__name__)
 
 class MultiDict(dict):
     """

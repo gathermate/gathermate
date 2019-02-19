@@ -34,11 +34,11 @@ class Localhost(Flask):
     ACCEPTED_EXT = ['.torrent', '.smi', '.srt',]
     FETCHER = {
         'CACHE_TIMEOUT': 60,
-        'COOKIE_TIMEOUT': 3600,
         'DEADLINE': 60,
     }
     GATHERERS = {}
-
+    POOQ = {}
+    TVING = {}
 
 class GoogleAppEngine(Localhost):
     NAME = 'GoogleAppEngine @ default'

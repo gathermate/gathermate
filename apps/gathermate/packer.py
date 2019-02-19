@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import logging as log
+import logging
 import traceback
 
 from lxml import etree
@@ -9,6 +9,8 @@ from flask import url_for
 
 from apps.common import urldealer as ud
 from apps.common import toolbox as tb
+
+log = logging.getLogger(__name__)
 
 ACCEPTED_EXT = []
 

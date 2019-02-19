@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*-
+import logging
+
 from lxml.builder import E
 from lxml import etree
 
 from apps.gathermate.gatherer import Gatherer
 from apps.common.exceptions import MyFlaskException
+
+log = logging.getLogger(__name__)
 
 def register():
     return 'Gatherer', Quotes

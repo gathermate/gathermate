@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
 import re
+import logging
 
 from apps.gathermate.gatherer import BoardGatherer
 from apps.common.exceptions import MyFlaskException
 from apps.common import urldealer as ud
 from apps.common import toolbox as tb
+
+log = logging.getLogger(__name__)
 
 def register():
     return 'Gatherer', Wal

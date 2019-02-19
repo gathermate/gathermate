@@ -1,8 +1,12 @@
 # -*- coding: utf-8 -*-
 import urllib
 import urlparse
+import logging
 
 from apps.common.datastructures import MultiDict
+
+
+log = logging.getLogger(__name__)
 
 SCHEME = 'scheme'
 NETLOC = 'netloc'

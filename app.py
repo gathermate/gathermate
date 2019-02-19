@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import os
-import logging
 import sys
 import importlib
 
@@ -14,6 +13,7 @@ from apps.common.auth import auth
 from apps.common.cache import cache
 from apps.common.exceptions import MyFlaskException
 from apps.common import logger
+from apps.common import urldealer as ud
 
 reload(sys)
 sys.setdefaultencoding('utf-8')
@@ -31,7 +31,8 @@ def create_app(software, config, cache_type):
     app.config['SOFTWARE'] = software
     app.config['ROOT_DIR'] = os.path.dirname(os.path.abspath(__file__))
     logger.config(software, app.config['LOG_LEVEL'])
-    logging.debug('Config: %s', app.config['NAME'])
+    app.logger.debug('Server Software: %s', software)
+    app.logger.debug('Config: %s', app.config['NAME'])
     cache.init_app(app, config=cache_type)
     cache.clear()
     cache.APP_SECRET_KEY = app.config.get('SECRET_KEY', '')
@@ -49,7 +50,7 @@ def create_app(software, config, cache_type):
             app.register_blueprint(
                 blueprint,
                 url_prefix=settings['url_prefix'])
-            logging.debug(
+            app.logger.debug(
                 '{} has been registered as Blueprint.'.format(blueprint.name))
         except:
             MyFlaskException.trace_error()
@@ -63,9 +64,9 @@ def create_app(software, config, cache_type):
             result = app.managers['Callmewhen'].request('send',
                                                         {'msg':msg, 'sender': sender})
             if result:
-                logging.debug('The message was sent.')
+                app.logger.debug('The message was sent.')
             else:
-                logging.warning('The message wasn\'t sent.')
+                app.logger.warning('The message wasn\'t sent.')
     app.send = send
     return app
 
@@ -98,9 +99,9 @@ def index(path):
 @app.before_request
 def before_request_to_do():
     # type: () -> None
-    logging.debug('%(line)s Start of the request', {'line': '-'*30})
+    app.logger.debug('%(line)s Start of the request', {'line': '-'*30})
     client = '{} requested {} from {}'.format(request.remote_addr, request.full_path, request.referrer)
-    logging.info(client)
+    app.logger.info(client)
 
 
 @app.after_request
@@ -112,8 +113,8 @@ def after_request_to_do(response):
 def teardown_requst_to_do(exception):
     # type: () -> None
     if exception:
-        logging.error(exception.message)
-    logging.debug('%(line)s End of the request', {'line': '-'*30})
+        app.logger.error(exception.message)
+    app.logger.debug('%(line)s End of the request', {'line': '-'*30})
 
 @app.errorhandler(Exception)
 def unhandled_exception(e):
@@ -121,6 +122,10 @@ def unhandled_exception(e):
     MyFlaskException.trace_error()
     app.send('{}#{}'.format(__name__, request.host), e.message)
     return e.message
+
+@app.template_filter('quote')
+def quote_filter(url):
+    return ud.quote(url)
 
 @app.cli.command('send')
 @click.argument('sender', nargs=1)

@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 import traceback
-import logging as log
+import logging
 
 from apps.common import toolbox
 from apps.common.cache import cache
 
+log = logging.getLogger()
 
 class MyFlaskException(Exception):
 

@@ -1,33 +1,48 @@
 # -*- coding: utf-8 -*-
 
 import logging
+from logging.config import dictConfig
 
 def config(software, level):
-    logging.debug('Server Software: %s', software)
+    dictConfig({
+        'version': 1,
+        'formatters': {'default': {
+            'format': '%(asctime)s '
+                      '%(levelname)8s: '
+                      '%(message)s '
+                      '<%(name)s:%(filename)s:%(lineno)d>',
+            'datefmt': '%Y-%m-%d %H:%M:%S',
+        }},
+        'handlers': {
+            'wsgi': {
+                'class': 'logging.StreamHandler',
+                'stream': 'ext://flask.logging.wsgi_errors_stream',
+                'formatter': 'default'
+            },
+            'default': {
+                'class': 'logging.StreamHandler',
+                'stream': 'ext://sys.stdout',
+                'formatter': 'default'
+            },
+        },
+        'root': {
+            'level': level,
+            'handlers': ['wsgi']
+        }
+    })
     root = logging.getLogger()
     # chardet decode() logs TMI on DEBUG level.
     chardet_logger = logging.getLogger('chardet.charsetprober')
     chardet_logger.setLevel('INFO')
-    if software == 'GoogleAppEngine':
-        return
     if software.startswith('gunicorn/'):
         '''
         Gunicorn handler is about how logs are outputted.
         Root logger is about how logs are inputted.
         So if you wrote logs to root logger,
         you should register gunicorn handlers(output) on root logger(input).
+        Logger class : gunicorn.glogging.Logger
         '''
         gunicorn_logger = logging.getLogger('gunicorn.error')
         root.handlers = gunicorn_logger.handlers
         root.setLevel(gunicorn_logger.level)
         return
-    formatter = logging.Formatter(
-        '%(asctime)s '
-        '%(levelname)8s: '
-        '%(message)s '
-        '<%(filename)s:%(lineno)d>',
-        '%Y-%m-%d %H:%M:%S'
-    )
-    for handler in root.handlers:
-        handler.setFormatter(formatter)
-    root.setLevel(level)

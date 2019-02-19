@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
-import logging as log
+
+import logging
 from functools import wraps
 
 from flask import request
 from flask import Response
 
+log = logging.getLogger(__name__)
 
 class Auth(object):
 

@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 import re
-import logging as log
+import logging
 
 from apps.gathermate.gatherer import BoardGatherer
 from apps.common.exceptions import MyFlaskException
 from apps.common import urldealer as ud
+
+log = logging.getLogger(__name__)
 
 def register():
     return 'Gatherer', Boza

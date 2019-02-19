@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import logging as log
+import logging
 import json
 
 from apps.common.manager import Manager
@@ -8,6 +8,8 @@ from apps.common.exceptions import MyFlaskException
 from apps.common import fetchers
 from apps.common import urldealer as ud
 from apps.common.cache import cache
+
+log = logging.getLogger(__name__)
 
 def hire_manager(config):
     # type: (flask.config.Config, Text) -> Manager

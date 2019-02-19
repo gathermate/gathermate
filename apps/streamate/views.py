@@ -1,19 +1,16 @@
 # -*- coding: utf-8 -*-
 
-import logging as log
-import json
+import logging
 
 from flask import Blueprint
 from flask import request
-from flask import send_from_directory
-from flask import make_response
-from flask import stream_with_context
 from flask import render_template
 from flask import current_app as app
 
-from apps.common import urldealer as ud
-from apps.common import fetchers
 from apps.common.datastructures import MultiDict
+from apps.common.exceptions import MyFlaskException
+
+log = logging.getLogger(__name__)
 
 name = 'Streamate'
 
@@ -31,40 +28,34 @@ def index():
 def serve(fname):
     return streamate.send_static_file('./video/%s' % fname)
 
-
-# /stream/pooq
-# /stream/pooq/vod/
-# /stream/pooq/resource/
-# /stream/pooq/live/ -> api/live/all-channels
-# /stream/pooq/live/epgs -> epg
-# /stream/pooq/live/K01 -> api/live/channels/K01
-# /stream/pooq/live/K01/epgs -> channel epg
-# /stream/pooq/live/K01/480p/1234567.ts
-
-
-@streamate.route('/<path:streamer>')
+@streamate.route('/<string:streamer>')
 def streamer(streamer):
     query = MultiDict(request.args)
-    if query.get('resource', False):
-        r = app.managers[name].request(streamer, query)
-        response = make_response(r.content)
-        response.headers = dict(r.headers)
-        response.status_code = r.status_code
-        return response
+    if 'resource' in query:
+        if query.get('resource') == '': return 'Empty'
+        r = app.managers[name].request(streamer, 'resource', query)
+        return (r.content, r.status_code, dict(r.headers))
     else:
-        query['channel'] = 'all'
-        data = app.managers[name].request(streamer, query)
-        return render_template('player2.html',
+        channels = app.managers[name].request(streamer, 'channels', query)
+        return render_template('player.html',
                                streamer=streamer,
-                               data=data)
+                               channels=channels)
 
-@streamate.route('/<path:streamer>/live/<path:channel>')
-def channel(streamer, channel):
+@streamate.route('/<path:streamer>/<path:cid>')
+def channel(streamer, cid):
     query = MultiDict(request.args)
-    query['channel'] = channel
-    data = app.managers[name].request(streamer, query)
-    response = make_response(data)
-    if data.startswith('#EXTM3U'):
-        response.headers["Content-Disposition"] = "attachment; filename=%s.m3u8" % streamer
-        response.headers["Content-type"] = "application/vnd.apple.mpegurl"
-    return response
+    query['cid'] = cid
+    if 'media' in query:
+        order = 'media'
+    elif 'list' in query:
+        order = 'playlist'
+    else:
+        order = 'streamlist'
+    r = app.managers[name].request(streamer, order, query)
+    return (r.content, r.status_code, dict(r.headers))
+
+@streamate.errorhandler(Exception)
+def unhandled_exception(e):
+    # type: (Type[Exception]) -> Text
+    MyFlaskException.trace_error()
+    return e.message

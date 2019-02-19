@@ -92,10 +92,6 @@ FETCHER = {
     # 0으로 설정시 캐쉬가 계속 유지됩니다.
     'CACHE_TIMEOUT': 60,
 
-    # 목표 웹 페이지에서 받아온 쿠키가 유지되는 시간(초)입니다.
-    # 쿠키도 캐쉬에 저장됩니다.
-    'COOKIE_TIMEOUT': 3600,
-
     # 목표 웹페이지의 응답을 기다리는 최대 시간(초)입니다.
     'DEADLINE': 60,
 }
@@ -123,4 +119,15 @@ GATHERERS = {
         'mb_id': os.environ.get('GATHERMATE_CINE_ID', None),
         'mb_password': os.environ.get('GATHERMATE_CINE_PW', None),
     },
+}
+
+POOQ = {
+    'ID': '',
+    'PW': '',
+}
+TVING = {
+    'ID': '',
+    'PW': '',
+    # CJ One 회원: 10, Tvning 회원: 20
+    'LOGIN_TYPE': 10,
 }

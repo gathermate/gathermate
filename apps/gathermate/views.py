@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import logging
 from io import BytesIO
-import logging as log
 
 from flask import Blueprint
 from flask import render_template
@@ -18,6 +18,8 @@ from apps.common.auth import auth
 from apps.common.exceptions import MyFlaskException
 from apps.common import urldealer as ud
 from apps.common.datastructures import MultiDict
+
+log = logging.getLogger(__name__)
 
 name = 'Gathermate'
 

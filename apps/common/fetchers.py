@@ -2,7 +2,7 @@
 
 import Cookie
 import json
-import logging as log
+import logging
 import httplib
 import importlib
 
@@ -11,6 +11,8 @@ from tld import get_fld
 from apps.common.exceptions import MyFlaskException
 from apps.common.cache import cache
 from apps.common import urldealer as ud
+
+log = logging.getLogger(__name__)
 
 fetcher = None
 
@@ -84,7 +86,11 @@ class Fetcher(object):
 
     def cacheable_fetch(self, url, referer=None, method='GET', payload=None, headers=None, follow_redirects=False, key=None):
         # type: () -> Response
-        log.debug('Fetching [%s://%s%s...]', url.scheme, url.netloc, url.path)
+        log.debug('Fetching [%s://%s%s%s]',
+                  url.scheme,
+                  url.netloc,
+                  url.path,
+                  '...' if url.query else '')
         r = None
         for _ in range(2):
             try:
@@ -101,17 +107,18 @@ class Fetcher(object):
                 if type(e) in self._get_retry_exceptions():
                     log.warning('Retry fetching...')
                     continue
-                raise MyFlaskException('%s,  while fetching [%s]', e.message, url.text)
+                raise MyFlaskException('%s, while fetching [%s]', e.message, url.text)
             break
         if not r:
             raise MyFlaskException('Failed to fetch [%s]', url.text)
         r.key = key
         current_size = len(r.content)
-        log.debug('Fetched %s from [%s://%s%s...]',
+        log.debug('Fetched %s from [%s://%s%s%s]',
                   self.size_text(current_size),
                   url.scheme,
                   url.netloc,
-                  url.path)
+                  url.path,
+                  '...' if url.query else '')
         self.cum_size += current_size
         self._handle_response(url, r)
         return r
@@ -124,8 +131,8 @@ class Fetcher(object):
             new_headers.update(headers)
             new_cookie = new_headers.pop('cookie', None)
             if new_cookie is not None:
-                self._set_cookie(url, str(new_cookie))
-        cookie = self._get_cookie(url)
+                self.set_cookie(str(new_cookie), url)
+        cookie = self.get_cookie(url, tostring=True)
         if cookie != '':
             new_headers['cookie'] = cookie
         return new_headers
@@ -149,24 +156,49 @@ class Fetcher(object):
         self.url = url.text
         set_cookie = r.headers.get('set-cookie')
         if set_cookie:
-            self._set_cookie(url, set_cookie)
+            self.set_cookie(set_cookie, url)
 
-    def _get_cookie(self, url):
-        # type: (urldealer.Url) -> Text
+    @classmethod
+    def get_cookie(cls, url, tostring=False):
+        # type: (Union[str, urldealer.Url]) -> str
+        url = ud.Url(url) if type(url) is str else url
+        cookie = ''
+        try:
+            domain = get_fld(url.text, fix_protocol=True)
+            cookie = cache.get(cache.create_key(domain + '-cookies'))
+        except Exception as e:
+            # http://116.122.159.146/
+            log.warning(e.message)
+        if tostring:
+            return cookie if cookie else Cookie.SimpleCookie().output(cls.COOKIE_ATTRS, header='', sep=';')
+        else:
+            return Cookie.SimpleCookie(str(cookie)) if cookie else Cookie.SimpleCookie()
+
+    @classmethod
+    def set_cookie(cls, cookie, url):
+        # type: (Union[str, urldealer.Url], Union[str, http.cookies.Morsel]) -> None
+        if type(url) is not ud.Url:
+            url = ud.Url(url)
+        if type(cookie) is not Cookie.SimpleCookie:
+            cookie = Cookie.SimpleCookie(str(cookie))
+        try:
+            domain = get_fld(url.text, fix_protocol=True)
+            key = cache.create_key(domain + '-cookies')
+            cookies = Cookie.SimpleCookie(str(cache.get(key)))
+            cookies.load(cookie)
+            cookies = cookies.output(cls.COOKIE_ATTRS, header='', sep=';').strip()
+            cache.set(key, cookies, timeout=0)
+        except Exception as e:
+            # http://116.122.159.146/
+            log.warning(e.message)
+
+    @staticmethod
+    def reset_cookie(url):
+        # type: (Union[str, urldealer.Url]) -> None
+        url = ud.Url(url) if type(url) is str else url
         domain = get_fld(url.text, fix_protocol=True)
-        cookie = cache.get(cache.create_key(domain + '-cookies'))
-        if cookie:
-            return cookie
-        return Cookie.SimpleCookie().output(self.COOKIE_ATTRS, header='', sep=';')
-
-    def _set_cookie(self, url, new_cookie):
-        # type: (urldealer.Url, str) -> None
-        domain = get_fld(url.hostname, fix_protocol=True)
         key = cache.create_key(domain + '-cookies')
-        old_cookie = Cookie.SimpleCookie(str(cache.get(key)))
-        old_cookie.load(new_cookie)
-        cookie = old_cookie.output(self.COOKIE_ATTRS, header='', sep=';').strip()
-        cache.set(key, cookie, timeout=self.cookie_timeout)
+        cache.delete(key)
 
     def _fetch(self, url, method='GET', payload=None, deadline=30, headers=None, follow_redirects=False):
         # type: (urldealer.Url, str, Dict[str, str], int, Dict[str, str], bool) -> Response

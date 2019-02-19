@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import re
-import logging as log
+import logging
 from functools import wraps
 
 from lxml import etree
@@ -10,6 +10,8 @@ from concurrent import futures
 from apps.common.exceptions import MyFlaskException
 from apps.common import urldealer as ud
 from apps.common import toolbox as tb
+
+log = logging.getLogger(__name__)
 
 class Gatherer(object):
     def __init__(self, config, fetcher):

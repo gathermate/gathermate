@@ -1,40 +1,89 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta charset="utf-8">
-        <title>Player</title>
-        <link href="https://unpkg.com/video.js/dist/video-js.css" rel="stylesheet">
-        <link href="https://cdnjs.cloudflare.com/ajax/libs/videojs-resolution-switcher/0.4.2/videojs-resolution-switcher.css" rel="stylesheet">
-    </head>
-    <body>
-        <h1>{{ source }}</h1>
-        <video-js id="player" class="vjs-default-skin" controls preload="auto" width="854" height="480" data-setup="{}">
-            <source src="{% if source %}{{ source }}{% endif %}" type="application/x-mpegURL">
-            <!--<source src="https://d2zihajmogu5jn.cloudfront.net/bipbop-advanced/bipbop_16x9_variant.m3u8" type="application/x-mpegURL">-->
-            <p class='vjs-no-js'>
-                To view this video please enable JavaScript, and consider upgrading to a web browser that
-                <a href='https://videojs.com/html5-video-support/' target='_blank'>supports HTML5 video</a>
-            </p>
+<head>
+  {%- block head %}
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>{%- block title %}HTTP Live Stream Player{% endblock title %}</title>
+  <link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.ico') }}" type="image/x-icon" />
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+  <link href="{{ url_for('.static', filename='css/video-js.min.css') }}" rel="stylesheet">
+  <link href="{{ url_for('.static', filename='css/streamate.css') }}" rel="stylesheet">
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+  <!-- https://videojs.com/getting-started/ -->
+  <script src="{{ url_for('.static', filename='js/video.min.js') }}"></script>
+  <!-- https://github.com/verlok/lazyload -->
+  <script src="https://cdn.jsdelivr.net/npm/vanilla-lazyload@8.17.0/dist/lazyload.min.js"></script>
+  <script src="{{ url_for('.static', filename='js/streamate.js') }}"></script>
+  {%- endblock head %}
+</head>
+<body class="bg-light">
+  <header>
+    <nav>
+      <ul class="nav nav-pills nav-fill">
+        <li class="nav-item">
+          <a id="pooq" class="nav-link" href="{{ url_for('.streamer', streamer='pooq') }}">Pooq</a>
+        </li>
+        <li class="nav-item">
+          <a id="tving" class="nav-link" href="{{ url_for('.streamer', streamer='tving') }}">Tving</a>
+        </li>
+        <li class="nav-item">
+          <a id="oksusu" class="nav-link disabled" href="#">Oksusu</a>
+        </li>
+      </ul>
+    </nav>
+  </header>
+  <section class="m-5">
+    <div id="main-video-wrap">
+      <div id="main-video">
+        <video-js id="main-player" class="lazy vjs-big-play-centered">
+          <p class='vjs-no-js'>
+            To view this video please enable JavaScript, and consider upgrading to a web browser that
+            <a href='https://videojs.com/html5-video-support/' target='_blank'>supports HTML5 video</a>
+          </p>
         </video-js>
-        <script src="https://unpkg.com/video.js/dist/video.js"></script>
-        <script src="https://unpkg.com/@videojs/http-streaming/dist/videojs-http-streaming.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/videojs-resolution-switcher/0.4.2/videojs-resolution-switcher.min.js"></script>
-        <script>
-            var player = videojs('player', {
-                controls: true,
-                plugins: {
-                    videoJsResolutionSwitcher: {
-                        default: 'low', // Default resolution [{Number}, 'low', 'high'],
-                        dynamicLabel: true
-                    }
-                },
-            }, function(){
-                var player = this;
-                window.player = player;
-            });
-            player.on("pause", function () {
-                //
-            });
-        </script>
-    </body>
+      </div>
+    </div>
+    <div class="mt-3 user-inputs">
+      <div class="input-group">
+        <input type="text" class="form-control" placeholder="http://...m3u8" aria-label="Meia URL" aria-describedby="button-addon2" id="media-load-url" onkeydown="loadFromUrlEnter(this)">
+        <div class="input-group-append">
+          <button class="btn btn-outline-secondary" type="button" id="media-load-button" onclick="loadFromUrl(document.getElementById('media-load-url'))">Load</button>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="p-4">
+    <div class="channels d-inline-flex align-content-start flex-wrap">
+      {% for channel in channels %}
+      <div class="card w-25 p-2 d-inline-block shadow rounded">
+        <img class="lazy w-100" data-src="{{ url_for('.streamer', streamer=streamer, resource=channel.thumbnail|quote) }}" class="card-img-top" alt="{{ channel.cProgram }}">
+        <div class="card-body p-2">
+          <a href="javascript:void(0);" onclick="playChannel('{{ streamer }}', '{{ channel.id }}')" class="stretched-link" title="{{ channel.cProgram }}"><h5 class="card-title" onclick="playChannel('{{ streamer }}', '{{ channel.id }}')">{{ channel.name }}</h5></a>
+          <p class="card-text">{{ channel.cProgram }}</p>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  <footer class="mb-5">
+  </footer>
+  <div id="toastbar">
+  </div>
+  <script>
+    {%- block script %}
+    $(function(){
+      markStreamer('{{ streamer }}');
+      {%- with messages = get_flashed_messages() %}
+        {%- if messages %}
+          {%- for message in messages %}
+      var msg = '{{ message }}';
+      toastbar(msg);
+            {%- endfor %}
+        {%- endif %}
+      {%- endwith %}
+    });
+    {%- endblock script %}
+  </script>
+</body>
 </html>

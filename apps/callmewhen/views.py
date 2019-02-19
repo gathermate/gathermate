@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import logging
+
 from flask import Blueprint
 from flask import request
 from flask import current_app as app
@@ -8,6 +10,8 @@ from apps.common.cache import cache
 from apps.common.auth import auth
 from apps.common import urldealer as ud
 from apps.common.datastructures import MultiDict
+
+log = logging.getLogger(__name__)
 
 name = 'Callmewhen'
 

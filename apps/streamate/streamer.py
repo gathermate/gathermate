@@ -1,24 +1,89 @@
 # -*- coding: utf-8 -*-
 
+import logging
 import json
+
+import m3u8
 
 from apps.common import fetchers
 from apps.common.cache import cache
+from apps.common.datastructures import MultiDict
+from apps.common import urldealer as ud
+
+log = logging.getLogger(__name__)
 
 class Streamer(object):
 
     def fetch(self, url, **kwargs):
         return fetchers.hire_fetcher(config=self.config).fetch(url, cached=False, **kwargs)
 
-    def get_cache(self):
+    def get_cache(self, key, default=None):
+        cached = self.get_cache_all()
+        return cached.get(key, default)
+
+    def get_cache_all(self):
         cached = cache.get(cache.create_key(self.CACHE_KEY))
         if cached is None:
             return {}
         return json.loads(str(cached))
 
-    def set_cache(self, value, timeout=60):
-        cache.set(cache.create_key(self.CACHE_KEY), json.dumps(value), timeout=timeout)
+    def set_cache(self, key, value, timeout=0):
+        cached = self.get_cache_all()
+        cached[key] = value
+        cache.set(cache.create_key(self.CACHE_KEY), json.dumps(cached), timeout=timeout)
 
-    def proxy(self):
-        pass
+    def proxy_m3u8(self, cid, content, url):
+        if type(url) is ud.Url:
+            url = url.text
+        if type(content) is not m3u8.model.M3U8:
+            content = m3u8.loads(content)
+        if content.is_variant:
+            for playlist in content.playlists:
+                # Input URL argument at the end unless encoding it.
+                playlist.uri = '{}?list={}'.format(cid, ud.quote(ud.join(url, playlist.uri)))
+        else:
+            for segment in content.segments:
+                segment.uri = '{}?media={}'.format(cid, ud.quote(ud.join(url, segment.uri)))
+        return content
+
+    def set_cookie(self, value, url=None):
+        if url is None:
+            url = self.BASE_URL
+        fetchers.Fetcher.set_cookie(value, url)
+
+    def get_cookie(self, tostring=False):
+        return fetchers.Fetcher.get_cookie(self.BASE_URL, tostring=tostring)
+
+    def get_resource(self, url):
+        return self.fetch(url, referer=self.BASE_URL)
+
+    def get_media(self, cid, url):
+        return self.fetch(url, referer=self.PLAYER_URL % cid)
+
+
+
+class Channel(MultiDict):
+
+    @property
+    def streamer(self):
+        return self.get('streamer')
+
+    @property
+    def id(self):
+        return self.get('id')
+
+    @property
+    def name(self):
+        return self.get('name')
+
+    @property
+    def cProgram(self):
+        return self.get('cProgram')
+
+    @property
+    def thumbnail(self):
+        return self.get('thumbnail')
+
+
+
 

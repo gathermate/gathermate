@@ -4,10 +4,11 @@ import os
 import glob
 import inspect
 import importlib
-import logging as log
+import logging
 
 from apps.common.exceptions import MyFlaskException
 
+log = logging.getLogger(__name__)
 
 class Manager(object):
 
@@ -36,8 +37,7 @@ class Manager(object):
             try:
                 type_, class_ = module.register()
             except AttributeError:
-                MyFlaskException.trace_error()
-                log.warning('[%s%s] has not register() function.', fname, fext)
+                log.warning('[%s%s] doesn\'t have register() function.', fname, fext)
                 continue
             if type_ == module_type:
                 modules.update({class_.__name__: class_})

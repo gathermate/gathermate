@@ -7,13 +7,15 @@ import re
 import io
 import json
 import chardet
-import logging as log
+import logging
 import csv
 import codecs
 import cStringIO
 from difflib import SequenceMatcher
 from functools import wraps
 import inspect
+
+log = logging.getLogger(__name__)
 
 def timeit(method):
     # type: (Callable[..., ...]) -> Callable[List[object], Dict[object, object], object]

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import logging as log
+import logging
 
 import packer
 from apps.common import fetchers
@@ -8,6 +8,8 @@ from apps.common.exceptions import MyFlaskException
 from apps.common import toolbox as tb
 from apps.common import urldealer as ud
 from apps.common.manager import Manager
+
+log = logging.getLogger(__name__)
 
 def hire_manager(config):
     # type: (flask.config.Config) -> GathermateManager

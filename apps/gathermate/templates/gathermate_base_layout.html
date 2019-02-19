@@ -17,13 +17,6 @@
   <style type="text/css">
     {%- block style %}{% endblock style %}
   </style>
-  <script>
-    {%- block script %}
-    $(function(){
-      markIndex('{{ index }}');
-    });
-    {%- endblock script %}
-  </script>
   {%- endblock head %}
 </head>
 <body>
@@ -62,8 +55,13 @@
   {%- if messages %}
     {%- for message in messages %}
   <script>
-    var msg = '{{ message }}';
-    toastbar(msg);
+    {%- block script %}
+    $(function(){
+      markIndex('{{ index }}');
+      var msg = '{{ message }}';
+      toastbar(msg);
+    });
+    {%- endblock script %}
   </script>
     {%- endfor %}
   {%- endif %}

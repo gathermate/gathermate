@@ -17,7 +17,8 @@ LOGLEVEL=DEBUG
 PIDFILE=/var/run/$DAEMON.pid
 LOGFILE=/var/log/$DAEMON.log
 SYS_LOG_ADDR=unix:///dev/log#dgram
-MAX_REQUESTS=100
+# The maximum number of requests a worker will process before restarting.
+MAX_REQUESTS=0
 
 # instance/config.py 에서 사용할 정보를 입력해 주세요.
 export GATHERMATE_AUTH_ID=admin

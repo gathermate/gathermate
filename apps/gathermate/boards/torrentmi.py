@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 import time
-import logging as log
+import logging
 import re
 
 from apps.gathermate.gatherer import BoardGatherer
 from apps.common.exceptions import MyFlaskException
 from apps.common import urldealer as ud
+
+log = logging.getLogger(__name__)
 
 def register():
     return 'Gatherer', Torrentmi
