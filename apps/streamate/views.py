@@ -23,7 +23,8 @@ streamate = Blueprint(
 
 @streamate.route('/', strict_slashes=False)
 def index():
-    return 'Streamate'
+    return render_template('player.html',
+                           streamer=streamer)
 
 @streamate.route('/<string:streamer>/resource')
 def resource(streamer):
@@ -45,10 +46,7 @@ def channel(streamer, cid, order):
     return _order(streamer, order, query)
 
 def _order(streamer, order, query):
-    r = app.managers[name].request(streamer, order, query)
-    if type(r) is Rspns:
-        return (r.content, r.status_code, dict(r.headers))
-    return r
+    return app.managers[name].request(streamer, order, query)
 
 @streamate.errorhandler(Exception)
 def unhandled_exception(e):

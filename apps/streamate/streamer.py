@@ -32,6 +32,7 @@ class Streamer(object):
         cached = self.get_cache_all()
         cached[key] = value
         cache.set(cache.create_key(self.CACHE_KEY), json.dumps(cached), timeout=timeout)
+        del cached
 
     def proxy_m3u8(self, cid, content, url):
         if type(url) is ud.Url:
@@ -56,10 +57,12 @@ class Streamer(object):
         return fetchers.Fetcher.get_cookie(self.BASE_URL, tostring=tostring)
 
     def get_resource(self, url):
-        return self.fetch(url, referer=self.BASE_URL)
+        r = self.fetch(url, referer=self.BASE_URL)
+        return r.content, r.status_code, dict(r.headers)
 
     def get_segment(self, cid, url):
-        return self.fetch(url, referer=self.PLAYER_URL % cid)
+        r = self.fetch(url, referer=self.PLAYER_URL % cid)
+        return r.content, r.status_code, dict(r.headers)
 
     def get_quality(self, index):
         default = self.QUALITY[int(len(self.QUALITY)/2 + 1)]
@@ -91,7 +94,4 @@ class Channel(MultiDict):
     @property
     def thumbnail(self):
         return self.get('thumbnail')
-
-
-
 

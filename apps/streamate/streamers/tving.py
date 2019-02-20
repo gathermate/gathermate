@@ -54,8 +54,7 @@ class Tving(Streamer):
             self.login()
 
     def get_channels(self):
-        js = self.api_channels()
-        result = js['body']['result']
+        result = self.api_channels()
         channels = []
         for item in result:
             channel = item['schedule']['channel']
@@ -79,6 +78,7 @@ class Tving(Streamer):
                          name=name,
                          cProgram=program['name']['ko'],
                          thumbnail='http://stillshot.tving.com/thumbnail/' + item['live_code'] + '_0_320x180.jpg')))
+        del result
         return channels
 
     def get_segments(self, cid, url):
@@ -86,8 +86,7 @@ class Tving(Streamer):
         chunk = m3u8.loads(response.content)
         if chunk.is_variant:
             response = self.fetch(ud.join(response.url, chunk.playlists[0].uri), referer=self.PLAYER_URL % cid)
-        response.content = self.proxy_m3u8(cid, response.content, response.url).dumps()
-        return response
+        return self.proxy_m3u8(cid, response.content, response.url).dumps(), response.status_code
 
     def get_streams(self, cid):
         streams = []
@@ -103,8 +102,7 @@ class Tving(Streamer):
                     playlist.uri = 'stream?q=%d' % s[0]
                     streams[0][1].add_playlist(playlist)
         response = streams[0][2]
-        response.content = streams[0][1].dumps()
-        return response
+        return streams[0][1].dumps(), response.status_code
 
     def get_stream(self, cid, qIndex):
         last = self.get_cache('last_stream', {})
@@ -117,8 +115,7 @@ class Tving(Streamer):
 
     def _get_stream_url(self, cid, qIndex):
         quality = self.get_quality(qIndex)
-        js, r = self.api_streamlist(cid, quality)
-        broad_url = js['stream']['broadcast']['broad_url']
+        broad_url = self.api_streamlist(cid, quality)
         url = ud.Url(broad_url)
         cf_key = url.query_dict.get('Key-Pair-Id')
         if cf_key is not None:
@@ -148,7 +145,6 @@ class Tving(Streamer):
                                  expires=datetime.datetime(2100, 1, 1).strftime("%a, %d-%b-%Y %H:%M:%S GMT")))
         return cookie
 
-
     def api_streamlist(self, cid, stream_code):
         ooc = 'height=1^isPrimary=true^pointerId=1^pointerType=mouse^pressure=0^tiltX=0^tiltY=0^twist=0^width=1^altKey=false^button=0^buttons=0^clientX=239^clientY=93^ctrlKey=false^layerX=170^layerY=93^metaKey=false^movementX=0^movementY=0^offsetX=31^offsetY=35^pageX=239^pageY=93^screenX=239^screenY=207^shiftKey=false^which=1^x=239^y=93^detail=1^bubbles=true^cancelBubble=false^cancelable=true^defaultPrevented=true^eventPhase=2^isTrusted=true^returnValue=false^timeStamp=69351.9603^type=click^AT_TARGET=2^BUBBLING_PHASE=3^CAPTURING_PHASE=1^NONE=0^'
         self.set_cookie('onClickEvent2=%s; Path=/; Domain=.tving.com' % ud.quote(ooc))
@@ -159,8 +155,7 @@ class Tving(Streamer):
                        olang=self.get_cache('zzang', ''),
                        ooc=ooc)
         r = self.fetch(url, method='POST', referer=self.PLAYER_URL % cid, payload=payload)
-        return json.loads(r.content), r
-
+        return json.loads(r.content)['stream']['broadcast']['broad_url']
 
     def api_channels(self):
         url = '{api_url}/media/lives?callback={callback}' \
@@ -184,8 +179,8 @@ class Tving(Streamer):
         r = self.fetch(url, referer='http://www.tving.com/live/list/top')
         match = self.API_JSONP_REGEXP.search(r.content)
         if match is not None:
-            return json.loads(match.group(1).strip())
-        return json.loads(r.content)
+            return json.loads(match.group(1).strip())['body']['result']
+        return json.loads(r.content)['body']['result']
 
     def api_channel(self, channel):
         url3 = 'http://api.tving.com/v1/media/episodes?callback=jQuery11230563746359782114_1550323845035&pageNo=1&pageSize=18&order=new&adult=all&free=all&guest=all&scope=all&channelCode=C01582&lastFrequency=y&programBroadState=CPBS0200&screenCode=CSSD0100&networkCode=CSND0900&osCode=CSOD0900&teleCode=CSCD0900&apiKey=1e7952d0917d6aab1f0293a063697610&_=1550323845036'

@@ -59,8 +59,7 @@ class Pooq(Streamer):
 
     def get_segments(self, cid, url):
         response = self.fetch(url, referer=self.PLAYER_URL % cid)
-        response.content = self.proxy_m3u8(cid, response.content, url).dumps()
-        return response
+        return self.proxy_m3u8(cid, response.content, url).dumps(), response.status_code
 
     def get_streams(self, cid):
         return self.get_stream(cid, 3)
@@ -72,8 +71,7 @@ class Pooq(Streamer):
         self.set_cookie(js.get('awscookie'))
         response = self.fetch(playurl,
                               referer=self.PLAYER_URL % cid)
-        response.content = self.proxy_m3u8(cid, response.content, response.url).dumps()
-        return response
+        return self.proxy_m3u8(cid, response.content, response.url).dumps(), response.status_code
 
 
     def check_login(self):
@@ -92,8 +90,7 @@ class Pooq(Streamer):
 
     def api_guid(self):
         api = ud.Url(ud.join(self.API_URL, '/guid/issue'))
-        js = self.request_api(api)
-        guid = js.get('guid')
+        guid = self.request_api(api).get('guid')
         self.set_cache('guid', guid)
         return guid
 
