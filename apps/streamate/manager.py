@@ -2,9 +2,9 @@
 import logging
 
 from apps.common.manager import Manager
-from apps.common import fetchers
 from apps.common import toolbox as tb
 from apps.common import urldealer as ud
+from apps.common.exceptions import MyFlaskException
 
 log = logging.getLogger(__name__)
 
@@ -21,40 +21,40 @@ class StreamManager(Manager):
         self.__streamer_classes = self._register_modules('apps.streamate.streamers', 'Streamer')
 
     def _order_resource(self, streamer, query):
-        url = ud.Url(ud.unquote(query.get('resource')))
-        return streamer.get_resource(url)
+        return streamer.get_resource(ud.Url(ud.unquote(query.get('url'))))
 
     def _order_channels(self, streamer, query):
         return streamer.get_channels()
 
-    def _order_media(self, streamer, query):
-        url = ud.Url(ud.unquote(query.get('media')))
-        cid = query.get('cid')
-        return streamer.get_media(cid, url)
+    def _order_segment(self, streamer, query):
+        return streamer.get_segment(query.get('cid'), ud.Url(ud.unquote(query.get('url'))))
 
-    def _order_playlist(self, streamer, query):
-        url = ud.Url(ud.unquote(query.get('list')))
-        cid = query.get('cid')
-        return streamer.get_playlist(cid, url)
+    def _order_segments(self, streamer, query):
+        return streamer.get_segments(query.get('cid'), ud.Url(ud.unquote(query.get('url'))))
 
-    def _order_streamlist(self, streamer, query):
-        cid = query.get('cid')
-        return streamer.get_streamlist(cid)
+    def _order_stream(self, streamer, query):
+        return streamer.get_stream(query.get('cid'), query.get('q'))
 
-    @tb.timeit
-    def _get_data(self, order, streamer, query):
-        data = getattr(self, '_order_%s' % order)(streamer, query)
-        return data
+    def _order_streams(self, streamer, query):
+        return streamer.get_streams(query.get('cid'))
 
     def request(self, streamer, order, query):
         # type: (str, Type[Dict[str, Union[List[str], str]]]) -> ?
-        #logging.getLogger('apps.common.fetchers').setLevel('INFO')
+        instance = None
+        function = None
         try:
-            streamer = self.__streamer_classes[streamer.capitalize()](self.config)
-        except KeyError:
-            msg = "There is no streamer : %s" % streamer
-            log.error(msg)
-            return msg
-        return self._get_data(order, streamer, query)
-
-
+            class_ = self.__streamer_classes[streamer.capitalize()]
+        except KeyError as e:
+            log.error(e.message)
+            return "There is no streamer : '%s'" % streamer
+        instance = class_(self.config)
+        #fetchers_log = logging.getLogger('apps.common.fetchers')
+        #fetchers_log.setLevel('INFO')
+        try:
+            function = getattr(self, '_order_%s' % order)
+        except AttributeError as e:
+            log.error(e.message)
+            return "there is no such order : '%s'" % order
+        data = function(instance, query)
+        #fetchers_log.setLevel(self.config.get('LOG_LEVEL'))
+        return data

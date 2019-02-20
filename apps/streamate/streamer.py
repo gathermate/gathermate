@@ -12,6 +12,7 @@ from apps.common import urldealer as ud
 
 log = logging.getLogger(__name__)
 
+
 class Streamer(object):
 
     def fetch(self, url, **kwargs):
@@ -40,10 +41,10 @@ class Streamer(object):
         if content.is_variant:
             for playlist in content.playlists:
                 # Input URL argument at the end unless encoding it.
-                playlist.uri = '{}?list={}'.format(cid, ud.quote(ud.join(url, playlist.uri)))
+                playlist.uri = 'segments?url={}'.format(ud.quote(ud.join(url, playlist.uri)))
         else:
             for segment in content.segments:
-                segment.uri = '{}?media={}'.format(cid, ud.quote(ud.join(url, segment.uri)))
+                segment.uri = 'segment?url={}'.format(ud.quote(ud.join(url, segment.uri)))
         return content
 
     def set_cookie(self, value, url=None):
@@ -57,9 +58,16 @@ class Streamer(object):
     def get_resource(self, url):
         return self.fetch(url, referer=self.BASE_URL)
 
-    def get_media(self, cid, url):
+    def get_segment(self, cid, url):
         return self.fetch(url, referer=self.PLAYER_URL % cid)
 
+    def get_quality(self, index):
+        default = self.QUALITY[int(len(self.QUALITY)/2 + 1)]
+        try:
+            return self.QUALITY[int(index)]
+        except Exception as e:
+            log.error(e.message)
+            return default
 
 
 class Channel(MultiDict):

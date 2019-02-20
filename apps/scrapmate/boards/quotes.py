@@ -4,15 +4,15 @@ import logging
 from lxml.builder import E
 from lxml import etree
 
-from apps.gathermate.gatherer import Gatherer
+from apps.scrapmate.scraper import Scraper
 from apps.common.exceptions import MyFlaskException
 
 log = logging.getLogger(__name__)
 
 def register():
-    return 'Gatherer', Quotes
+    return 'Scraper', Quotes
 
-class Quotes(Gatherer):
+class Quotes(Scraper):
     URL = 'http://quotes.toscrape.com/'
     encoding = 'utf-8'
 

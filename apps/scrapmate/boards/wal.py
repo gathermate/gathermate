@@ -2,7 +2,7 @@
 import re
 import logging
 
-from apps.gathermate.gatherer import BoardGatherer
+from apps.scrapmate.scraper import BoardScraper
 from apps.common.exceptions import MyFlaskException
 from apps.common import urldealer as ud
 from apps.common import toolbox as tb
@@ -10,10 +10,10 @@ from apps.common import toolbox as tb
 log = logging.getLogger(__name__)
 
 def register():
-    return 'Gatherer', Wal
+    return 'Scraper', Wal
 
 
-class Wal(BoardGatherer):
+class Wal(BoardScraper):
     URL = 'https://m.torrentwal.com/'
     LIST_URL = ud.join(URL, '%s/torrent1.htm')
     ID_REGEXP = re.compile(r'(\d{2,8}).html')
@@ -77,9 +77,10 @@ class Wal(BoardGatherer):
                     yield {'name': name, 'link': link, 'type': 'file'}
 
                 a = e.getparent().getnext().find('a')
-                link = a.get('href')
-                if tb.is_magnet(link):
-                    yield {'name': name, 'link': link, 'type': 'magnet'}
+                if a is not None:
+                    link = a.get('href')
+                    if tb.is_magnet(link):
+                        yield {'name': name, 'link': link, 'type': 'magnet'}
 
             except:
                 MyFlaskException.trace_error()

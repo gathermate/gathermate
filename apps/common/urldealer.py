@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 import urllib
 import urlparse
-import logging
+import logging as log
+
+from tld import get_fld
+
 
 from apps.common.datastructures import MultiDict
-
-
-log = logging.getLogger(__name__)
 
 SCHEME = 'scheme'
 NETLOC = 'netloc'
@@ -16,7 +16,9 @@ FRAGMENT = 'fragment'
 USERNAME = 'username'
 PASSWORD = 'password'
 HOSTNAME = 'hostname'
+DOMAIN = 'domain'
 PORT = 'port'
+
 
 class Url(object):
     def __init__(self, url=''):
@@ -68,6 +70,10 @@ class Url(object):
     def hostname(self, v):
         self.url[HOSTNAME] = v
         return self
+
+    @property
+    def domain(self):
+        return self.url[DOMAIN]
 
     @property
     def fragment(self):
@@ -206,6 +212,7 @@ def split(url):
         PASSWORD: parsed.password,
         HOSTNAME: parsed.hostname,
         PORT: parsed.port,
+        DOMAIN: get_domain(url),
     }
     url_dict[PATH] = parsed.path if not url_dict[NETLOC] == parsed.path else ''
     return url_dict
@@ -221,3 +228,6 @@ def unsplit(url_dict):
                                query,
                                url_dict.get(FRAGMENT)))
     return url
+
+def get_domain(url):
+    return get_fld(url, fix_protocol=True, fail_silently=True)

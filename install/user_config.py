@@ -27,20 +27,20 @@ TELEGRAM_CHAT_ID = 123456789
 # Manager 모듈을 불러오기 위한 값입니다.
 # 각 앱의 매니저 모듈을 패키지 주소 형식으로 등록해 주세요.
 MANAGERS = {
-    'Gathermate': 'apps.gathermate.manager',
+    'Scrapmate': 'apps.scrapmate.manager',
     'Callmewhen': 'apps.callmewhen.manager',
 }
 
 # 플라스크에 등록할 블루프린트들입니다.
 BLUEPRINTS = {
-    'Gathermate': {
+    'Scrapmate': {
         # 이 블루프린트 모듈의 패키지 주소입니다.
-        'module': 'apps.gathermate.views',
+        'module': 'apps.scrapmate.views',
         # 이 블루프린트 모듈에서 가져올 블루프린트 객체의 변수명입니다.
-        'instance': 'gathermate',
+        'instance': 'scrapmate',
         # 이 블루프린트에 사용될 주소입니다.
-        # ex) https://www.yourserver.com/gather
-        'url_prefix': '/gather',
+        # ex) https://www.yourserver.com/scrap
+        'url_prefix': '/scrap',
     },
 }
 
@@ -99,7 +99,7 @@ FETCHER = {
 # 사이트별 설정입니다.
 # 사이트의 이름은 해당 사이트의 클래스명과 같아야 합니다.
 # 사이트의 인코딩이나 ASYNC, 로그인 정보 등을 설정할 수 있습니다.
-GATHERERS = {
+SCRAPERS = {
     'Samplesite': {
         'ID': os.environ.get('GATHERMATE_SITE_ID', None),
         'PW': os.environ.get('GATHERMATE_SITE_PW', None),

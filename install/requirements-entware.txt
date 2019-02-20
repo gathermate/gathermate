@@ -3,3 +3,5 @@ flask
 flask-Caching
 requests
 gunicorn
+tld
+m3u8

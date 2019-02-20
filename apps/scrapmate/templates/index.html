@@ -1,5 +1,5 @@
-{%- extends "gathermate_base_layout.html" %}
-{%- block title %}Gathermate{% endblock %}
+{%- extends "base_layout.html" %}
+{%- block title %}Scrapmate{% endblock %}
 {%- block sidebaritem %}
 
 {%- macro render_index(url, site, name, menu) %}
@@ -45,6 +45,7 @@
 ] -%}
       {{ render_index('http://www.etoland.co.kr/', 'etoland', '이x랜드', menu) }}
 
+<!--
 {%- set menu = [
   ['tmovie', '영화'], ['tent', '예능'], ['tdrama', '드라마'], ['tv', 'TV'], ['tani', '애니'], ['tmusic', '음악'], ['util', '유틸'],
 ] -%}
@@ -54,6 +55,7 @@
   ['tmovie', '영화'], ['tent', '예능'], ['tdrama', '드라마'], ['tv', 'TV'], ['tani', '애니'], ['tmusic', '음악'], ['util', '유틸'],
 ] -%}
       {{ render_index('https://www.torrentmi.com/', 'torrentmi', '토x트미', menu) }}
+-->
 
 {%- set menu = [
   ['psd_caption', '자막자료실'], ['psd_dramacap', '드라마자막']

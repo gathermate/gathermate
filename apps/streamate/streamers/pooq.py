@@ -7,6 +7,7 @@ import datetime
 from apps.common import urldealer as ud
 from apps.streamate.streamer import Streamer
 from apps.streamate.streamer import Channel
+from apps.common.exceptions import MyFlaskException
 
 log = logging.getLogger(__name__)
 
@@ -32,20 +33,14 @@ class Pooq(Streamer):
         credential='none',
         pooqzone='none',
         drm='wm')
+    QUALITY = ['100p', '360p', '480p', '720p', '1080p']
 
     def __init__(self, config):
         self.config = config
         self.settings = config.get('POOQ')
-        self.API_QUERY['credential'] = self.get_cache('credential', 'none')
-        for index in range(2):
-            credential = self.API_QUERY['credential']
-            if credential == 'none' or credential is None:
-                if index is 2:
-                    log.warning('login failed.')
-                    break
-                self.api_login()
-            else:
-                break
+        cookies = self.get_cookie()
+        if cookies.get('cs') is None:
+            self.api_login()
 
     def get_channels(self):
         js = self.api_channels()
@@ -62,19 +57,24 @@ class Pooq(Streamer):
             )
         return channels
 
-    def get_playlist(self, cid, url):
+    def get_segments(self, cid, url):
         response = self.fetch(url, referer=self.PLAYER_URL % cid)
         response.content = self.proxy_m3u8(cid, response.content, url).dumps()
         return response
 
-    def get_streamlist(self, cid):
-        js = self.api_streamlist(cid)
+    def get_streams(self, cid):
+        return self.get_stream(cid, 3)
+
+    def get_stream(self, cid, qIndex):
+        quality = self.get_quality(qIndex)
+        js = self.api_streamlist(cid, quality)
         playurl = js.get('playurl')
         self.set_cookie(js.get('awscookie'))
         response = self.fetch(playurl,
                               referer=self.PLAYER_URL % cid)
         response.content = self.proxy_m3u8(cid, response.content, response.url).dumps()
         return response
+
 
     def check_login(self):
         response = self.fetch(self.LOGIN_CHECK_URL, referer=self.BASE_URL)
@@ -108,7 +108,7 @@ class Pooq(Streamer):
         query = dict(startdatetime=stime, enddatetime=etime, offset=0, limit=999, orderby='old')
         return self.request_api(api, referer=self.PLAYER_URL % channel, query=query)
 
-    def api_streamlist(self, cid):
+    def api_streamlist(self, cid, quality):
         api = ud.Url(ud.join(self.API_URL, '/streaming'))
         guid = self.get_cache('guid')
         if guid is None:
@@ -116,7 +116,7 @@ class Pooq(Streamer):
         query = dict(contentid=cid,
                      contenttype='live',
                      action='hls',
-                     quality='480p',
+                     quality=quality,
                      deviceModelId='Windows 10',
                      guid=guid,
                      lastplayid='',
@@ -144,7 +144,6 @@ class Pooq(Streamer):
         response = self.fetch(api, method='JSON', payload=payload, referer=self.LOGIN_REFERER)
         js = json.loads(response.content)
         credential = js.get('credential')
-        self.set_cache('credential', credential)
         self.API_QUERY.update(credential=credential)
         self.set_cookie('cs=%s' % ud.quote(json.dumps(js)))
         return js

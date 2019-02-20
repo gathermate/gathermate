@@ -61,7 +61,7 @@ function loadFromUrlEnter(element){
 }
 
 function playChannel(streamer, channel){
-  var url = streamer + '/' + channel;
+  var url = streamer + '/' + channel + '/streams';
   var player = videojs('main-player');
   player.src({type: "application/x-mpegURL", src: url});
 }

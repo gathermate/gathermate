@@ -2,16 +2,16 @@
 import re
 import logging
 
-from apps.gathermate.gatherer import BoardGatherer
+from apps.scrapmate.scraper import BoardScraper
 from apps.common.exceptions import MyFlaskException
 from apps.common import urldealer as ud
 
 log = logging.getLogger(__name__)
 
 def register():
-    return 'Gatherer', Boza
+    return 'Scraper', Boza
 
-class Boza(BoardGatherer):
+class Boza(BoardScraper):
     URL = 'https://torrentboza.com/'
     LIST_URL = ud.join(URL, '/bbs/board.php?bo_table=%s')
     SEARCH_QUERY = 'sca=&sfl=wr_subject&sop=and&stx=%s'

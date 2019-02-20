@@ -1,6 +1,6 @@
 #!/bin/sh
 
-NAME=my-flask-server
+NAME=gathermate
 PREFIX="$NAME:"
 
 PYTHON=python

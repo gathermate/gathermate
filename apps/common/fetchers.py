@@ -6,8 +6,6 @@ import logging
 import httplib
 import importlib
 
-from tld import get_fld
-
 from apps.common.exceptions import MyFlaskException
 from apps.common.cache import cache
 from apps.common import urldealer as ud
@@ -71,7 +69,7 @@ class Fetcher(object):
 
     def fetch(self, url, referer=None, method='GET', payload=None, headers=None, forced_update=False, follow_redirects=False, cached=True):
         # type: (Union[urldealer.Url, str], str, str, Dict[str, str], Dict[str, str], boolean, boolean, boolean) -> Response
-        url = ud.Url(url) if not type(url) is ud.Url else url
+        url = ud.Url(url) if type(url) is not ud.Url else url
         self.counter += 1
         if self.counter > self.THRESHOLD:
             log.error('Fetching counter exceeds threshold by a request. : %d', self.counter)
@@ -164,8 +162,7 @@ class Fetcher(object):
         url = ud.Url(url) if type(url) is str else url
         cookie = ''
         try:
-            domain = get_fld(url.text, fix_protocol=True)
-            cookie = cache.get(cache.create_key(domain + '-cookies'))
+            cookie = cache.get(cache.create_key((url.domain if url.domain else url.hostname) + '-cookies'))
         except Exception as e:
             # http://116.122.159.146/
             log.warning(e.message)
@@ -182,8 +179,7 @@ class Fetcher(object):
         if type(cookie) is not Cookie.SimpleCookie:
             cookie = Cookie.SimpleCookie(str(cookie))
         try:
-            domain = get_fld(url.text, fix_protocol=True)
-            key = cache.create_key(domain + '-cookies')
+            key = cache.create_key((url.domain if url.domain else url.hostname) + '-cookies')
             cookies = Cookie.SimpleCookie(str(cache.get(key)))
             cookies.load(cookie)
             cookies = cookies.output(cls.COOKIE_ATTRS, header='', sep=';').strip()
@@ -196,8 +192,7 @@ class Fetcher(object):
     def reset_cookie(url):
         # type: (Union[str, urldealer.Url]) -> None
         url = ud.Url(url) if type(url) is str else url
-        domain = get_fld(url.text, fix_protocol=True)
-        key = cache.create_key(domain + '-cookies')
+        key = cache.create_key((url.domain if url.domain else url.hostname) + '-cookies')
         cache.delete(key)
 
     def _fetch(self, url, method='GET', payload=None, deadline=30, headers=None, follow_redirects=False):

@@ -21,9 +21,9 @@ from apps.common.datastructures import MultiDict
 
 log = logging.getLogger(__name__)
 
-name = 'Gathermate'
+name = 'Scrapmate'
 
-gathermate = Blueprint(
+scrapmate = Blueprint(
     name,
     __name__,
     template_folder='templates',
@@ -34,19 +34,19 @@ def make_cache_key():
     key = ud.Url(request.url).update_query(request.form).text if request.form else request.url
     return cache.create_key(key)
 
-@gathermate.route('/', strict_slashes=False)
+@scrapmate.route('/', strict_slashes=False)
 @auth.requires_auth
 def index():
     # type: () -> str
-    return render_template('gathermate_index.html')
+    return render_template('index.html')
 
-@gathermate.route('/encode', methods=['GET'])
+@scrapmate.route('/encode', methods=['GET'])
 @auth.requires_auth
 def quote():
     # type: () -> str
-    return render_template('gathermate_encode.html')
+    return render_template('encode.html')
 
-@gathermate.route('/<string:site>/<string:board>/rss', methods=['GET'])
+@scrapmate.route('/<string:site>/<string:board>/rss', methods=['GET'])
 @cache.cached(key_prefix=make_cache_key, timeout=cache.APP_TIMEOUT)
 @auth.requires_auth
 def rss_by_alias(site, board):
@@ -57,7 +57,7 @@ def rss_by_alias(site, board):
     data = app.managers[name].request('rss', query)
     return order_rss(data)
 
-@gathermate.route('/<string:site>/<string:board>', methods=['GET'])
+@scrapmate.route('/<string:site>/<string:board>', methods=['GET'])
 @cache.cached(key_prefix=make_cache_key, timeout=cache.APP_TIMEOUT)
 @auth.requires_auth
 def list_by_alias(site, board):
@@ -68,7 +68,7 @@ def list_by_alias(site, board):
     data = app.managers[name].request('list', query)
     return order_list(data)
 
-@gathermate.route('/<string:order>', methods=['GET'])
+@scrapmate.route('/<string:order>', methods=['GET'])
 @cache.cached(key_prefix=make_cache_key, timeout=cache.APP_TIMEOUT)
 @auth.requires_auth
 def order(order):
@@ -96,22 +96,22 @@ def order_down(data):
 def order_list(data):
     # type: (Dict[Text, object]) -> Text
     pagination = Pagination(data['current_page'], data['max_page'])
-    return render_template('gathermate_list.html',
+    return render_template('list.html',
                            index=request.args.get('index'),
                            pagination=pagination,
-                           title='Gathermate',
+                           title='Scrapmate',
                            search=request.args.get('search'),
                            articles=data['articles'])
 
 def order_item(data):
     # type: (List[Dict[Text, object]]) -> Text
-    return render_template('gathermate_view.html', items=data)
+    return render_template('view.html', items=data)
 
 def order_page(data):
     # type: (Iterable) -> Text
     return data
 
-@gathermate.errorhandler(Exception)
+@scrapmate.errorhandler(Exception)
 @auth.requires_auth
 def unhandled_exception(e):
     # type: (Type[Exception]) -> Text
@@ -126,7 +126,7 @@ def unhandled_exception(e):
         return render_template_string(MyFlaskException.VIEW_ERROR_TEMPLATE,
                                       msg=e.message,
                                       response=content)
-    return render_template('gathermate_index.html',
+    return render_template('index.html',
                            error_msg=e.message,
                            response=content)
 

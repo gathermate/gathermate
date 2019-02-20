@@ -3,17 +3,17 @@ import time
 import logging
 import re
 
-from apps.gathermate.gatherer import BoardGatherer
+from apps.scrapmate.scraper import BoardScraper
 from apps.common.exceptions import MyFlaskException
 from apps.common import urldealer as ud
 
 log = logging.getLogger(__name__)
 
 def register():
-    return 'Gatherer', Torrentmi
+    return 'Scraper', Torrentmi
 
 
-class Torrentmi(BoardGatherer):
+class Torrentmi(BoardScraper):
     URL = "https://www.torrentmi.com"
     LIST_URL = ud.join(URL, '/list.php?b_id=%s')
     SEARCH_QUERY = 'sc=%s'

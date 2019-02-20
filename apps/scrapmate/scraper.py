@@ -13,7 +13,7 @@ from apps.common import toolbox as tb
 
 log = logging.getLogger(__name__)
 
-class Gatherer(object):
+class Scraper(object):
     def __init__(self, config, fetcher):
         # type: (Dict[str, object], Type[fetchers.Fetcher]) -> None
         self.encoding = config.get('ENCODING', 'utf-8')
@@ -107,9 +107,9 @@ class Gatherer(object):
                               encoding=self.encoding)
 
 
-class BoardGatherer(Gatherer):
+class BoardScraper(Scraper):
     def __init__(self, config, fetcher):
-        super(BoardGatherer, self).__init__(config, fetcher)
+        super(BoardScraper, self).__init__(config, fetcher)
         self.length = int(config.get('RSS_LENGTH', 1))
         self.check_length_count = 0
         self.next_page = 2

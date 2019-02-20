@@ -3,16 +3,16 @@ import re
 import time
 import logging
 
-from apps.gathermate.gatherer import BoardGatherer
+from apps.scrapmate.scraper import BoardScraper
 from apps.common.exceptions import MyFlaskException
 from apps.common import urldealer as ud
 
 log = logging.getLogger(__name__)
 
 def register():
-    return 'Gatherer', Cineaste
+    return 'Scraper', Cineaste
 
-class Cineaste(BoardGatherer):
+class Cineaste(BoardScraper):
     URL = "http://cineaste.co.kr"
     LIST_URL = ud.join(URL, '/bbs/board.php?bo_table=%s')
     ID_REGEXP = re.compile(r'wr_id=(\d{2,8})')

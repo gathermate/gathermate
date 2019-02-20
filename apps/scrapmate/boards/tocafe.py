@@ -5,7 +5,7 @@ import logging
 
 from lxml import etree
 
-from apps.gathermate.gatherer import BoardGatherer
+from apps.scrapmate.scraper import BoardScraper
 from apps.common.exceptions import MyFlaskException
 from apps.common import urldealer as ud
 from apps.common import toolbox as tb
@@ -13,9 +13,9 @@ from apps.common import toolbox as tb
 log = logging.getLogger(__name__)
 
 def register():
-    return 'Gatherer', Tocafe
+    return 'Scraper', Tocafe
 
-class Tocafe(BoardGatherer):
+class Tocafe(BoardScraper):
     URL = 'https://tocafe.net'
     LIST_URL = ud.join(URL, 'bbs/board.php?bo_table=%s')
     ID_REGEXP = re.compile(r'wr_id=(\d{2,7})')

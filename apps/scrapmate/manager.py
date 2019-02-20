@@ -12,47 +12,47 @@ from apps.common.manager import Manager
 log = logging.getLogger(__name__)
 
 def hire_manager(config):
-    # type: (flask.config.Config) -> GathermateManager
+    # type: (flask.config.Config) -> ScrapmateManager
     packer.ACCEPTED_EXT = config.get('ACCEPTED_EXT', [])
-    return GathermateManager(config)
+    return ScrapmateManager(config)
 
 
-class GathermateManager(Manager):
+class ScrapmateManager(Manager):
 
     def __init__(self, config):
         # type: (flask.config.Config) -> None
-        super(GathermateManager, self).__init__(config)
-        gatherers = self._register_modules('apps.gathermate.boards', 'Gatherer')
-        self.__gatherer_classes = {ud.Url(class_.URL).hostname: class_ for name, class_ in gatherers.iteritems()}
+        super(ScrapmateManager, self).__init__(config)
+        scrapers = self._register_modules('apps.scrapmate.boards', 'Scraper')
+        self.__scraper_classes = {ud.Url(class_.URL).hostname: class_ for name, class_ in scrapers.iteritems()}
 
-    def _hire_gatherer(self, target):
-        # type: (urldealer.Url) -> Type[gatherer.Gatherer]
+    def _hire_scraper(self, target):
+        # type: (urldealer.Url) -> Type[scraper.Scraper]
         host = target.hostname if target.hostname else target.netloc
         if not host:
             raise MyFlaskException('Target URL is wrong : %s' % target.text)
         try:
-            class_ = self.__gatherer_classes[host]
+            class_ = self.__scraper_classes[host]
         except KeyError:
             MyFlaskException.trace_error()
-            class_ = self._find_gatherer(host)
+            class_ = self._find_scraper(host)
         log.debug("%s class matches with [%s].", class_.__name__, target.text)
-        return self._train_gatherer(class_, self.config.get('GATHERERS'))
+        return self._train_scraper(class_, self.config.get('SCRAPERS'))
 
-    def _find_gatherer(self, alias):
-        # type: (str) -> Type[gatherer.Gatherer]
-        for host, class_ in self.__gatherer_classes.iteritems():
+    def _find_scraper(self, alias):
+        # type: (str) -> Type[scraper.Scraper]
+        for host, class_ in self.__scraper_classes.iteritems():
             if alias in host:
                 log.debug("%s class matches with [%s].", class_.__name__, alias)
                 return class_
         raise MyFlaskException('There is no class associate with : {}'.format(alias))
 
-    def _train_gatherer(self, class_, config):
-        # type: (Type[gatherer.Gatherer], Dict[str, Dict[str, Optional[bool, str, int, List[str]]]])
-        # -> Type[gatherer.Gatherer]
+    def _train_scraper(self, class_, config):
+        # type: (Type[scraper.Scraper], Dict[str, Dict[str, Optional[bool, str, int, List[str]]]])
+        # -> Type[scraper.Scraper]
         instance_config = self._get_default_config(class_.__name__, config)
-        gatherer = class_(instance_config, fetchers.hire_fetcher(config=self.config))
-        log.debug("%s instance has been created.", type(gatherer).__name__)
-        return gatherer
+        scraper = class_(instance_config, fetchers.hire_fetcher(config=self.config))
+        log.debug("%s instance has been created.", type(scraper).__name__)
+        return scraper
 
     def _get_default_config(self, name, config):
         # type: (str, Dict[str, Dict[str, Optional[bool, str, int, List[str]]]])
@@ -71,26 +71,26 @@ class GathermateManager(Manager):
 
     def _order_rss(self, target, query):
         # type: (urldealer.Url, apps.common.datastructures.MultiDict[unicode, List[unicode]]) -> str
-        gatherer = self._hire_gatherer(target)
-        gatherer.isRSS = True
+        scraper = self._hire_scraper(target)
+        scraper.isRSS = True
         length = query.get('length', None, type=int)
         if length is not None:
-            gatherer.length = length
-        listing = gatherer.parse_list(target)
-        return packer.pack_rss(gatherer.parse_items(listing))
+            scraper.length = length
+        listing = scraper.parse_list(target)
+        return packer.pack_rss(scraper.parse_items(listing))
 
     def _order_item(self, target, query):
         # type: (urldealer.Url, apps.common.datastructures.MultiDict[unicode, List[unicode]])
         # -> List[Dict[str, Union[str, unicode]]]
-        gatherer = self._hire_gatherer(target)
-        items = gatherer.parse_item(target)
+        scraper = self._hire_scraper(target)
+        items = scraper.parse_item(target)
         return packer.pack_item(items)
 
     def _order_list(self, target, query):
         # type: (urldealer.Url, apps.common.datastructures.MultiDict[unicode, List[unicode]])
         # -> Dict[str, Union[int, List[Tuple[int, Dict[str, Union[int, str, unicode]]]]]]
-        gatherer = self._hire_gatherer(target)
-        listing = gatherer.parse_list(target)
+        scraper = self._hire_scraper(target)
+        listing = scraper.parse_list(target)
         return packer.pack_list(listing)
 
     def _order_down(self, target, query):
@@ -98,22 +98,22 @@ class GathermateManager(Manager):
         ticket = query.get('ticket')
         if ticket:
             ticket = ud.split_qs(ud.unquote(ticket))
-            gatherer = self._hire_gatherer(ud.Url(ticket['referer']))
-            return gatherer.parse_file(target, ticket)
+            scraper = self._hire_scraper(ud.Url(ticket['referer']))
+            return scraper.parse_file(target, ticket)
         # RSS_AGGRESSIVE = False
-        gatherer = self._hire_gatherer(target)
-        gatherer.isRSS = True
-        items = gatherer.parse_item(target)
+        scraper = self._hire_scraper(target)
+        scraper.isRSS = True
+        items = scraper.parse_item(target)
         if len(items) is 0:
             raise MyFlaskException('No items found.')
         if items[0]['type'] in ['magnet', 'link']:
             return items[0]['link']
-        return gatherer.parse_file(ud.Url(items[0]['link']), items[0]['ticket'])
+        return scraper.parse_file(ud.Url(items[0]['link']), items[0]['ticket'])
 
     def _order_page(self, target, query):
         # type: (urldealer.Url, apps.common.datastructures.MultiDict[unicode, List[unicode]]) -> Iterable
-        gatherer = self._hire_gatherer(target)
-        return gatherer.get_page(gatherer.fetch(target))
+        scraper = self._hire_scraper(target)
+        return scraper.get_page(scraper.fetch(target))
 
     @tb.timeit
     def _get_data(self, order, target, query):
@@ -129,7 +129,7 @@ class GathermateManager(Manager):
             target = ud.Url(ud.unquote(query['url']))
         elif query.get('site'):
             # list_by_alias(), rss_by_alias()
-            class_ = self._find_gatherer(query.get('site'))
+            class_ = self._find_scraper(query.get('site'))
             target = ud.Url(class_.LIST_URL % query.get('board'))
         else:
             raise MyFlaskException('There is no target page.')

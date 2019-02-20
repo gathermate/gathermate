@@ -57,9 +57,9 @@
     <div class="channels d-inline-flex align-content-start flex-wrap">
       {% for channel in channels %}
       <div class="card w-25 p-2 d-inline-block shadow rounded">
-        <img class="lazy w-100" data-src="{{ url_for('.streamer', streamer=streamer, resource=channel.thumbnail|quote) }}" class="card-img-top" alt="{{ channel.cProgram }}">
+        <img class="lazy w-100" data-src="{{ url_for('.resource', streamer=streamer, url=channel.thumbnail|quote) }}" class="card-img-top" alt="{{ channel.cProgram }}">
         <div class="card-body p-2">
-          <a href="javascript:void(0);" onclick="playChannel('{{ streamer }}', '{{ channel.id }}')" class="stretched-link" title="{{ channel.cProgram }}"><h5 class="card-title" onclick="playChannel('{{ streamer }}', '{{ channel.id }}')">{{ channel.name }}</h5></a>
+          <h5 class="card-title"><a href="javascript:void(0);" onclick="playChannel('{{ streamer }}', '{{ channel.id }}')" title="{{ channel.cProgram }}">{{ channel.name }}</a></h5>
           <p class="card-text">{{ channel.cProgram }}</p>
         </div>
       </div>

@@ -9,6 +9,7 @@ from flask import current_app as app
 
 from apps.common.datastructures import MultiDict
 from apps.common.exceptions import MyFlaskException
+from apps.common.fetchers import Response as Rspns
 
 log = logging.getLogger(__name__)
 
@@ -24,38 +25,33 @@ streamate = Blueprint(
 def index():
     return 'Streamate'
 
-@streamate.route('/server/<string:fname>')
-def serve(fname):
-    return streamate.send_static_file('./video/%s' % fname)
+@streamate.route('/<string:streamer>/resource')
+def resource(streamer):
+    query = MultiDict(request.args)
+    return _order(streamer, 'resource', query)
 
-@streamate.route('/<string:streamer>')
+@streamate.route('/<string:streamer>', strict_slashes=False)
 def streamer(streamer):
     query = MultiDict(request.args)
-    if 'resource' in query:
-        if query.get('resource') == '': return 'Empty'
-        r = app.managers[name].request(streamer, 'resource', query)
-        return (r.content, r.status_code, dict(r.headers))
-    else:
-        channels = app.managers[name].request(streamer, 'channels', query)
-        return render_template('player.html',
-                               streamer=streamer,
-                               channels=channels)
+    channels = _order(streamer, 'channels', query)
+    return render_template('player.html',
+                           streamer=streamer,
+                           channels=channels)
 
-@streamate.route('/<path:streamer>/<path:cid>')
-def channel(streamer, cid):
+@streamate.route('/<path:streamer>/<path:cid>/<path:order>')
+def channel(streamer, cid, order):
     query = MultiDict(request.args)
     query['cid'] = cid
-    if 'media' in query:
-        order = 'media'
-    elif 'list' in query:
-        order = 'playlist'
-    else:
-        order = 'streamlist'
+    return _order(streamer, order, query)
+
+def _order(streamer, order, query):
     r = app.managers[name].request(streamer, order, query)
-    return (r.content, r.status_code, dict(r.headers))
+    if type(r) is Rspns:
+        return (r.content, r.status_code, dict(r.headers))
+    return r
 
 @streamate.errorhandler(Exception)
 def unhandled_exception(e):
     # type: (Type[Exception]) -> Text
     MyFlaskException.trace_error()
-    return e.message
+    return e.message, 404

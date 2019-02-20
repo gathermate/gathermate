@@ -5,7 +5,7 @@ import logging
 
 from lxml import etree
 
-from apps.gathermate.gatherer import BoardGatherer
+from apps.scrapmate.scraper import BoardScraper
 from apps.common.exceptions import MyFlaskException
 from apps.common import urldealer as ud
 from apps.common import toolbox as tb
@@ -13,9 +13,9 @@ from apps.common import toolbox as tb
 log = logging.getLogger(__name__)
 
 def register():
-    return 'Gatherer', Torrenthaja
+    return 'Scraper', Torrenthaja
 
-class Torrenthaja(BoardGatherer):
+class Torrenthaja(BoardScraper):
     URL = 'https://torrenthaja.com/'
     LIST_URL = ud.join(URL, '/bbs/board.php?bo_table=%s')
     SEARCH_QUERY = u'sca=&sop=and&sfl=wr_subject&stx=%s'

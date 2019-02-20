@@ -38,6 +38,7 @@ class Tving(Streamer):
         'teleCode': 'CSCD0900',
         'channelType': 'CPCS0100'
     }
+    QUALITY = ['stream25', 'stream30', 'stream40', 'stream50']
     JQUERY_VERSION_REGEXP = re.compile(r'jquery.((\d{1,3}\.)+\d)\.min\.js', re.I)
     API_JSONP_REGEXP = re.compile(r'jquery\d+_\d+\((\{.*\})\)', re.I)
     LOGIN_OK_REGEXP = re.compile(r'\([\'\"]LOGIN_OK[\'"]\)')
@@ -80,40 +81,55 @@ class Tving(Streamer):
                          thumbnail='http://stillshot.tving.com/thumbnail/' + item['live_code'] + '_0_320x180.jpg')))
         return channels
 
-    def get_streamlist(self, cid):
-        m3u8_list = []
-        for quality in ['stream25', 'stream30', 'stream40', 'stream50']:
-            try:
-                js, r = self.api_streamlist(cid, quality)
-                broad_url = js['stream']['broadcast']['broad_url']
-                url = ud.Url(broad_url)
-                cf_key = url.query_dict.get('Key-Pair-Id')
-                if cf_key is not None:
-                    cf_cookie = 'CloudFront-Key-Pair-Id={key}; ' \
-                                'CloudFront-Policy={policy}; ' \
-                                'CloudFront-Signature={sign};' \
-                                .format(key=cf_key,
-                                        policy=url.query_dict.get('Policy'),
-                                        sign=url.query_dict.get('Signature'))
-                    self.set_cookie(cf_cookie)
-                response = self.fetch(url, referer=self.PLAYER_URL % cid)
-            except:
-                MyFlaskException.trace_error()
-                continue
-            m3u8_list.append(m3u8.loads(response.content))
-        for m3u in m3u8_list[1:]:
-            for playlist in m3u.playlists:
-                m3u8_list[0].playlists.append(playlist)
-        response.content = self.proxy_m3u8(cid, m3u8_list[0], response.url).dumps()
-        return response
-
-    def get_playlist(self, cid, url):
+    def get_segments(self, cid, url):
         response = self.fetch(url, referer=self.PLAYER_URL % cid)
         chunk = m3u8.loads(response.content)
         if chunk.is_variant:
             response = self.fetch(ud.join(response.url, chunk.playlists[0].uri), referer=self.PLAYER_URL % cid)
         response.content = self.proxy_m3u8(cid, response.content, response.url).dumps()
         return response
+
+    def get_streams(self, cid):
+        streams = []
+        for index in range(len(self.QUALITY)):
+            url = self._get_stream_url(cid, index)
+            response = self.fetch(url, referer=self.PLAYER_URL % cid)
+            streams.append([index, m3u8.loads(response.content), response])
+        for s in streams:
+            for playlist in s[1].playlists:
+                if s[0] is 0:
+                    playlist.uri = 'stream?q=0'
+                else:
+                    playlist.uri = 'stream?q=%d' % s[0]
+                    streams[0][1].add_playlist(playlist)
+        response = streams[0][2]
+        response.content = streams[0][1].dumps()
+        return response
+
+    def get_stream(self, cid, qIndex):
+        last = self.get_cache('last_stream', {})
+        if last.get('quality') == qIndex:
+            url = last.get('url')
+        else:
+            url = self._get_stream_url(cid, qIndex)
+            self.set_cache('last_stream', dict(quality=qIndex, url=url.text))
+        return self.get_segments(cid, url)
+
+    def _get_stream_url(self, cid, qIndex):
+        quality = self.get_quality(qIndex)
+        js, r = self.api_streamlist(cid, quality)
+        broad_url = js['stream']['broadcast']['broad_url']
+        url = ud.Url(broad_url)
+        cf_key = url.query_dict.get('Key-Pair-Id')
+        if cf_key is not None:
+            cf_cookie = 'CloudFront-Key-Pair-Id={key}; ' \
+                        'CloudFront-Policy={policy}; ' \
+                        'CloudFront-Signature={sign};' \
+                        .format(key=cf_key,
+                                policy=url.query_dict.get('Policy'),
+                                sign=url.query_dict.get('Signature'))
+            self.set_cookie(cf_cookie)
+        return url
 
     def _make_jsonp_name(self):
         jq_version = self.get_cache('jquery_version', '1.12.3')
@@ -123,6 +139,7 @@ class Tving(Streamer):
         value = str(int(time.time()*1000))
         for _ in range(10):
             value += repr(random.random())[2]
+        self.set_cache('pcid', value)
         cookie = Cookie.SimpleCookie()
         name = 'PCID'
         cookie[name] = value

@@ -1,4 +1,4 @@
-{%- extends "gathermate_index.html" %}
+{%- extends "index.html" %}
 {%- set path = request.path.split('/') %}
 {%- set remote_url = request.args.get('url') %}
 {% macro render_pagination(pagination) %}

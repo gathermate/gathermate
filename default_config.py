@@ -9,14 +9,14 @@ class Flask(object):
     TELEGRAM_BOT_TOKEN = ''
     TELEGRAM_CHAT_ID = 123456789
     MANAGERS = {
-        'Gathermate': 'apps.gathermate.manager',
+        'Scrapmate': 'apps.scrapmate.manager',
         'Callmewhen': 'apps.callmewhen.manager',
     }
     BLUEPRINTS = {
-        'Gathermate': {
-            'module': 'apps.gathermate.views',
-            'instance': 'gathermate',
-            'url_prefix': '/gather',
+        'Scrapmate': {
+            'module': 'apps.scrapmate.views',
+            'instance': 'scrapmate',
+            'url_prefix': '/scrap',
         },
     }
 
@@ -36,7 +36,7 @@ class Localhost(Flask):
         'CACHE_TIMEOUT': 60,
         'DEADLINE': 60,
     }
-    GATHERERS = {}
+    SCRAPERS = {}
     POOQ = {}
     TVING = {}
 

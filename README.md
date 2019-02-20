@@ -14,6 +14,7 @@ Gathermate
 - flask-Caching
 - gunicorn
 - tld
+- m3u8
 
 ---
 
@@ -23,13 +24,17 @@ Gathermate
 ```plain
 opt/
     apps/
-        my-flask-server/
+        gatermate/
             apps/
                 callmewhen/
                 common/
-                gathermate/
+                scrapmate/
                     boards/
                     static/
+                    templates/
+                streamate/
+                    static/
+                    streamers/
                     templates/
             install/
             instance/
@@ -82,7 +87,7 @@ chmod +x /opt/apps/install-gathermate.sh
 Debian, Ubuntu는 `Windows Subsystem for Linux` 환경에서 테스트 했습니다.
 
 #### 1. 소스파일 복사
-Git에서 소스 파일을 받아 `/opt/apps/my-flask-server` 폴더에 저장합니다.
+Git에서 소스 파일을 받아 `/opt/apps/gatermate` 폴더에 저장합니다.
 
 ##### Git 설치
 ```shell
@@ -98,7 +103,7 @@ apt install git
 
 ##### 저장소 복사
 ```shell
-git clone https://github.com/gathermate/gathermate.git /opt/apps/my-flask-server
+git clone https://github.com/gathermate/gathermate.git /opt/apps/gatermate
 ```
 
 #### 2. 파이썬 2.7 설치
@@ -119,8 +124,8 @@ apt install python-minimal python-pip
 
 ```shell
 pip install virtualenv
-virtualenv -p python2 /opt/apps/my-flask-server/venv
-source /opt/apps/my-flask-server/venv/bin/activate
+virtualenv -p python2 /opt/apps/gatermate/venv
+source /opt/apps/gatermate/venv/bin/activate
 ```
 
 #### 4. 파이썬 패키지 설치
@@ -128,37 +133,37 @@ source /opt/apps/my-flask-server/venv/bin/activate
    
 ```shell 
 # Entware on ASUS RT-AC68U aka T-mobile AC1900
-pip install -r /opt/apps/my-flask-server/install/requirements-entware.txt
-cp -r /opt/lib/python2.7/site-packages/lxml* /opt/apps/my-flask-server/venv/lib/python2.7/site-packages/ 
+pip install -r /opt/apps/gatermate/install/requirements-entware.txt
+cp -r /opt/lib/python2.7/site-packages/lxml* /opt/apps/gatermate/venv/lib/python2.7/site-packages/ 
 ```
 ```shell
 # Debian/Ubuntu on WSL
-pip install -r /opt/apps/my-flask-server/install/requirements.txt
+pip install -r /opt/apps/gatermate/install/requirements.txt
 ```
 
 #### 5. 실행하기
 **설정하기를 읽어본 후 실행하기를 권장합니다.**
 
 ##### 설정 파일 복사
-사용자 설정 파일 `/opt/apps/my-flask-server/install/user_config.py`를 `/opt/apps/my-flask-server/instance/` 폴더로 복사하면서 파일 이름을 `config.py`로 변경합니다.
+사용자 설정 파일 `/opt/apps/gatermate/install/user_config.py`를 `/opt/apps/gatermate/instance/` 폴더로 복사하고 파일 이름을 `config.py`로 변경합니다.
 
 ```shell
-mkdir /opt/apps/my-flask-server/instance
-cp /opt/apps/my-flask-server/install/user_config.py /opt/apps/my-flask-server/instance/config.py
+mkdir /opt/apps/gatermate/instance
+cp /opt/apps/gatermate/install/user_config.py /opt/apps/gatermate/instance/config.py
 ```
 
 ##### 데몬 스크립트 복사
 
-`/opt/apps/my-flask-server/install` 폴더의 데몬 스크립트를 `init.d` 폴더로 복사하면서 파일 이름을 변경합니다. 실행권한도 부여합니다.
+`/opt/apps/gatermate/install` 폴더의 데몬 스크립트를 `init.d` 폴더로 복사하면서 파일 이름을 변경합니다. 실행권한도 부여합니다.
 ```shell
 # Entware on ASUS RT-AC68U aka T-mobile AC1900
-cp /opt/apps/my-flask-server/install/daemon-entware /opt/etc/init.d/S89my-flask-server
-chmod +x /opt/etc/init.d/S89my-flask-server
+cp /opt/apps/gatermate/install/daemon-entware /opt/etc/init.d/S89gatermate
+chmod +x /opt/etc/init.d/S89gatermate
 ```
 ```shell
 # Debian/Ubuntu on WSL
-cp /opt/apps/my-flask-server/install/daemon-debian /etc/init.d/my-flask-server
-chmod +x /etc/init.d/my-flask-server
+cp /opt/apps/gatermate/install/daemon-debian /etc/init.d/gatermate
+chmod +x /etc/init.d/gatermate
 ```
 
 복사한 스크립트 내 포트 번호를 확인 후 원하는 포트로 변경해 주세요.
@@ -170,14 +175,14 @@ BIND=0.0.0.0:8181
 
 ```shell
 # Entware on ASUS RT-AC68U aka T-mobile AC1900
-/opt/etc/init.d/S89my-flask-server start
+/opt/etc/init.d/S89gatermate start
 ```
 ```shell
 # Debian/Ubuntu on WSL
-service my-flask-server start
+sudo service gatermate start
 ```
 
-`공유기_주소:8181`로 접속하여 "Welcome" 페이지가 나오는지 확인.
+`공유기_주소:8181/scrap`로 접속하여 "Welcome" 페이지가 나오는지 확인.
 
 #### 6. 외부 접속 차단
 ##### Entware on ASUS RT-AC68U aka T-mobile AC1900
@@ -237,7 +242,7 @@ AUTH_ID = 'admin' # instance/config.py
 
 사용법
 ------
-**당연한 이야기이지만 해당 사이트의 콘텐츠 수집 코드가 `Gatherer`의 서브 클래스로 구현되어 있어야 합니다.**
+**당연한 이야기이지만 해당 사이트의 콘텐츠 수집 코드가 `Scraper`의 서브 클래스로 구현되어 있어야 합니다.**
 
 #### 서버가 처리할 수 있는 요청의 형태는 아래와 같습니다.
 <table>
@@ -251,34 +256,34 @@ AUTH_ID = 'admin' # instance/config.py
     <tbody>
         <tr>
             <td rowspan="2"><b>목록</b></td>
-            <td>gather/<code>사이트</code>/<code>게시판</code>?search=<code>검색어</code>&page=<code>3</code></td>
+            <td>scrap/<code>사이트</code>/<code>게시판</code>?search=<code>검색어</code>&page=<code>3</code></td>
             <td rowspan="2">get_list()</td>
         </tr>
         <tr>
-            <td>gather/list?url=<code>encoded-url</code>&search=<code>검색어</code>&page=<code>2</code></td>
+            <td>scrap/list?url=<code>encoded-url</code>&search=<code>검색어</code>&page=<code>2</code></td>
         </tr>
         <tr>
             <td rowspan="2"><b>RSS</b></td>
-            <td>gather/<code>사이트</code>/<code>게시판</code>/rss?search=<code>검색어</code>&page=<code>3</code>&length=<code>5</code></td>
+            <td>scrap/<code>사이트</code>/<code>게시판</code>/rss?search=<code>검색어</code>&page=<code>3</code>&length=<code>5</code></td>
             <td rowspan="2">get_list()<br />get_item()</td>
         </tr>
         <tr>
-            <td>gather/rss?url=<code>encoded-url</code>&search=<code>검색어</code>&page=<code>1</code>&length=<code>5</code>
+            <td>scrap/rss?url=<code>encoded-url</code>&search=<code>검색어</code>&page=<code>1</code>&length=<code>5</code>
             </td>            
         </tr>
         <tr>
             <td><b>글</b></td>
-            <td>gather/item?url=<code>encoded-url</code></td>
+            <td>scrap/item?url=<code>encoded-url</code></td>
             <td>get_item()</td>
         </tr>
         <tr>
             <td><b>다운로드</b></td>
-            <td>gather/down?url=<code>encoded-url</code>&ticket=<code>encoded-query-string</code></td>
+            <td>scrap/down?url=<code>encoded-url</code>&ticket=<code>encoded-query-string</code></td>
             <td>get_file()<br />get_item()</td>
         </tr>
         <tr>
             <td><b>사용자 정의</b></td>
-            <td>gather/page?url=<code>encoded-url</code></td>
+            <td>scrap/page?url=<code>encoded-url</code></td>
             <td>get_page()</td>
         </tr>
     </tbody>
@@ -286,7 +291,7 @@ AUTH_ID = 'admin' # instance/config.py
 
 - `사이트`가 `Gatherer`의 `URL` 속성과 매치가 된다면 해당 클래스로 요청을 처리합니다. 예를 들어 `ple-1`은 `https://www.sample-1.co.kr`, `https://www.samplesample.com` 중에서 첫번째와 매치됩니다.
 - `게시판`은 해당 사이트에서 사용하는 게시판 아이디를 그대로 입력해 주세요.
-- `encoded-url`과 `encoded-query-string`에는 URL 인코딩된 값을 넣어야 합니다. URL 인코딩이란 `:`, `/`, `=` 등 URL을 인식하는데 방해가 되는 문자들을 16진수로 변환시키는 것을 말합니다. 예를 들어 `https://www.google.com/?search=torrent`를 인코딩 할 경우 `https%3A%2F%2Fwww.google.com%2F%3Fsearch%3Dtorrent`의 형태가 됩니다. `http://서버주소:8181/gather/encode` 페이지에서 간단한 URL 인코딩이 가능합니다. 혹은 [G Suite 도구상자](https://toolbox.googleapps.com/apps/encode_decode/)를 이용하세요.
+- `encoded-url`과 `encoded-query-string`에는 URL 인코딩된 값을 넣어야 합니다. URL 인코딩이란 `:`, `/`, `=` 등 URL을 인식하는데 방해가 되는 문자들을 16진수로 변환시키는 것을 말합니다. 예를 들어 `https://www.google.com/?search=torrent`를 인코딩 할 경우 `https%3A%2F%2Fwww.google.com%2F%3Fsearch%3Dtorrent`의 형태가 됩니다. `http://서버주소:8181/scrap/encode` 페이지에서 간단한 URL 인코딩이 가능합니다. 혹은 [G Suite 도구상자](https://toolbox.googleapps.com/apps/encode_decode/)를 이용하세요.
 - `검색어`와 `page` 인수에 입력된 값은 목표 사이트의 설정에 따라 변환되어 URL 쿼리로 삽입됩니다.
 - `ticket` 인수는 파일을 다운로드 할 때 필요한 정보입니다.
 - `length` 인수는 RSS에서만 적용되며 해당 리스트에서 수집할 게시물의 수 입니다.
@@ -299,7 +304,7 @@ AUTH_ID = 'admin' # instance/config.py
 ```yaml
 inputs:
   - rss:          
-      url: 'http://127.0.0.1:8181/gather/google/drama/rss?search=-NEXT'
+      url: 'http://127.0.0.1:8181/scrap/google/drama/rss?search=-NEXT'
       username: 'MY_ID'
       password: 'MY_PATH'      
 ```
@@ -319,7 +324,7 @@ download_auth:
 
 [quotes]: http://quotes.toscrape.com/
 
-    http://localhost:8181/gather/page?url=http%3A%2F%2Fquotes.toscrape.com
+    http://localhost:8181/scrap/page?url=http%3A%2F%2Fquotes.toscrape.com
 
 ##### xpath 및 css selector 테스트
 http://videlibri.sourceforge.net/cgi-bin/xidelcgi
@@ -334,13 +339,13 @@ http://videlibri.sourceforge.net/cgi-bin/xidelcgi
 ##### GAE 파이썬 패키지 설치
 
 ```shell
-pip install -t /opt/apps/my-flask-server/venv/gae/lib -r /opt/apps/my-flask-server/install/requirements-gae.txt --no-dependencies
+pip install -t /opt/apps/gatermate/venv/gae/lib -r /opt/apps/gatermate/install/requirements-gae.txt --no-dependencies
 ```
 
 혹은 가상환경 내 이미 설치한 일부 패키지 (chardet, concurrent, flask_caching)를 `venv/gae/lib` 폴더로 복사
 ```shell
-mkdir -p /opt/apps/my-flask-server/venv/gae/lib
-cp -r /opt/apps/my-flask-server/venv/lib/python2.7/site-packages/chardet /opt/apps/my-flask-server/venv/lib/python2.7/site-packages/concurrent /opt/apps/my-flask-server/venv/lib/python2.7/site-packages/flask_caching /opt/apps/my-flask-server/venv/gae/lib/
+mkdir -p /opt/apps/gatermate/venv/gae/lib
+cp -r /opt/apps/gatermate/venv/lib/python2.7/site-packages/chardet /opt/apps/gatermate/venv/lib/python2.7/site-packages/concurrent /opt/apps/gatermate/venv/lib/python2.7/site-packages/flask_caching /opt/apps/gatermate/venv/gae/lib/
 ```
 
 ##### GAE 테스트 서버
