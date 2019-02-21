@@ -23,7 +23,9 @@ def register():
 
 class Tving(Streamer):
 
-    API_KEY = '1e7952d0917d6aab1f0293a063697610'
+    API_KEY = dict(pc='1e7952d0917d6aab1f0293a063697610',
+                   mobile='4263d7d76161f4a19a9efe9ca7903ec4',
+                   app='56dc890767ec858dcb4abf184c0b2d2d')
     API_URL = 'http://api.tving.com/v1'
     BASE_URL = 'http://m.tving.com'
     LOGIN_URL = 'https://user.tving.com/user/doLogin.tving'
@@ -53,33 +55,36 @@ class Tving(Streamer):
         if cookies.get('_tving_token') is None or self.get_cache('zzang') is None:
             self.login()
 
-    def get_channels(self):
-        result = self.api_channels()
+    def get_channels(self, pageNo):
         channels = []
-        for item in result:
-            channel = item['schedule']['channel']
-            program = item['schedule']['program']
-            name = channel['name']['ko']
-            free = True if channel['free_yn'] == 'Y' else False
-            drm = True if channel['drm_multi_yn'] == 'Y' else False
-            if drm:
-                # log.debug('%s would be excluded by drm_multi_yn.', name)
-                continue
-            if (not free and self.get_cache('pay_type') == 'U'):
-                # log.debug('%s would be excluded by pay_type.', name)
-                continue
-            if name.startswith('CH.'):
-                # log.debug('%s would be excluded by no live channel.', name)
-                continue
-            channels.append(
-                Channel(
-                    dict(streamer='Tving',
-                         id=item.get('live_code'),
-                         name=name,
-                         cProgram=program['name']['ko'],
-                         thumbnail='http://stillshot.tving.com/thumbnail/' + item['live_code'] + '_0_320x180.jpg')))
-        del result
-        return channels
+        hasNext =True
+        safe_counter = 0
+        while len(channels) < 12 and hasNext:
+            results, hasNext = self.api_channels(pageNo)
+            if results is None:
+                break
+            for item in results:
+                channel = item['schedule']['channel']
+                program = item['schedule']['program']
+                name = channel['name']['ko']
+                free = True if channel['free_yn'] == 'Y' else False
+                if name.startswith('CH.') or (not free and self.get_cache('pay_type') == 'U'):
+                    # log.debug('%s would be excluded by drm_multi_yn.', name)
+                    continue
+                channels.append(
+                    Channel(
+                        dict(streamer='Tving',
+                             id=item.get('live_code'),
+                             name=name,
+                             cProgram=program['name']['ko'],
+                             thumbnail='http://stillshot.tving.com/thumbnail/' + item['live_code'] + '_0_320x180.jpg',
+                             rating=item['live_rating']['realtime'])))
+            pageNo += 1
+            safe_counter += 1
+            if safe_counter > 10:
+                log.warning('counter break')
+                break
+        return sorted(channels, key=lambda item: item.rating, reverse=True), hasNext, pageNo
 
     def get_segments(self, cid, url):
         response = self.fetch(url, referer=self.PLAYER_URL % cid)
@@ -106,11 +111,11 @@ class Tving(Streamer):
 
     def get_stream(self, cid, qIndex):
         last = self.get_cache('last_stream', {})
-        if last.get('quality') == qIndex:
+        if last.get('cid') == cid and last.get('quality') == qIndex:
             url = last.get('url')
         else:
             url = self._get_stream_url(cid, qIndex)
-            self.set_cache('last_stream', dict(quality=qIndex, url=url.text))
+            self.set_cache('last_stream', dict(cid=cid, quality=qIndex, url=url.text))
         return self.get_segments(cid, url)
 
     def _get_stream_url(self, cid, qIndex):
@@ -157,79 +162,17 @@ class Tving(Streamer):
         r = self.fetch(url, method='POST', referer=self.PLAYER_URL % cid, payload=payload)
         return json.loads(r.content)['stream']['broadcast']['broad_url']
 
-    def api_channels(self):
-        url = '{api_url}/media/lives?callback={callback}' \
-              '&pageNo={pageNo}&pageSize={pageSize}&order={order}&adult={adult}' \
-              '&free={free}&guest={guest}&scope={scope}' \
-              '&screenCode={screenCode}&networkCode={networkCode}' \
-              '&osCode={osCode}&teleCode={teleCode}&apiKey={apiKey}' \
-              '&_={now}'.format(api_url=self.API_URL,
-                                callback=self._make_jsonp_name(),
-                                pageNo=1,
-                                pageSize=300,
-                                order='rating',
-                                adult='all', free='all', guest='all', scope='all',
-                                channelType=self.CS.get('channelType', 'CPCS0100'),
-                                screenCode=self.CS.get('screenCode', 'CSSD0100'),
-                                networkCode=self.CS.get('networkCode', 'CSND0900'),
-                                osCode=self.CS.get('osCode', 'CSOD0900'),
-                                teleCode=self.CS.get('teleCode', 'CSCD0900'),
-                                apiKey=self.API_KEY,
-                                now=str(int(time.time()*1000)))
+    def api_channels(self, pageNo):
+        url = ud.Url(self.API_URL + '/media/lives')
+        url.update_query(dict(
+            free='all', adult='all', order='rating', apiKey=self.API_KEY.get('mobile'),
+            pageNo=pageNo, pageSize=30, screenCode=self.CS.get('screenCode'),
+            networkCode=self.CS.get('networkCode'), osCode=self.CS.get('osCode'),
+            teleCode=self.CS.get('teleCode'), totalCountYn='Y'
+        ))
         r = self.fetch(url, referer='http://www.tving.com/live/list/top')
-        match = self.API_JSONP_REGEXP.search(r.content)
-        if match is not None:
-            return json.loads(match.group(1).strip())['body']['result']
-        return json.loads(r.content)['body']['result']
-
-    def api_channel(self, channel):
-        url3 = 'http://api.tving.com/v1/media/episodes?callback=jQuery11230563746359782114_1550323845035&pageNo=1&pageSize=18&order=new&adult=all&free=all&guest=all&scope=all&channelCode=C01582&lastFrequency=y&programBroadState=CPBS0200&screenCode=CSSD0100&networkCode=CSND0900&osCode=CSOD0900&teleCode=CSCD0900&apiKey=1e7952d0917d6aab1f0293a063697610&_=1550323845036'
-        '''
-        payload GET
-        callback: jQuery11230563746359782114_1550323845035
-        pageNo: 1
-        pageSize: 18
-        order: new
-        adult: all
-        free: all
-        guest: all
-        scope: all
-        channelCode: C01582
-        lastFrequency: y
-        programBroadState: CPBS0200
-        screenCode: CSSD0100
-        networkCode: CSND0900
-        osCode: CSOD0900
-        teleCode: CSCD0900
-        apiKey: 1e7952d0917d6aab1f0293a063697610
-        _: 1550323845036
-        '''
-        url = 'http://api.tving.com/v1/media/stream/info?osCode=CSOD0900&apiKey=1e7952d0917d6aab1f0293a063697610&noCache=1550323850175&teleCode=CSCD0900&screenCode=CSSD0100&callingFrom=FLASH&networkCode=CSND0900&info=y&mediaCode=C01582'
-        '''
-        payload GET
-        osCode: CSOD0900
-        apiKey: 1e7952d0917d6aab1f0293a063697610
-        noCache: 1550323850175
-        teleCode: CSCD0900
-        screenCode: CSSD0100
-        callingFrom: FLASH
-        networkCode: CSND0900
-        info: y
-        mediaCode: C01582
-        '''
-
-        url2 = 'http://api.tving.com/v1/media/live//C01582?osCode=CSOD0900&apiKey=1e7952d0917d6aab1f0293a063697610&noCache=1550323850175&teleCode=CSCD0900&screenCode=CSSD0100&callingFrom=FLASH&option=next&networkCode=CSND0900'
-        '''
-        payload GET
-        osCode: CSOD0900
-        apiKey: 1e7952d0917d6aab1f0293a063697610
-        noCache: 1550323850175
-        teleCode: CSCD0900
-        screenCode: CSSD0100
-        callingFrom: FLASH
-        option: next
-        networkCode: CSND0900
-        '''
+        js = json.loads(r.content)
+        return js['body']['result'], True if js['body']['has_more'] == 'Y' else False
 
     def login(self):
         payload = dict(userId=self.settings.get('ID', ''),

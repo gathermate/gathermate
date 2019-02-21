@@ -9,11 +9,9 @@
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
   <link href="{{ url_for('.static', filename='css/video-js.min.css') }}" rel="stylesheet">
   <link href="{{ url_for('.static', filename='css/streamate.css') }}" rel="stylesheet">
-  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+  <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
   <!-- https://videojs.com/getting-started/ -->
   <script src="{{ url_for('.static', filename='js/video.min.js') }}"></script>
-  <!-- https://github.com/verlok/lazyload -->
-  <script src="https://cdn.jsdelivr.net/npm/vanilla-lazyload@8.17.0/dist/lazyload.min.js"></script>
   <script src="{{ url_for('.static', filename='js/streamate.js') }}"></script>
   {%- endblock head %}
 </head>
@@ -26,9 +24,6 @@
         </li>
         <li class="nav-item">
           <a id="tving" class="nav-link" href="{{ url_for('.streamer', streamer='tving') }}">Tving</a>
-        </li>
-        <li class="nav-item">
-          <a id="oksusu" class="nav-link disabled" href="#">Oksusu</a>
         </li>
       </ul>
     </nav>
@@ -55,15 +50,7 @@
   </section>
   <section class="p-4">
     <div class="channels d-inline-flex align-content-start flex-wrap">
-      {% for channel in channels %}
-      <div class="card w-25 p-2 d-inline-block shadow rounded">
-        <img class="lazy w-100" data-src="{{ url_for('.resource', streamer=streamer, url=channel.thumbnail|quote) }}" class="card-img-top" alt="{{ channel.cProgram }}">
-        <div class="card-body p-2">
-          <h5 class="card-title"><a href="javascript:void(0);" onclick="playChannel('{{ streamer }}', '{{ channel.id }}')" title="{{ channel.cProgram }}">{{ channel.name }}</a></h5>
-          <p class="card-text">{{ channel.cProgram }}</p>
-        </div>
-      </div>
-      {% endfor %}
+
     </div>
   </section>
   <footer class="mb-5">
@@ -71,19 +58,20 @@
   <div id="toastbar">
   </div>
   <script>
-    {%- block script %}
-    $(function(){
-      markStreamer('{{ streamer }}');
-      {%- with messages = get_flashed_messages() %}
-        {%- if messages %}
-          {%- for message in messages %}
-      var msg = '{{ message }}';
-      toastbar(msg);
-            {%- endfor %}
-        {%- endif %}
-      {%- endwith %}
-    });
-    {%- endblock script %}
+  {%- block script %}
+    var streamer = '{{ streamer }}';
+    var currentPage = 1
+    markStreamer(streamer);
+    getChannels(streamer, 1);
+    {%- with messages = get_flashed_messages() %}
+      {%- if messages %}
+        {%- for message in messages %}
+    var msg = '{{ message }}';
+    toastbar(msg);
+          {%- endfor %}
+      {%- endif %}
+    {%- endwith %}
+  {%- endblock script %}
   </script>
 </body>
 </html>

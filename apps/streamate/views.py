@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import logging
+import json
 
 from flask import Blueprint
 from flask import request
@@ -9,7 +10,7 @@ from flask import current_app as app
 
 from apps.common.datastructures import MultiDict
 from apps.common.exceptions import MyFlaskException
-from apps.common.fetchers import Response as Rspns
+
 
 log = logging.getLogger(__name__)
 
@@ -33,11 +34,14 @@ def resource(streamer):
 
 @streamate.route('/<string:streamer>', strict_slashes=False)
 def streamer(streamer):
-    query = MultiDict(request.args)
-    channels = _order(streamer, 'channels', query)
     return render_template('player.html',
-                           streamer=streamer,
-                           channels=channels)
+                           streamer=streamer)
+
+@streamate.route('/<string:streamer>/channels')
+def channels(streamer):
+    query = MultiDict(request.args)
+    channels, hasNext, page = _order(streamer, 'channels', query)
+    return json.dumps(dict(channels=channels, hasNext=hasNext, page=page))
 
 @streamate.route('/<path:streamer>/<path:cid>/<path:order>')
 def channel(streamer, cid, order):

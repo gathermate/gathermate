@@ -95,3 +95,7 @@ class Channel(MultiDict):
     def thumbnail(self):
         return self.get('thumbnail')
 
+    @property
+    def rating(self):
+        return self.get('rating')
+

@@ -2,7 +2,6 @@
 import logging
 
 from apps.common.manager import Manager
-from apps.common import toolbox as tb
 from apps.common import urldealer as ud
 from apps.common.exceptions import MyFlaskException
 
@@ -24,7 +23,7 @@ class StreamManager(Manager):
         return streamer.get_resource(ud.Url(ud.unquote(query.get('url'))))
 
     def _order_channels(self, streamer, query):
-        return streamer.get_channels()
+        return streamer.get_channels(int(query.get('page')))
 
     def _order_segment(self, streamer, query):
         return streamer.get_segment(query.get('cid'), ud.Url(ud.unquote(query.get('url'))))
@@ -40,8 +39,6 @@ class StreamManager(Manager):
 
     def request(self, streamer, order, query):
         # type: (str, Type[Dict[str, Union[List[str], str]]]) -> ?
-        instance = None
-        function = None
         try:
             class_ = self.__streamer_classes[streamer.capitalize()]
         except KeyError as e:
@@ -50,6 +47,7 @@ class StreamManager(Manager):
         instance = class_(self.config)
         #fetchers_log = logging.getLogger('apps.common.fetchers')
         #fetchers_log.setLevel('INFO')
+        function = None
         try:
             function = getattr(self, '_order_%s' % order)
         except AttributeError as e:

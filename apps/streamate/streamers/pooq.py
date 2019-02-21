@@ -42,8 +42,9 @@ class Pooq(Streamer):
         if cookies.get('cs') is None:
             self.api_login()
 
-    def get_channels(self):
-        js = self.api_channels()
+    def get_channels(self, page):
+        js = self.api_channels(page)
+        js['count']
         channels = []
         for channel in js.get('list'):
             channels.append(
@@ -52,10 +53,12 @@ class Pooq(Streamer):
                          id=channel.get('channelid'),
                          name=channel.get('channelname'),
                          cProgram=channel.get('title'),
-                         thumbnail=channel.get('image'))
+                         thumbnail=channel.get('image'),
+                         rating=channel.get('playratio'))
                 )
             )
-        return channels
+        has_next = True if js['pagecount'] > js['count'] else False
+        return sorted(channels, key=lambda item: item.rating, reverse=True), has_next, page
 
     def get_segments(self, cid, url):
         response = self.fetch(url, referer=self.PLAYER_URL % cid)
@@ -72,7 +75,6 @@ class Pooq(Streamer):
         response = self.fetch(playurl,
                               referer=self.PLAYER_URL % cid)
         return self.proxy_m3u8(cid, response.content, response.url).dumps(), response.status_code
-
 
     def check_login(self):
         response = self.fetch(self.LOGIN_CHECK_URL, referer=self.BASE_URL)
@@ -124,10 +126,12 @@ class Pooq(Streamer):
         self.set_cache('awscookie', js.get('awscookie'))
         return js
 
-    def api_channels(self):
-        api = ud.Url(ud.join(self.API_URL, '/live/all-channels'))
-        query = dict(genre='all', type='all', free='all', offset=0, limit=999)
-        return self.request_api(api, query=query, referer=self.PLAYER_URL % 'K01')
+    def api_channels(self, page):
+        amount = 12
+        offset = 0 if page is 1 else page * amount
+        api = ud.Url(ud.join(self.API_URL, '/live/popular-channels'))
+        query = dict(genre='all', type='all', free='all', offset=offset, limit=amount)
+        return self.request_api(api, query=query, referer=self.BASE_URL)
 
     def api_login(self):
         api = ud.Url(ud.join(self.API_URL, '/login'))
@@ -155,28 +159,3 @@ class Pooq(Streamer):
             referer = self.BASE_URL
         response = self.fetch(url, referer=referer)
         return json.loads(response.content)
-
-    # pooq loggging data sample
-    BOOKMARK_DATA = dict(
-        itemType=3,
-        userNo=0,
-        profileId=0,
-        playId='',
-        guid='',
-        cornerId='',
-        channelType='L',
-        contentId='',
-        programId='K02',
-        deviceType=1,
-        ipAddress='',
-        concurrencyGroup=1,
-        issue='',
-        isCharged='n',
-        priceType='n',
-        pooqzoneType='',
-        logType='I',
-        extra=dict(osV='Windows 10', appV='1.1.6', apiV=3),
-        isABR='Y',
-        BR=1000,
-        mediaTime='00:00:30',
-        logDate='2019-02-13 12:47:27+0900')
