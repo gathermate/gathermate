@@ -94,6 +94,16 @@ FETCHER = {
 
     # 목표 웹페이지의 응답을 기다리는 최대 시간(초)입니다.
     'DEADLINE': 60,
+
+    # 쿠키를 파일로 저장하려면 True로 설정하세요.
+    # GAE는 파일 쓰기 권한이 없으므로 False로 설정하세요.
+    'COOKIE_FILE': False,
+
+    # 쿠키 파일 저장 경로(instance/cookies)
+    'COOKIE_PATH': os.path.join(os.path.dirname(os.path.abspath(__file__)), 'cookies'),
+
+    # 쿠키를 캐시에 저장할 경우 지속 시간
+    'COOKIE_TIMEOUT' : 0,
 }
 
 # 사이트별 설정입니다.

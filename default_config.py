@@ -35,6 +35,9 @@ class Localhost(Flask):
     FETCHER = {
         'CACHE_TIMEOUT': 60,
         'DEADLINE': 60,
+        'COOKIE_FILE': False,
+        'COOKIE_PATH': os.path.join(os.path.dirname(os.path.abspath(__file__)), 'cookies'),
+        'COOKIE_TIMEOUT' : 0,
     }
     SCRAPERS = {}
     POOQ = {}
