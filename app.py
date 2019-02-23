@@ -35,6 +35,8 @@ def create_app(software, config, cache_type):
     caching.init(app, app.config, cache_type)
     # Register blueprints from config.
     for name, settings in app.config['BLUEPRINTS'].items():
+        if software == 'GoogleAppEngine' and name == 'Streamate':
+            continue
         try:
             blueprint = getattr(importlib.import_module(
                 settings['module']),
@@ -49,6 +51,8 @@ def create_app(software, config, cache_type):
     # Register managers from config.
     app.managers = {}
     for name, module in app.config['MANAGERS'].items():
+        if software == 'GoogleAppEngine' and name == 'Streamate':
+            continue
         app.managers[name] = importlib.import_module(module).hire_manager(app.config)
     # Register a function for sending messages to telegram bot.
     def send(sender, msg):

@@ -14,11 +14,6 @@ def config(software, level):
             'datefmt': '%Y-%m-%d %H:%M:%S',
         }},
         'handlers': {
-            'wsgi': {
-                'class': 'logging.StreamHandler',
-                'stream': 'ext://flask.logging.wsgi_errors_stream',
-                'formatter': 'default'
-            },
             'default': {
                 'class': 'logging.StreamHandler',
                 'stream': 'ext://sys.stdout',
@@ -27,7 +22,7 @@ def config(software, level):
         },
         'root': {
             'level': level,
-            'handlers': ['wsgi']
+            'handlers': ['default']
         }
     })
     root = logging.getLogger()
