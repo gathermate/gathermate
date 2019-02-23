@@ -202,6 +202,12 @@ after_install(){
             install_packages
         fi
         cp -r $OPT/lib/python2.7/site-packages/lxml* $VENV/lib/python2.7/site-packages
+        if ! $PYTHON -c "from Crypto import Cipher" > /dev/null 2>&1; then
+            echo "$PREFIX python-crypto is also required on $target."
+            packages=python-crypto
+            install_packages
+        fi
+        cp -r $OPT/lib/python2.7/site-packages/Crypto $VENV/lib/python2.7/site-packages
     fi
     mkdir -p $ROOT/var/log $ROOT/var/run
     $SERVICE_START

@@ -24,7 +24,7 @@ Gathermate
 ```plain
 opt/
     apps/
-        gatermate/
+        gathermate/
             apps/
                 callmewhen/
                 common/
@@ -87,7 +87,7 @@ chmod +x /opt/apps/install-gathermate.sh
 Debian, Ubuntu는 `Windows Subsystem for Linux` 환경에서 테스트 했습니다.
 
 #### 1. 소스파일 복사
-Git에서 소스 파일을 받아 `/opt/apps/gatermate` 폴더에 저장합니다.
+Git에서 소스 파일을 받아 `/opt/apps/gathermate` 폴더에 저장합니다.
 
 ##### Git 설치
 ```shell
@@ -103,7 +103,7 @@ apt install git
 
 ##### 저장소 복사
 ```shell
-git clone https://github.com/gathermate/gathermate.git /opt/apps/gatermate
+git clone https://github.com/gathermate/gathermate.git /opt/apps/gathermate
 ```
 
 #### 2. 파이썬 2.7 설치
@@ -113,7 +113,7 @@ git clone https://github.com/gathermate/gathermate.git /opt/apps/gatermate
     
 ```shell
 # Entware on ASUS RT-AC68U aka T-mobile AC1900
-opkg install python-light python-pip python-lxml
+opkg install python-light python-pip python-lxml python-crypto
 ```
 ```shell
 # Debian/Ubuntu on WSL
@@ -124,46 +124,47 @@ apt install python-minimal python-pip
 
 ```shell
 pip install virtualenv
-virtualenv -p python2 /opt/apps/gatermate/venv
-source /opt/apps/gatermate/venv/bin/activate
+virtualenv -p python2 /opt/apps/gathermate/venv
+source /opt/apps/gathermate/venv/bin/activate
 ```
 
 #### 4. 파이썬 패키지 설치
-가상환경 내에서 `python` 추가 패키지를 설치합니다. Entware는 `opkg`로 설치한 `lxml` 패키지도 가상환경 폴더에 복사해 주세요.
+가상환경 내에서 `python` 추가 패키지를 설치합니다. Entware는 `opkg`로 설치한 `lxml`, `rypto` 패키지도 가상환경 폴더에 복사해 주세요.
    
 ```shell 
 # Entware on ASUS RT-AC68U aka T-mobile AC1900
-pip install -r /opt/apps/gatermate/install/requirements-entware.txt
-cp -r /opt/lib/python2.7/site-packages/lxml* /opt/apps/gatermate/venv/lib/python2.7/site-packages/ 
+pip install -r /opt/apps/gathermate/install/requirements-entware.txt
+cp -r /opt/lib/python2.7/site-packages/lxml* /opt/apps/gathermate/venv/lib/python2.7/site-packages/ 
+cp -r /opt/lib/python2.7/site-packages/Crypto /opt/apps/gathermate/venv/lib/python2.7/site-packages/ 
 ```
 ```shell
 # Debian/Ubuntu on WSL
-pip install -r /opt/apps/gatermate/install/requirements.txt
+pip install -r /opt/apps/gathermate/install/requirements.txt
 ```
 
 #### 5. 실행하기
 **설정하기를 읽어본 후 실행하기를 권장합니다.**
 
 ##### 설정 파일 복사
-사용자 설정 파일 `/opt/apps/gatermate/install/user_config.py`를 `/opt/apps/gatermate/instance/` 폴더로 복사하고 파일 이름을 `config.py`로 변경합니다.
+사용자 설정 파일 `/opt/apps/gathermate/install/user_config.py`를 `/opt/apps/gathermate/instance/` 폴더로 복사하고 파일 이름을 `config.py`로 변경합니다.
 
 ```shell
-mkdir /opt/apps/gatermate/instance
-cp /opt/apps/gatermate/install/user_config.py /opt/apps/gatermate/instance/config.py
+mkdir /opt/apps/gathermate/instance
+cp /opt/apps/gathermate/install/user_config.py /opt/apps/gathermate/instance/config.py
 ```
 
 ##### 데몬 스크립트 복사
 
-`/opt/apps/gatermate/install` 폴더의 데몬 스크립트를 `init.d` 폴더로 복사하면서 파일 이름을 변경합니다. 실행권한도 부여합니다.
+`/opt/apps/gathermate/install` 폴더의 데몬 스크립트를 `init.d` 폴더로 복사하면서 파일 이름을 변경합니다. 실행권한도 부여합니다.
 ```shell
 # Entware on ASUS RT-AC68U aka T-mobile AC1900
-cp /opt/apps/gatermate/install/daemon-entware /opt/etc/init.d/S89gatermate
-chmod +x /opt/etc/init.d/S89gatermate
+cp /opt/apps/gathermate/install/daemon-entware /opt/etc/init.d/S89gathermate
+chmod +x /opt/etc/init.d/S89gathermate
 ```
 ```shell
 # Debian/Ubuntu on WSL
-cp /opt/apps/gatermate/install/daemon-debian /etc/init.d/gatermate
-chmod +x /etc/init.d/gatermate
+cp /opt/apps/gathermate/install/daemon-debian /etc/init.d/gathermate
+chmod +x /etc/init.d/gathermate
 ```
 
 복사한 스크립트 내 포트 번호를 확인 후 원하는 포트로 변경해 주세요.
@@ -175,11 +176,11 @@ BIND=0.0.0.0:8181
 
 ```shell
 # Entware on ASUS RT-AC68U aka T-mobile AC1900
-/opt/etc/init.d/S89gatermate start
+/opt/etc/init.d/S89gathermate start
 ```
 ```shell
 # Debian/Ubuntu on WSL
-sudo service gatermate start
+sudo service gathermate start
 ```
 
 `공유기_주소:8181/scrap`로 접속하여 "Welcome" 페이지가 나오는지 확인.
@@ -339,13 +340,13 @@ http://videlibri.sourceforge.net/cgi-bin/xidelcgi
 ##### GAE 파이썬 패키지 설치
 
 ```shell
-pip install -t /opt/apps/gatermate/venv/gae/lib -r /opt/apps/gatermate/install/requirements-gae.txt --no-dependencies
+pip install -t /opt/apps/gathermate/venv/gae/lib -r /opt/apps/gathermate/install/requirements-gae.txt --no-dependencies
 ```
 
 혹은 가상환경 내 이미 설치한 일부 패키지 (chardet, concurrent, flask_caching)를 `venv/gae/lib` 폴더로 복사
 ```shell
-mkdir -p /opt/apps/gatermate/venv/gae/lib
-cp -r /opt/apps/gatermate/venv/lib/python2.7/site-packages/chardet /opt/apps/gatermate/venv/lib/python2.7/site-packages/concurrent /opt/apps/gatermate/venv/lib/python2.7/site-packages/flask_caching /opt/apps/gatermate/venv/gae/lib/
+mkdir -p /opt/apps/gathermate/venv/gae/lib
+cp -r /opt/apps/gathermate/venv/lib/python2.7/site-packages/chardet /opt/apps/gathermate/venv/lib/python2.7/site-packages/concurrent /opt/apps/gathermate/venv/lib/python2.7/site-packages/flask_caching /opt/apps/gathermate/venv/gae/lib/
 ```
 
 ##### GAE 테스트 서버
