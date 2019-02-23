@@ -51,9 +51,3 @@ def channel(streamer, cid, order):
 
 def _order(streamer, order, query):
     return app.managers[name].request(streamer, order, query)
-
-@streamate.errorhandler(Exception)
-def unhandled_exception(e):
-    # type: (Type[Exception]) -> Text
-    MyFlaskException.trace_error()
-    return e.message, 404

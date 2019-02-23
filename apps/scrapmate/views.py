@@ -13,7 +13,7 @@ from flask import redirect
 from flask import render_template_string
 from flask import flash
 
-from apps.common.cache import cache
+from apps.common import caching
 from apps.common.auth import auth
 from apps.common.exceptions import MyFlaskException
 from apps.common import urldealer as ud
@@ -32,7 +32,7 @@ scrapmate = Blueprint(
 def make_cache_key():
     # type: () -> Text
     key = ud.Url(request.url).update_query(request.form).text if request.form else request.url
-    return cache.create_key(key)
+    return caching.create_key(key)
 
 @scrapmate.route('/', strict_slashes=False)
 @auth.requires_auth
@@ -47,7 +47,7 @@ def quote():
     return render_template('encode.html')
 
 @scrapmate.route('/<string:site>/<string:board>/rss', methods=['GET'])
-@cache.cached(key_prefix=make_cache_key, timeout=cache.APP_TIMEOUT)
+@caching.cache.cached(key_prefix=make_cache_key, timeout=caching.config.get('TIMEOUT'))
 @auth.requires_auth
 def rss_by_alias(site, board):
     # type: (Text, Text) -> Text
@@ -58,7 +58,7 @@ def rss_by_alias(site, board):
     return order_rss(data)
 
 @scrapmate.route('/<string:site>/<string:board>', methods=['GET'])
-@cache.cached(key_prefix=make_cache_key, timeout=cache.APP_TIMEOUT)
+@caching.cache.cached(key_prefix=make_cache_key, timeout=caching.config.get('TIMEOUT'))
 @auth.requires_auth
 def list_by_alias(site, board):
     # type: (Text, Text) -> Text
@@ -69,7 +69,7 @@ def list_by_alias(site, board):
     return order_list(data)
 
 @scrapmate.route('/<string:order>', methods=['GET'])
-@cache.cached(key_prefix=make_cache_key, timeout=cache.APP_TIMEOUT)
+@caching.cache.cached(key_prefix=make_cache_key, timeout=caching.config.get('TIMEOUT'))
 @auth.requires_auth
 def order(order):
     # type: (Text) -> Union[unicode, flask.wrappers.Response]

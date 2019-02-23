@@ -9,8 +9,7 @@ from flask import request
 from flask import send_from_directory
 from flask import render_template
 
-from apps.common.auth import auth
-from apps.common.cache import cache
+from apps.common import caching
 from apps.common.exceptions import MyFlaskException
 from apps.common import logger
 from apps.common import urldealer as ud
@@ -33,14 +32,7 @@ def create_app(software, config, cache_type):
     logger.config(software, app.config['LOG_LEVEL'])
     app.logger.debug('Server Software: %s', software)
     app.logger.debug('Config: %s', app.config['NAME'])
-    cache.init_app(app, config=cache_type)
-    cache.clear()
-    cache.APP_SECRET_KEY = app.config.get('SECRET_KEY', '')
-    cache.APP_TIMEOUT = app.config.get('TIMEOUT', 10)
-    cache.FETCHER_TIMEOUT = app.config['FETCHER'].get('CACHE_TIMEOUT', 120)
-    cache.FETCHER_COOKIE_TIMEOUT = app.config['FETCHER'].get('COOKIE_TIMEOUT', 3600)
-    cache.create_key = lambda key: '{}-{}'.format(cache.APP_SECRET_KEY, key)
-    auth.init_app(app)
+    caching.init(app, app.config, cache_type)
     # Register blueprints from config.
     for name, settings in app.config['BLUEPRINTS'].items():
         try:
@@ -121,7 +113,10 @@ def unhandled_exception(e):
     # type: (Type[Exception]) -> Text
     MyFlaskException.trace_error()
     app.send('{}#{}'.format(__name__, request.host), e.message)
-    return e.message
+    if e.response is not None:
+        return e.response.content, e.response.status_code, dict(e.response.headers)
+    else:
+        e.message, 404
 
 @app.template_filter('quote')
 def quote_filter(url):

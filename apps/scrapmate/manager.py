@@ -51,7 +51,6 @@ class ScrapmateManager(Manager):
         # -> Type[scraper.Scraper]
         instance_config = self._get_default_config(class_.__name__, config)
         scraper = class_(instance_config, fetchers.hire_fetcher(config=self.config))
-        log.debug("%s instance has been created.", type(scraper).__name__)
         return scraper
 
     def _get_default_config(self, name, config):
@@ -120,7 +119,6 @@ class ScrapmateManager(Manager):
         # type: (Text, urldealer.Url, apps.common.datastructures.MultiDict[unicode, List[unicode]])
         # -> Union[str, fetchers.Response, Iterable]
         data = getattr(self, '_order_{}'.format(order))(target, query)
-        log.info('Cumulative fetching size : %s', fetchers.fetcher.size_text(fetchers.fetcher.cum_size))
         return data
 
     def request(self, order, query):

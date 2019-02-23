@@ -3,7 +3,7 @@ import traceback
 import logging
 
 from apps.common import toolbox
-from apps.common.cache import cache
+from apps.common import caching
 
 log = logging.getLogger()
 
@@ -23,7 +23,7 @@ class MyFlaskException(Exception):
                 self.content = toolbox.decode(self.response.content)
             else:
                 self.content = 'The response has no content.'
-            cache.delete(self.response.key)
+            caching.cache.delete(self.response.key)
 
     @staticmethod
     def trace_error():

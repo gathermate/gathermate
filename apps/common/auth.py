@@ -6,19 +6,17 @@ from functools import wraps
 from flask import request
 from flask import Response
 
+from apps.common import caching
+
 log = logging.getLogger(__name__)
 
 class Auth(object):
 
-    def init_app(self, app):
-        # type: (flask.app.Flask) - None
-        self.app = app
-
     def requires_auth(self, f):
         # type: (Callable) -> Callable
         def check_auth(username, password):
-            return username == self.app.config['AUTH_ID'] \
-                        and password == self.app.config['AUTH_PW']
+            return username == caching.config['AUTH_ID'] \
+                        and password == caching.config['AUTH_PW']
 
         def authenticate():
             denied = '[{}] was denied with [{}]'.format(request.remote_addr, request.full_path)

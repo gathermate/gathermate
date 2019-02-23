@@ -7,7 +7,7 @@ from apps.common.manager import Manager
 from apps.common.exceptions import MyFlaskException
 from apps.common import fetchers
 from apps.common import urldealer as ud
-from apps.common.cache import cache
+from apps.common import caching
 
 log = logging.getLogger(__name__)
 
@@ -48,7 +48,7 @@ class Telegram(Messenser):
         self.__TOKEN = self.config['TELEGRAM_BOT_TOKEN']
         self.__CHAT_ID = self.config['TELEGRAM_CHAT_ID']
         self.BASE_URL = 'https://api.telegram.org/bot%s/' % self.TOKEN
-        self.KEY = cache.create_key('telegram-chat-ids')
+        self.KEY = caching.create_key('telegram-chat-ids')
 
     @property
     def TOKEN(self):

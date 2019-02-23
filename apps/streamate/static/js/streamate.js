@@ -1,5 +1,5 @@
 $(function(){
-    makePlayer();
+    makePlayer()
 });
 
 function makePlayer(){
@@ -25,6 +25,11 @@ function makePlayer(){
                 player.play();
             });
         }
+    });
+    player.on('error', function(e){
+        console.log(e);
+        console.log(player.error());
+        player.reset();
     });
     return player
 }
@@ -62,9 +67,7 @@ function getChannels(streamer, page){
     var jqxhr = $.getJSON(url, {'page':page}, function(data, status_code, xhr) {
         currentPage = data.page;
         hasNext = data.hasNext;
-        console.log('Current Page :' + currentPage);
-        console.log('Channels length :' + data.channels.length);
-        console.log('Channels has Next :' + hasNext);
+        console.log('page:' + currentPage + ', length:' + data.channels.length + ', next:' + hasNext );
         $.each(data.channels, function(index, item){
             var channel = ' \
 <div class="card w-25 p-2 d-inline-block shadow rounded"> \

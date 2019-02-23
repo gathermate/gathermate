@@ -114,6 +114,18 @@ def dict_to_json_file(self, _dict, file):
     with open(file, 'w') as f:
         f.write(json.dumps(_dict))
 
+UNITS = {
+    'byte': 1.0,
+    'KB': 1024.0,
+    'MB': 1024.0 ** 2,
+    'GB': 1024.0 ** 3,
+}
+def size_text(byte):
+    #type: (int) -> Text
+    unit = 'KB'
+    size = byte / UNITS.get(unit)
+    return u'{0:,.2f} {1:s}'.format(size, unit)
+
 def read_M3U(m3u_file):
     # type: (str) -> List[Dict[str, Union[str, int]]]
     _list = []

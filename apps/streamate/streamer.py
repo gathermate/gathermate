@@ -6,7 +6,7 @@ import json
 import m3u8
 
 from apps.common import fetchers
-from apps.common.cache import cache
+from apps.common import caching
 from apps.common.datastructures import MultiDict
 from apps.common import urldealer as ud
 
@@ -23,7 +23,7 @@ class Streamer(object):
         return cached.get(key, default)
 
     def get_cache_all(self):
-        cached = cache.get(cache.create_key(self.CACHE_KEY))
+        cached = caching.cache.get(caching.create_key(self.CACHE_KEY))
         if cached is None:
             return {}
         return json.loads(str(cached))
@@ -31,7 +31,7 @@ class Streamer(object):
     def set_cache(self, key, value, timeout=0):
         cached = self.get_cache_all()
         cached[key] = value
-        cache.set(cache.create_key(self.CACHE_KEY), json.dumps(cached), timeout=timeout)
+        caching.cache.set(caching.create_key(self.CACHE_KEY), json.dumps(cached), timeout=timeout)
         del cached
 
     def proxy_m3u8(self, cid, content, url):
@@ -51,10 +51,10 @@ class Streamer(object):
     def set_cookie(self, value, url=None):
         if url is None:
             url = self.BASE_URL
-        fetchers.Fetcher.set_cookie(value, url)
+        fetchers.Fetcher.set_cookie(value, url, path=self.config['FETCHER']['COOKIE_PATH'])
 
     def get_cookie(self, tostring=False):
-        return fetchers.Fetcher.get_cookie(self.BASE_URL, tostring=tostring)
+        return fetchers.Fetcher.get_cookie(self.BASE_URL, tostring=tostring, path=self.config['FETCHER']['COOKIE_PATH'])
 
     def get_resource(self, url):
         r = self.fetch(url, referer=self.BASE_URL)
@@ -65,12 +65,11 @@ class Streamer(object):
         return r.content, r.status_code, dict(r.headers)
 
     def get_quality(self, index):
-        default = self.QUALITY[int(len(self.QUALITY)/2 + 1)]
         try:
             return self.QUALITY[int(index)]
         except Exception as e:
             log.error(e.message)
-            return default
+            return self.QUALITY[-1]
 
 
 class Channel(MultiDict):

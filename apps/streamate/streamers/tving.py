@@ -7,8 +7,11 @@ import random
 import time
 import Cookie
 import datetime
+import base64
+import string
 
 import m3u8
+from Crypto.Cipher import DES3
 
 from apps.common import urldealer as ud
 from apps.streamate.streamer import Streamer
@@ -40,7 +43,7 @@ class Tving(Streamer):
         'teleCode': 'CSCD0900',
         'channelType': 'CPCS0100'
     }
-    QUALITY = ['stream25', 'stream30', 'stream40', 'stream50']
+    QUALITY = ['stream20', 'stream25', 'stream30', 'stream40', 'stream50']
     JQUERY_VERSION_REGEXP = re.compile(r'jquery.((\d{1,3}\.)+\d)\.min\.js', re.I)
     API_JSONP_REGEXP = re.compile(r'jquery\d+_\d+\((\{.*\})\)', re.I)
     LOGIN_OK_REGEXP = re.compile(r'\([\'\"]LOGIN_OK[\'"]\)')
@@ -52,7 +55,7 @@ class Tving(Streamer):
         if self.get_cache('pcid') is None:
             self.set_cookie(self._make_pcid_cookie())
         cookies = self.get_cookie()
-        if cookies.get('_tving_token') is None or self.get_cache('zzang') is None:
+        if cookies.get('_tving_token') is None:
             self.login()
 
     def get_channels(self, pageNo):
@@ -96,7 +99,7 @@ class Tving(Streamer):
     def get_streams(self, cid):
         streams = []
         for index in range(len(self.QUALITY)):
-            url = self._get_stream_url(cid, index)
+            url, current_time = self._get_stream_url(cid, index)
             response = self.fetch(url, referer=self.PLAYER_URL % cid)
             streams.append([index, m3u8.loads(response.content), response])
         for s in streams:
@@ -110,17 +113,23 @@ class Tving(Streamer):
         return streams[0][1].dumps(), response.status_code
 
     def get_stream(self, cid, qIndex):
+        # prevent too many api requests.
         last = self.get_cache('last_stream', {})
-        if last.get('cid') == cid and last.get('quality') == qIndex:
+        count = int(last.get('count', 50))
+        if last.get('cid') == cid and last.get('quality') == qIndex and count > 0:
             url = last.get('url')
+            count -= 1
         else:
-            url = self._get_stream_url(cid, qIndex)
-            self.set_cache('last_stream', dict(cid=cid, quality=qIndex, url=url.text))
+            url, current_time = self._get_stream_url(cid, qIndex)
+            url = url.text
+            count = 50
+        self.set_cache('last_stream', dict(cid=cid, quality=qIndex, url=url, count=count))
         return self.get_segments(cid, url)
 
     def _get_stream_url(self, cid, qIndex):
         quality = self.get_quality(qIndex)
-        broad_url = self.api_streamlist(cid, quality)
+        #broad_url = self.api_streamlist(cid, quality)
+        broad_url, current_time = self.api_streaminfo(cid, quality)
         url = ud.Url(broad_url)
         cf_key = url.query_dict.get('Key-Pair-Id')
         if cf_key is not None:
@@ -131,7 +140,7 @@ class Tving(Streamer):
                                 policy=url.query_dict.get('Policy'),
                                 sign=url.query_dict.get('Signature'))
             self.set_cookie(cf_cookie)
-        return url
+        return url, current_time
 
     def _make_jsonp_name(self):
         jq_version = self.get_cache('jquery_version', '1.12.3')
@@ -161,6 +170,36 @@ class Tving(Streamer):
                        ooc=ooc)
         r = self.fetch(url, method='POST', referer=self.PLAYER_URL % cid, payload=payload)
         return json.loads(r.content)['stream']['broadcast']['broad_url']
+
+    def api_streaminfo(self, cid, stream_code):
+        url = ud.Url(self.API_URL + '/media/stream/info')
+        key = int(time.time()*1000)
+        url.update_query(dict(
+            apiKey=self.API_KEY.get('mobile'),
+            noCache=key,
+            teleCode=self.CS.get('teleCode'),
+            screenCode=self.CS.get('screenCode'),
+            streamCode=stream_code,
+            callingFrom='FLASH',
+            networkCode=self.CS.get('networkCode'), osCode=self.CS.get('osCode'),
+            info='y',
+            mediaCode=cid))
+        r = self.fetch(url, referer=self.PLAYER_URL % cid)
+        js = json.loads(r.content)
+        stream_url = self.decrypt(key, cid, js['body']['stream']['broadcast']['broad_url'])
+        server_time = self._get_datetime(js['body']['server']['time'])
+        start_time = self._get_datetime(js['body']['content']['broadcast_start_date'])
+        current_time = (server_time - start_time).total_seconds()
+        return stream_url, current_time
+
+    def decrypt(self, key, media_code, value):
+        key = 'cjhv*tving**good/' + media_code[3:] + '/' + str(key)
+        cipher = DES3.new(key[:24])
+        decrypted = cipher.decrypt(base64.b64decode(value))
+        return filter(string.printable.__contains__, decrypted)
+
+    def _get_datetime(self, value):
+        return datetime.datetime.strptime(str(value), '%Y%m%d%H%M%S')
 
     def api_channels(self, pageNo):
         url = ud.Url(self.API_URL + '/media/lives')
@@ -192,11 +231,6 @@ class Tving(Streamer):
                 self.set_cache('jquery_version', match.group(1))
             cookies = self.get_cookie()
             self.set_cache('pay_type', cookies.get('USER_PAY_TYPE').value)
-            if self.get_cache('zzang') is None:
-                response = self.fetch(self.BASE_URL)
-                match = self.ZZANG_REGEXP.search(response.content)
-                if match is not None:
-                    self.set_cache('zzang', match.group(1))
             return True
         else:
             log.debug('Login failed.')

@@ -5,7 +5,6 @@ import logging as log
 
 from tld import get_fld
 
-
 from apps.common.datastructures import MultiDict
 
 SCHEME = 'scheme'

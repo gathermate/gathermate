@@ -4,6 +4,8 @@ import json
 import logging
 import datetime
 
+import m3u8
+
 from apps.common import urldealer as ud
 from apps.streamate.streamer import Streamer
 from apps.streamate.streamer import Channel
@@ -33,7 +35,7 @@ class Pooq(Streamer):
         credential='none',
         pooqzone='none',
         drm='wm')
-    QUALITY = ['100p', '360p', '480p', '720p', '1080p']
+    QUALITY = ['100p', '360p', '480p', '720p']
 
     def __init__(self, config):
         self.config = config
@@ -44,7 +46,6 @@ class Pooq(Streamer):
 
     def get_channels(self, page):
         js = self.api_channels(page)
-        js['count']
         channels = []
         for channel in js.get('list'):
             channels.append(
@@ -65,16 +66,37 @@ class Pooq(Streamer):
         return self.proxy_m3u8(cid, response.content, url).dumps(), response.status_code
 
     def get_streams(self, cid):
-        return self.get_stream(cid, 3)
+        url = self._get_stream_url(cid, 3)
+        response = self.fetch(url, referer=self.PLAYER_URL % cid)
+        streams = m3u8.loads(response.content)
+        for index, playlist in enumerate(streams.playlists):
+            playlist.uri = 'stream?q=%d' % index
+        return streams.dumps(), response.status_code, dict(response.headers)
 
     def get_stream(self, cid, qIndex):
+        last = self.get_cache('last_stream', {})
+        count = int(last.get('count', 50))
+        if last.get('cid') == cid and last.get('quality') == qIndex and count > 0:
+            url = last.get('url')
+            count -= 1
+        else:
+            url = self._get_stream_url(cid, qIndex)
+            response = self.fetch(url, referer=self.PLAYER_URL % cid)
+            streams = m3u8.loads(response.content)
+            url = ud.join(url, streams.playlists[int(qIndex)].uri)
+            count = 50
+        self.set_cache('last_stream', dict(cid=cid, quality=qIndex, url=url, count=count))
+        return self.get_segments(cid, url)
+
+    def _get_stream_url(self, cid, qIndex):
         quality = self.get_quality(qIndex)
         js = self.api_streamlist(cid, quality)
-        playurl = js.get('playurl')
-        self.set_cookie(js.get('awscookie'))
-        response = self.fetch(playurl,
-                              referer=self.PLAYER_URL % cid)
-        return self.proxy_m3u8(cid, response.content, response.url).dumps(), response.status_code
+        url = js.get('playurl')
+        aws_cookie = js.get('awscookie')
+        if aws_cookie is not None:
+            self.set_cookie(aws_cookie)
+        return url
+
 
     def check_login(self):
         response = self.fetch(self.LOGIN_CHECK_URL, referer=self.BASE_URL)
