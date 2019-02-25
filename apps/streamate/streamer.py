@@ -19,17 +19,17 @@ class Streamer(object):
         return fetchers.hire_fetcher(config=self.config).fetch(url, cached=False, **kwargs)
 
     def get_cache(self, key, default=None):
-        cached = self.get_cache_all()
+        cached = self.get_caches()
         return cached.get(key, default)
 
-    def get_cache_all(self):
+    def get_caches(self):
         cached = caching.cache.get(caching.create_key(self.CACHE_KEY))
         if cached is None:
             return {}
         return json.loads(str(cached))
 
     def set_cache(self, key, value, timeout=0):
-        cached = self.get_cache_all()
+        cached = self.get_caches()
         cached[key] = value
         caching.cache.set(caching.create_key(self.CACHE_KEY), json.dumps(cached), timeout=timeout)
         del cached

@@ -35,7 +35,7 @@ class Pooq(Streamer):
         credential='none',
         pooqzone='none',
         drm='wm')
-    QUALITY = ['100p', '360p', '480p', '720p']
+    QUALITY = ['100p', '270p', '360p', '480p', '720p']
 
     def __init__(self, config):
         self.config = config
@@ -66,7 +66,7 @@ class Pooq(Streamer):
         return self.proxy_m3u8(cid, response.content, url).dumps(), response.status_code
 
     def get_streams(self, cid):
-        url = self._get_stream_url(cid, 3)
+        url = self._get_stream_url(cid, len(self.QUALITY) - 1)
         response = self.fetch(url, referer=self.PLAYER_URL % cid)
         streams = m3u8.loads(response.content)
         for index, playlist in enumerate(streams.playlists):

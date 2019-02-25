@@ -29,6 +29,8 @@ def config(software, level):
     # chardet decode() logs TMI on DEBUG level.
     chardet_logger = logging.getLogger('chardet.charsetprober')
     chardet_logger.setLevel('INFO')
+    werkzeug = logging.getLogger('werkzeug')
+    werkzeug.setLevel('WARNING')
     if software.startswith('gunicorn/'):
         '''
         Gunicorn handler is about how logs are outputted.

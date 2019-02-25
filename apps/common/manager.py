@@ -41,7 +41,7 @@ class Manager(object):
                 continue
             if type_ == module_type:
                 modules.update({class_.__name__: class_})
-                log.debug("%s class is registered as %s.", class_.__name__, type_)
+                log.info("%s class is registered as %s.", class_.__name__, type_)
         return modules
 
     def _get_class_of(self, module, class_):

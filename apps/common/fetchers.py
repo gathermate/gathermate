@@ -16,12 +16,19 @@ log = logging.getLogger(__name__)
 
 def hire_fetcher(config=None):
     software = config.get('SOFTWARE', '')
+    if config.get('FETCHER', None) is not None:
+        config = config.get('FETCHER')
+    deadline = config.get('DEADLINE')
+    cache_timeout = config.get('CACHE_TIMEOUT')
+    cookie_timeout = config.get('COOKIE_TIMEOUT')
+    cookie_path = config.get('COOKIE_PATH')
+
     if software == 'GoogleAppEngine':
-        fetcher = Urlfetch(config.get('FETCHER'),
-                           importlib.import_module('google.appengine.api.urlfetch'))
+        fetcher = Urlfetch(importlib.import_module('google.appengine.api.urlfetch'),
+                           deadline, cache_timeout, cookie_timeout, cookie_path)
     else:
-        fetcher = Requests(config.get('FETCHER'),
-                           importlib.import_module('requests'))
+        fetcher = Requests(importlib.import_module('requests'),
+                           deadline, cache_timeout, cookie_timeout, cookie_path)
     return fetcher
 
 
@@ -43,23 +50,16 @@ class Fetcher(object):
     COOKIE_ATTRS = ['expires', 'path', 'comment', 'domain', 'max-age', 'secure', 'version', 'httponly']
     THRESHOLD = 50
 
-    def __init__(self, config, module):
-        # type : (Dict[Text, Union[Text, str, int]], Callable) -> None
+    def __init__(self, module, deadline=30, cache_timeout=60,
+                 cookie_timeout=0, cookie_path=None):
+        # type : (Callable, int, int, int, Optional[str]) -> None
         self.module = module
         self.counter = 0
         self.current_response = None
-        if config is not None:
-            self.timeout = config.get('CACHE_TIMEOUT', 60)
-            self.cookie_timeout = config.get('COOKIE_TIMEOUT', 0)
-            self.deadline = config.get('DEADLINE', 30)
-            self.cookie_file_on = config.get('COOKIE_FILE', False)
-            self.cookie_path = config.get('COOKIE_PATH', '')
-        else:
-            self.timeout = 60
-            self.cookie_timeout = 0
-            self.deadline = 30
-            self.cookie_file_on = False
-            self.cookie_path = ''
+        self.timeout = cache_timeout
+        self.cookie_timeout = cookie_timeout
+        self.deadline = deadline
+        self.cookie_path = cookie_path
 
     def fetch(self, url, referer=None, method='GET', payload=None, headers=None, forced_update=False, follow_redirects=False, cached=True):
         # type: (Union[urldealer.Url, str], str, str, Dict[str, str], Dict[str, str], boolean, boolean, boolean) -> Response
@@ -114,10 +114,10 @@ class Fetcher(object):
             if new_cookie is not None:
                 self.set_cookie(str(new_cookie),
                                 url,
-                                path=self.cookie_path if self.cookie_file_on else None)
+                                path=self.cookie_path)
         cookie = self.get_cookie(url,
                                  tostring=True,
-                                 path=self.cookie_path if self.cookie_file_on else None)
+                                 path=self.cookie_path)
         if cookie != '':
             new_headers['cookie'] = cookie
         return new_headers
@@ -136,7 +136,7 @@ class Fetcher(object):
         set_cookie = r.headers.get('set-cookie')
         if set_cookie:
             self.set_cookie(set_cookie, url,
-                            path=self.cookie_path if self.cookie_file_on else None)
+                            path=self.cookie_path)
 
     @staticmethod
     def get_cookie_key(url):
@@ -153,8 +153,10 @@ class Fetcher(object):
         cookie = ''
         try:
             if path is not None and os.path.exists(path):
-                with open(cls.get_cookie_file(url, path), 'r') as f:
-                    cookie = f.read()
+                file = cls.get_cookie_file(url, path)
+                if os.path.exists(file):
+                    with open(file, 'r') as f:
+                        cookie = f.read()
             else:
                 cookie = caching.cache.get(cls.get_cookie_key(url))
         except Exception as e:

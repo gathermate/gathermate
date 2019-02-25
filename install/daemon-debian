@@ -13,7 +13,7 @@ APP=app:app
 # 기본 포트 번호를 변경 후 외부 접속을 차단해주세요.
 BIND=0.0.0.0:8181
 WORKERS=1
-LOGLEVEL=DEBUG
+LOGLEVEL=INFO
 PIDFILE=/var/run/$DAEMON.pid
 LOGFILE=/var/log/$DAEMON.log
 SYS_LOG_ADDR=unix:///dev/log#dgram

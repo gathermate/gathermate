@@ -30,8 +30,8 @@ def create_app(software, config, cache_type):
     app.config['SOFTWARE'] = software
     app.config['ROOT_DIR'] = os.path.dirname(os.path.abspath(__file__))
     logger.config(software, app.config['LOG_LEVEL'])
-    app.logger.debug('Server Software: %s', software)
-    app.logger.debug('Config: %s', app.config['NAME'])
+    app.logger.info('Server Software: %s', software)
+    app.logger.info('Config: %s', app.config['NAME'])
     caching.init(app, app.config, cache_type)
     # Register blueprints from config.
     for name, settings in app.config['BLUEPRINTS'].items():
@@ -44,7 +44,7 @@ def create_app(software, config, cache_type):
             app.register_blueprint(
                 blueprint,
                 url_prefix=settings['url_prefix'])
-            app.logger.debug(
+            app.logger.info(
                 '{} has been registered as Blueprint.'.format(blueprint.name))
         except:
             MyFlaskException.trace_error()
@@ -97,7 +97,7 @@ def before_request_to_do():
     # type: () -> None
     app.logger.debug('%(line)s Start of the request', {'line': '-'*30})
     client = '{} requested {} from {}'.format(request.remote_addr, request.full_path, request.referrer)
-    app.logger.info(client)
+    app.logger.debug(client)
 
 
 @app.after_request

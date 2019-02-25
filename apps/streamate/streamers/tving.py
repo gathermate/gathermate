@@ -193,7 +193,7 @@ class Tving(Streamer):
         return stream_url, current_time
 
     def decrypt(self, key, media_code, value):
-        key = 'cjhv*tving**good/' + media_code[3:] + '/' + str(key)
+        key = base64.b64decode('Y2podip0dmluZyoqZ29vZC8=') + media_code[3:] + '/' + str(key)
         cipher = DES3.new(key[:24])
         decrypted = cipher.decrypt(base64.b64decode(value))
         return filter(string.printable.__contains__, decrypted)

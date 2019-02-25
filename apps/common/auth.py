@@ -20,7 +20,7 @@ class Auth(object):
 
         def authenticate():
             denied = '[{}] was denied with [{}]'.format(request.remote_addr, request.full_path)
-            log.info(denied)
+            log.debug(denied)
             return Response('Could not verify your access level.',
                             401,
                             {'WWW-Authenticate': 'Basic realm="Login Required"'})
@@ -30,7 +30,7 @@ class Auth(object):
             auth = request.authorization
             if not auth or not check_auth(auth.username, auth.password):
                 return authenticate()
-            log.info('[%s] was accepted with [%s]',
+            log.debug('[%s] was accepted with [%s]',
                      request.remote_addr, request.path)
             return f(*args, **kwargs)
         return decorated

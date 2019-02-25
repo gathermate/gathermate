@@ -10,6 +10,7 @@ from flask import current_app as app
 
 from apps.common.datastructures import MultiDict
 from apps.common.exceptions import MyFlaskException
+from apps.common.auth import auth
 
 
 log = logging.getLogger(__name__)
@@ -22,7 +23,9 @@ streamate = Blueprint(
     template_folder='templates',
     static_folder='static')
 
+
 @streamate.route('/', strict_slashes=False)
+@auth.requires_auth
 def index():
     return render_template('player.html',
                            streamer=streamer)
@@ -33,17 +36,20 @@ def resource(streamer):
     return _order(streamer, 'resource', query)
 
 @streamate.route('/<string:streamer>', strict_slashes=False)
+@auth.requires_auth
 def streamer(streamer):
     return render_template('player.html',
                            streamer=streamer)
 
 @streamate.route('/<string:streamer>/channels')
+@auth.requires_auth
 def channels(streamer):
     query = MultiDict(request.args)
     channels, hasNext, page = _order(streamer, 'channels', query)
     return json.dumps(dict(channels=channels, hasNext=hasNext, page=page))
 
 @streamate.route('/<path:streamer>/<path:cid>/<path:order>')
+@auth.requires_auth
 def channel(streamer, cid, order):
     query = MultiDict(request.args)
     query['cid'] = cid
