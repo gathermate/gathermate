@@ -14,7 +14,7 @@ def register():
     return 'Scraper', Tfreeca
 
 class Tfreeca(BoardScraper):
-    URL = 'https://www.tfreeca3.com/home.php'
+    URL = 'https://www.tfreeca22.com/home.php'
     LIST_URL = ud.join(URL, '/board.php?mode=list&b_id=%s')
     ID_REGEXP = re.compile(r'.*id=(\d{2,7})')
     SEARCH_QUERY = 'x=0&y=0&sc=%s'
