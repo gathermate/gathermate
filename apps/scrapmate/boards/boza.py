@@ -12,7 +12,7 @@ def register():
     return 'Scraper', Boza
 
 class Boza(BoardScraper):
-    URL = 'https://torrentboza.com/'
+    URL = 'https://torrentboza.net/'
     LIST_URL = ud.join(URL, '/bbs/board.php?bo_table=%s')
     SEARCH_QUERY = 'sca=&sfl=wr_subject&sop=and&stx=%s'
     PAGE_QUERY = 'page=%d'
