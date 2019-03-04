@@ -71,5 +71,5 @@ class Torrentzoa(BoardScraper):
         time.sleep(3)
         log.info('Start download on Linktender...')
 
-        return self.fetch(u'http://file.filetender.com/down.php?link=%s' % key,
+        return self.fetch('http://file.filetender.com/Execdownload.php?link=%s' % key,
                           referer=url.text)
