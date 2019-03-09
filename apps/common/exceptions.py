@@ -16,14 +16,16 @@ class MyFlaskException(Exception):
                 self.message = args[0] % args[1:]
             else:
                 self.message = args[0]
-        log.warning(self.message)
-        self.response = kwargs.get('response', None)
+        self.response = kwargs.pop('response', None)
         if self.response:
             if self.response.content:
                 self.content = toolbox.decode(self.response.content)
             else:
                 self.content = 'The response has no content.'
             caching.cache.delete(self.response.key)
+        for key, value in kwargs.iteritems():
+            self.message += '\n{}: {}'.format(key, value)
+        super(MyFlaskException, self).__init__(self.message)
 
     @staticmethod
     def trace_error():

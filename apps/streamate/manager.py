@@ -25,17 +25,11 @@ class StreamManager(Manager):
     def _order_channels(self, streamer, query):
         return streamer.get_channels(int(query.get('page')))
 
-    def _order_segment(self, streamer, query):
-        return streamer.get_segment(query.get('cid'), ud.Url(ud.unquote(query.get('url'))))
+    def _order_info(self, streamer, query):
+        return 'info'
 
-    def _order_segments(self, streamer, query):
-        return streamer.get_segments(query.get('cid'), ud.Url(ud.unquote(query.get('url'))))
-
-    def _order_stream(self, streamer, query):
-        return streamer.get_stream(query.get('cid'), query.get('q'))
-
-    def _order_streams(self, streamer, query):
-        return streamer.get_streams(query.get('cid'))
+    def _order_streaming(self, streamer, query):
+        return streamer.streaming
 
     def request(self, streamer, order, query):
         # type: (str, Type[Dict[str, Union[List[str], str]]]) -> ?

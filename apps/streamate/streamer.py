@@ -2,6 +2,7 @@
 
 import logging
 import json
+import time
 
 import m3u8
 
@@ -9,6 +10,7 @@ from apps.common import fetchers
 from apps.common import caching
 from apps.common.datastructures import MultiDict
 from apps.common import urldealer as ud
+from apps.common.exceptions import MyFlaskException
 
 log = logging.getLogger(__name__)
 
@@ -16,7 +18,11 @@ log = logging.getLogger(__name__)
 class Streamer(object):
 
     def fetch(self, url, **kwargs):
-        return fetchers.hire_fetcher(config=self.config).fetch(url, cached=False, **kwargs)
+        response = fetchers.hire_fetcher(config=self.config).fetch(url, cached=False, **kwargs)
+        if str(response.status_code).startswith('2'):
+            return response
+        else:
+            raise MyFlaskException("Couldn't fetch : %s", url, response=response)
 
     def get_cache(self, key, default=None):
         cached = self.get_caches()
@@ -64,12 +70,39 @@ class Streamer(object):
         r = self.fetch(url, referer=self.PLAYER_URL % cid)
         return r.content, r.status_code, dict(r.headers)
 
-    def get_quality(self, index):
-        try:
-            return self.QUALITY[int(index)]
-        except Exception as e:
-            log.error(e.message)
-            return self.QUALITY[-1]
+
+class HlsStreamer(Streamer):
+
+    playlist = {}
+
+    def streaming(self, cid, qIndex):
+        duration, play_sequence = self.set_playlist(cid, qIndex, 0)
+        while True:
+            if len(self.playlist) > 0:
+                try:
+                    url = self.playlist.pop(play_sequence)
+                except KeyError:
+                    play_sequence = sorted(self.playlist.iteritems(), key=lambda tuple_:tuple_[0])[0][0]
+                    url = self.playlist.pop(play_sequence)
+                yield self.fetch(url, referer=self.PLAYER_URL % cid).content
+                play_sequence += 1
+            else:
+                time.sleep(duration)
+                duration = self.set_playlist(cid, qIndex, play_sequence)[0]
+
+    def set_playlist(self, cid, qIndex, play_sequence):
+        url = self.get_playlist_url(cid, qIndex)
+        playlist = m3u8.loads(self.fetch(url, referer=self.PLAYER_URL % cid).content)
+        media_sequence = playlist.media_sequence
+        for segment in playlist.segments:
+            if media_sequence >= play_sequence and media_sequence not in self.playlist:
+                self.playlist[media_sequence] = ud.join(url, segment.uri)
+            media_sequence += 1
+        return playlist.target_duration, playlist.media_sequence
+
+    @caching.cache.memoize(timeout=60*60*5)
+    def get_playlist_url(self, cid, qIndex):
+        return self._get_playlist_url(cid, qIndex)
 
 
 class Channel(MultiDict):
@@ -97,4 +130,12 @@ class Channel(MultiDict):
     @property
     def rating(self):
         return self.get('rating')
+
+    @property
+    def logo(self):
+        return self.get('logo')
+
+    @property
+    def chnum(self):
+        return self.get('chnum')
 

@@ -7,6 +7,8 @@ from flask import Blueprint
 from flask import request
 from flask import render_template
 from flask import current_app as app
+from flask import stream_with_context
+from flask import Response
 
 from apps.common.datastructures import MultiDict
 from apps.common.exceptions import MyFlaskException
@@ -50,10 +52,16 @@ def channels(streamer):
 
 @streamate.route('/<path:streamer>/<path:cid>/<path:order>')
 @auth.requires_auth
-def channel(streamer, cid, order):
+def channel_info(streamer, cid, order):
     query = MultiDict(request.args)
     query['cid'] = cid
     return _order(streamer, order, query)
+
+@streamate.route('/<path:streamer>/<path:cid>')
+def channel_streaming(streamer, cid):
+    qIndex = int(request.args.get('q', -1))
+    gen = _order(streamer, 'streaming', None)
+    return Response(stream_with_context(gen(cid, qIndex)), mimetype='video/MP2T')
 
 def _order(streamer, order, query):
     return app.managers[name].request(streamer, order, query)

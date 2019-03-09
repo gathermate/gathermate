@@ -7,9 +7,8 @@ import datetime
 import m3u8
 
 from apps.common import urldealer as ud
-from apps.streamate.streamer import Streamer
+from apps.streamate.streamer import HlsStreamer
 from apps.streamate.streamer import Channel
-from apps.common.exceptions import MyFlaskException
 
 log = logging.getLogger(__name__)
 
@@ -17,7 +16,7 @@ def register():
     return 'Streamer', Pooq
 
 
-class Pooq(Streamer):
+class Pooq(HlsStreamer):
 
     BASE_URL = 'https://www.pooq.co.kr/'
     API_URL = 'https://apis.pooq.co.kr'
@@ -35,13 +34,11 @@ class Pooq(Streamer):
         credential='none',
         pooqzone='none',
         drm='wm')
-    QUALITY = ['100p', '270p', '360p', '480p', '720p']
 
     def __init__(self, config):
         self.config = config
         self.settings = config.get('POOQ')
-        cookies = self.get_cookie()
-        if cookies.get('cs') is None:
+        if self.should_login():
             self.api_login()
 
     def get_channels(self, page):
@@ -61,44 +58,24 @@ class Pooq(Streamer):
         has_next = True if js['pagecount'] > js['count'] else False
         return sorted(channels, key=lambda item: item.rating, reverse=True), has_next, page
 
-    def get_segments(self, cid, url):
-        response = self.fetch(url, referer=self.PLAYER_URL % cid)
-        return self.proxy_m3u8(cid, response.content, url).dumps(), response.status_code
-
-    def get_streams(self, cid):
-        url = self._get_stream_url(cid, len(self.QUALITY) - 1)
-        response = self.fetch(url, referer=self.PLAYER_URL % cid)
-        streams = m3u8.loads(response.content)
-        for index, playlist in enumerate(streams.playlists):
-            playlist.uri = 'stream?q=%d' % index
-        return streams.dumps(), response.status_code, dict(response.headers)
-
-    def get_stream(self, cid, qIndex):
-        last = self.get_cache('last_stream', {})
-        count = int(last.get('count', 50))
-        if last.get('cid') == cid and last.get('quality') == qIndex and count > 0:
-            url = last.get('url')
-            count -= 1
-        else:
-            url = self._get_stream_url(cid, qIndex)
-            response = self.fetch(url, referer=self.PLAYER_URL % cid)
-            streams = m3u8.loads(response.content)
-            url = ud.join(url, streams.playlists[int(qIndex)].uri)
-            count = 50
-        self.set_cache('last_stream', dict(cid=cid, quality=qIndex, url=url, count=count))
-        return self.get_segments(cid, url)
-
-    def _get_stream_url(self, cid, qIndex):
-        quality = self.get_quality(qIndex)
-        js = self.api_streamlist(cid, quality)
+    def _get_playlist_url(self, cid, qIndex):
+        '''
+        If you are authorized for streams, AWS Policy allows you
+        to access them while 6 hours. If not, only 10 minutes.
+        '''
+        js = self.api_streamlist(cid, self.settings.get('QUALITY')[-1])
         url = js.get('playurl')
         aws_cookie = js.get('awscookie')
         if aws_cookie is not None:
             self.set_cookie(aws_cookie)
-        return url
+        response = self.fetch(url, referer=self.PLAYER_URL % cid)
+        variant = m3u8.loads(response.content)
+        if qIndex >= len(variant.playlists):
+            return ud.join(url, variant.playlists[-1].uri)
+        else:
+            return ud.join(url, variant.playlists[qIndex].uri)
 
-
-    def check_login(self):
+    def should_login(self):
         response = self.fetch(self.LOGIN_CHECK_URL, referer=self.BASE_URL)
         match = self.JS_ALERT.search(response.content)
         if match is not None:
@@ -145,7 +122,6 @@ class Pooq(Streamer):
                      isabr='y',
                      ishevc='n')
         js = self.request_api(api, referer=self.PLAYER_URL % cid, query=query)
-        self.set_cache('awscookie', js.get('awscookie'))
         return js
 
     def api_channels(self, page):
@@ -171,12 +147,16 @@ class Pooq(Streamer):
         self.set_cookie('cs=%s' % ud.quote(json.dumps(js)))
         return js
 
+    def api_user(self):
+        api = ud.Url(ud.join(self.API_URL, '/user'))
+        api.update_query(self.API_QUERY)
+        response = self.fetch(api, referer=self.BASE_URL)
+        return json.loads(response.content)
+
     def request_api(self, url, query=None, referer=None):
+        url.update_query(self.API_QUERY)
         if query is not None:
-            temp = dict(self.API_QUERY, **query)
-            url.update_query(temp)
-        else:
-            url.update_query(self.API_QUERY)
+            url.update_query(query)
         if referer is None:
             referer = self.BASE_URL
         response = self.fetch(url, referer=referer)

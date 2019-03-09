@@ -120,7 +120,7 @@ def unhandled_exception(e):
     if e.response is not None:
         return e.response.content, e.response.status_code, dict(e.response.headers)
     else:
-        e.message, 404
+        return e.message, 404
 
 @app.template_filter('quote')
 def quote_filter(url):

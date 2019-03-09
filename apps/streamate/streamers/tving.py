@@ -14,9 +14,8 @@ import m3u8
 from Crypto.Cipher import DES3
 
 from apps.common import urldealer as ud
-from apps.streamate.streamer import Streamer
+from apps.streamate.streamer import HlsStreamer
 from apps.streamate.streamer import Channel
-from apps.common.exceptions import MyFlaskException
 
 log = logging.getLogger(__name__)
 
@@ -24,7 +23,7 @@ def register():
     return 'Streamer', Tving
 
 
-class Tving(Streamer):
+class Tving(HlsStreamer):
 
     API_KEY = dict(pc='1e7952d0917d6aab1f0293a063697610',
                    mobile='4263d7d76161f4a19a9efe9ca7903ec4',
@@ -43,7 +42,7 @@ class Tving(Streamer):
         'teleCode': 'CSCD0900',
         'channelType': 'CPCS0100'
     }
-    QUALITY = ['stream20', 'stream25', 'stream30', 'stream40', 'stream50']
+
     JQUERY_VERSION_REGEXP = re.compile(r'jquery.((\d{1,3}\.)+\d)\.min\.js', re.I)
     API_JSONP_REGEXP = re.compile(r'jquery\d+_\d+\((\{.*\})\)', re.I)
     LOGIN_OK_REGEXP = re.compile(r'\([\'\"]LOGIN_OK[\'"]\)')
@@ -54,8 +53,7 @@ class Tving(Streamer):
         self.settings = config.get('TVING')
         if self.get_cache('pcid') is None:
             self.set_cookie(self._make_pcid_cookie())
-        cookies = self.get_cookie()
-        if cookies.get('_tving_token') is None:
+        if self.should_login():
             self.login()
 
     def get_channels(self, pageNo):
@@ -89,46 +87,8 @@ class Tving(Streamer):
                 break
         return sorted(channels, key=lambda item: item.rating, reverse=True), hasNext, pageNo
 
-    def get_segments(self, cid, url):
-        response = self.fetch(url, referer=self.PLAYER_URL % cid)
-        chunk = m3u8.loads(response.content)
-        if chunk.is_variant:
-            response = self.fetch(ud.join(response.url, chunk.playlists[0].uri), referer=self.PLAYER_URL % cid)
-        return self.proxy_m3u8(cid, response.content, response.url).dumps(), response.status_code
-
-    def get_streams(self, cid):
-        streams = []
-        for index in range(len(self.QUALITY)):
-            url, current_time = self._get_stream_url(cid, index)
-            response = self.fetch(url, referer=self.PLAYER_URL % cid)
-            streams.append([index, m3u8.loads(response.content), response])
-        for s in streams:
-            for playlist in s[1].playlists:
-                if s[0] is 0:
-                    playlist.uri = 'stream?q=0'
-                else:
-                    playlist.uri = 'stream?q=%d' % s[0]
-                    streams[0][1].add_playlist(playlist)
-        response = streams[0][2]
-        return streams[0][1].dumps(), response.status_code
-
-    def get_stream(self, cid, qIndex):
-        # prevent too many api requests.
-        last = self.get_cache('last_stream', {})
-        count = int(last.get('count', 50))
-        if last.get('cid') == cid and last.get('quality') == qIndex and count > 0:
-            url = last.get('url')
-            count -= 1
-        else:
-            url, current_time = self._get_stream_url(cid, qIndex)
-            url = url.text
-            count = 50
-        self.set_cache('last_stream', dict(cid=cid, quality=qIndex, url=url, count=count))
-        return self.get_segments(cid, url)
-
-    def _get_stream_url(self, cid, qIndex):
+    def _get_playlist_url(self, cid, qIndex):
         quality = self.get_quality(qIndex)
-        #broad_url = self.api_streamlist(cid, quality)
         broad_url, current_time = self.api_streaminfo(cid, quality)
         url = ud.Url(broad_url)
         cf_key = url.query_dict.get('Key-Pair-Id')
@@ -140,7 +100,16 @@ class Tving(Streamer):
                                 policy=url.query_dict.get('Policy'),
                                 sign=url.query_dict.get('Signature'))
             self.set_cookie(cf_cookie)
-        return url, current_time
+        response = self.fetch(url, referer=self.PLAYER_URL % cid)
+        variant = m3u8.loads(response.content)
+        return ud.join(url.text, variant.playlists[0].uri)
+
+    def get_quality(self, index):
+        try:
+            return self.settings.get('QUALITY')[int(index)]
+        except Exception as e:
+            log.error(e.message)
+            return self.settings.get('QUALITY')[-1]
 
     def _make_jsonp_name(self):
         jq_version = self.get_cache('jquery_version', '1.12.3')
@@ -236,11 +205,11 @@ class Tving(Streamer):
             log.debug('Login failed.')
             return False
 
-    def check_login(self):
+    def should_login(self):
         my = 'http://www.tving.com/my/main'
         r = self.fetch(my)
         match = re.search(self.settings.get('ID', str(random.random())), r.content)
         if match:
-            return True
-        else:
             return False
+        else:
+            return True
