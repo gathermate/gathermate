@@ -96,28 +96,14 @@ class HlsStreamer(Streamer):
             key_prefix=caching.create_key(self.CACHE_KEY) + '-should_login')(self._should_login)
         return cached_should_login()
 
-    def get_channels_m3u(self):
-        channel_list = []
+    def get_channels(self):
         page = 1
         has_next = True
         while has_next:
-            channels, has_next, page = self.get_channels(page)
-            channel_list += channels
+            channels, has_next, page = self._get_channels(page)
             page += 1
-        return self.make_m3u(channel_list)
-
-    def make_m3u(self, channels):
-        m3u = '#EXTM3U\n'
-        #EXTINF:-1 tvg-id="103" tvg-logo="로고url" tvh-chnum="1" tvh-tags="연예/오락",KBS 드라마
-        for channel in channels:
-            m3u += '#EXTINF:-1 tvg-id="{}" tvg-logo="None" tvh-chnum="None",{}\n'.format(channel.id, channel.name)
-            url_for = self.config.get('URL_FOR')
-            url = url_for('.channel_streaming',
-                          _external=True,
-                          streamer=self.__class__.__name__.lower(),
-                          cid=channel.id)
-            m3u += url + '\n'
-        return m3u
+            for channel in channels:
+                yield channel
 
 
 class Channel(MultiDict):

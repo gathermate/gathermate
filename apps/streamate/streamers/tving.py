@@ -60,7 +60,7 @@ class Tving(HlsStreamer):
         if bool(self.should_login()):
             self.login()
 
-    def get_channels(self, pageNo):
+    def _get_channels(self, pageNo):
         channels = []
         hasNext =True
         safe_counter = 0

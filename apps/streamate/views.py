@@ -47,30 +47,34 @@ def streamer(streamer):
 
 @streamate.route('/<string:streamer>/channels')
 @auth.requires_auth
-def channels(streamer):
+def streamer_channels(streamer):
     query = MultiDict(request.args)
     channels, hasNext, page = _order(streamer, 'channels', query)
     return json.dumps(dict(channels=channels, hasNext=hasNext, page=page))
 
-@streamate.route('/<string:streamer>/channels/m3u')
+@streamate.route('/<string:streamer>/channels.m3u')
 @auth.requires_auth
-def channels_m3u(streamer):
+def streamer_channels_m3u(streamer):
     query = MultiDict(request.args)
-    m3u = _order(streamer, 'm3u', query)
-    return send_file(BytesIO(m3u),
-                     as_attachment=True,
-                     mimetype='application/m3u',
-                     attachment_filename='%s.m3u' % streamer)
+    m3u_gen = _order(streamer, 'm3u', query)
+    return Response(stream_with_context(m3u_gen), mimetype='application/x-mpegURL')
+
+@streamate.route('/all-channels.m3u')
+@auth.requires_auth
+def m3u():
+    query = MultiDict(request.args)
+    m3u_gen = app.managers[name].order_all_m3u(query)
+    return Response(stream_with_context(m3u_gen), mimetype='application/x-mpegURL')
 
 @streamate.route('/<string:streamer>/<string:cid>/<string:order>')
 @auth.requires_auth
-def channel_info(streamer, cid, order):
+def streamer_channel_info(streamer, cid, order):
     query = MultiDict(request.args)
     query['cid'] = cid
     return _order(streamer, order, query)
 
 @streamate.route('/<string:streamer>/<string:cid>')
-def channel_streaming(streamer, cid):
+def streamer_channel_streaming(streamer, cid):
     qIndex = int(request.args.get('q', -1))
     gen = _order(streamer, 'streaming', None)
     return Response(stream_with_context(gen(cid, qIndex)), mimetype='video/MP2T')

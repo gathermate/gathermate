@@ -46,7 +46,7 @@ class Pooq(HlsStreamer):
         if bool(self.should_login()):
             self.api_login()
 
-    def get_channels(self, page):
+    def _get_channels(self, page):
         js = self.api_channels(page)
         channels = []
         for channel in js.get('list'):

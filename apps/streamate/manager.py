@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*-
 import logging
+from itertools import chain
+
+from concurrent import futures
 
 from apps.common.manager import Manager
 from apps.common import urldealer as ud
 from apps.common.exceptions import MyFlaskException
+from apps.streamate import packer
 
 log = logging.getLogger(__name__)
 
@@ -32,7 +36,12 @@ class StreamManager(Manager):
         return streamer.streaming
 
     def _order_m3u(self, streamer, query):
-        return streamer.get_channels_m3u()
+        return packer.pack_m3u(streamer.get_channels())
+
+    def order_all_m3u(self, query):
+        with futures.ThreadPoolExecutor(max_workers=2) as exe:
+            generators = exe.map(lambda class_: class_(self.config).get_channels(), self.__streamer_classes.itervalues())
+            return packer.pack_m3u(chain.from_iterable(generators))
 
     def request(self, streamer, order, query):
         # type: (str, Type[Dict[str, Union[List[str], str]]]) -> ?
