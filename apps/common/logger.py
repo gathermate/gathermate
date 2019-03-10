@@ -4,6 +4,8 @@ import logging
 from logging.config import dictConfig
 
 def config(software, level):
+    if software == 'GoogleAppEngine':
+        return
     dictConfig({
         'version': 1,
         'formatters': {'default': {
