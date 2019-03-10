@@ -110,8 +110,8 @@ def after_request_to_do(response):
 @app.teardown_request
 def teardown_requst_to_do(exception):
     # type: () -> None
-    if exception:
-        app.logger.error(exception.message)
+    if exception is not None:
+        app.logger.error('teardown_requst_to_do() : %s', exception)
     app.logger.debug('%(line)s End %(request)s', {'line': '-'*30, 'request': request})
 
 @app.errorhandler(Exception)

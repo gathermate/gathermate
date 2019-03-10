@@ -34,7 +34,7 @@ case "$1" in
   start)
         log_daemon_msg "Starting gunicorn" "$APPNAME"
         source $ACTIVATE
-        $DAEMON  $APP --daemon --chdir $ROOT --bind=$BIND --max-requests $MAX_REQUESTS --pid=$PIDFILE --workers=$WORKERS --log-file=$LOGFILE --log-level $LOGLEVEL --log-syslog-to $SYS_LOG_ADDR --log-syslog-prefix $APPNAME
+        $DAEMON  $APP --daemon --chdir $ROOT -k gevent --bind=$BIND --max-requests $MAX_REQUESTS --pid=$PIDFILE --workers=$WORKERS --log-file=$LOGFILE --log-level $LOGLEVEL --log-syslog-to $SYS_LOG_ADDR --log-syslog-prefix $APPNAME
         log_end_msg $?
     ;;
   stop)
