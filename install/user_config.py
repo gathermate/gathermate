@@ -9,15 +9,15 @@ NAME = 'install/user_config.py'
 # 캐쉬된 데이터의 키 값으로 활용됩니다.
 SECRET_KEY = os.urandom(8).encode('hex')
 
-# 개발 서버와 GAE의 로그 레벨입니다.
+# Flask 서버와 GAE의 로그 레벨입니다.
 # gunicorn으로 실행시 gunicorn의 로그 레벨을 따릅니다.
 LOG_LEVEL = 'DEBUG'
 
 # 알림 온/오프 설정입니다.
-NOTIFY = True
+NOTIFY = False
 
 # 메세지를 보낼 텔레그램 봇 토큰입니다.
-# 에러 발생시 봇을 통해 알람을 받을 수 있습니다.
+# NOTIFY가 True 일 경우 에러 발생시 봇을 통해 알람을 받을 수 있습니다.
 TELEGRAM_BOT_TOKEN = ''
 
 # 자신의 텔레그램 chat_id를 입력해 주세요.
@@ -29,6 +29,7 @@ TELEGRAM_CHAT_ID = 123456789
 MANAGERS = {
     'Scrapmate': 'apps.scrapmate.manager',
     'Callmewhen': 'apps.callmewhen.manager',
+    'Streamate': 'apps.streamate.manager',
 }
 
 # 플라스크에 등록할 블루프린트들입니다.
@@ -41,6 +42,11 @@ BLUEPRINTS = {
         # 이 블루프린트에 사용될 주소입니다.
         # ex) https://www.yourserver.com/scrap
         'url_prefix': '/scrap',
+    },
+    'Streamate': {
+        'module': 'apps.streamate.views',
+        'instance': 'streamate',
+        'url_prefix': '/stream',
     },
 }
 
@@ -95,11 +101,10 @@ FETCHER = {
     # 목표 웹페이지의 응답을 기다리는 최대 시간(초)입니다.
     'DEADLINE': 60,
 
-    # 쿠키를 파일로 저장하려면 True로 설정하세요.
-    # GAE는 파일 쓰기 권한이 없으므로 False로 설정하세요.
-    'COOKIE_FILE': False,
-
+    # 쿠키를 파일로 저장하려면 경로를 설정하세요.
+    # None 입력시 캐쉬에 저장. (GAE는 파일 쓰기 권한이 없으므로 None 또는 값을 삭제)
     # 쿠키 파일 저장 경로(instance/cookies)
+    #'COOKIE_PATH': None,
     'COOKIE_PATH': os.path.join(os.path.dirname(os.path.abspath(__file__)), 'cookies'),
 
     # 쿠키를 캐시에 저장할 경우 지속 시간
@@ -126,18 +131,21 @@ SCRAPERS = {
         'mb_password': os.environ.get('GATHERMATE_ETO_PW', None),
     },
     'Cineaste': {
-        'mb_id': os.environ.get('GATHERMATE_CINE_ID', None),
-        'mb_password': os.environ.get('GATHERMATE_CINE_PW', None),
+        'mb_id': 'myid',
+        'mb_password': 'mypassword',
     },
 }
 
 POOQ = {
     'ID': '',
     'PW': '',
+    # 720p 이상은 유료 계정 필요.
+    'QUALITY': ['100p', '270p', '360p', '480p'],
 }
 TVING = {
     'ID': '',
     'PW': '',
     # CJ One 회원: 10, Tvning 회원: 20
     'LOGIN_TYPE': 10,
+    'QUALITY': ['stream20', 'stream25', 'stream30', 'stream40', 'stream50'],
 }

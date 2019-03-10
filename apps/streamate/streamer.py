@@ -40,20 +40,6 @@ class Streamer(object):
         caching.cache.set(caching.create_key(self.CACHE_KEY), json.dumps(cached), timeout=timeout)
         del cached
 
-    def proxy_m3u8(self, cid, content, url):
-        if type(url) is ud.Url:
-            url = url.text
-        if type(content) is not m3u8.model.M3U8:
-            content = m3u8.loads(content)
-        if content.is_variant:
-            for playlist in content.playlists:
-                # Input URL argument at the end unless encoding it.
-                playlist.uri = 'segments?url={}'.format(ud.quote(ud.join(url, playlist.uri)))
-        else:
-            for segment in content.segments:
-                segment.uri = 'segment?url={}'.format(ud.quote(ud.join(url, segment.uri)))
-        return content
-
     def set_cookie(self, value, url=None):
         if url is None:
             url = self.BASE_URL
@@ -66,43 +52,72 @@ class Streamer(object):
         r = self.fetch(url, referer=self.BASE_URL)
         return r.content, r.status_code, dict(r.headers)
 
-    def get_segment(self, cid, url):
-        r = self.fetch(url, referer=self.PLAYER_URL % cid)
-        return r.content, r.status_code, dict(r.headers)
-
 
 class HlsStreamer(Streamer):
 
-    playlist = {}
-
     def streaming(self, cid, qIndex):
+        '''
+        Allows only one request.
+        '''
+        if self.__class__.streaming_instance is not None:
+            self.__class__.streaming_instance.should_stream = False
+        self.__class__.streaming_instance = self
+        self.playlist_url = self.get_playlist_url(cid, qIndex)
         duration, play_sequence = self.set_playlist(cid, qIndex, 0)
-        while True:
+        while self.should_stream:
             if len(self.playlist) > 0:
                 try:
                     url = self.playlist.pop(play_sequence)
                 except KeyError:
                     play_sequence = sorted(self.playlist.iteritems(), key=lambda tuple_:tuple_[0])[0][0]
                     url = self.playlist.pop(play_sequence)
-                yield self.fetch(url, referer=self.PLAYER_URL % cid).content
-                play_sequence += 1
+                if self.should_stream:
+                    yield self.fetch(url, referer=self.PLAYER_URL % cid).content
+                    play_sequence += 1
             else:
-                time.sleep(duration)
-                duration = self.set_playlist(cid, qIndex, play_sequence)[0]
+                for _ in range(int(duration)):
+                    time.sleep(1)
+                    yield ''
+                if self.should_stream:
+                    duration = self.set_playlist(cid, qIndex, play_sequence)[0]
 
     def set_playlist(self, cid, qIndex, play_sequence):
-        url = self.get_playlist_url(cid, qIndex)
-        playlist = m3u8.loads(self.fetch(url, referer=self.PLAYER_URL % cid).content)
+        playlist = m3u8.loads(self.fetch(self.playlist_url, referer=self.PLAYER_URL % cid).content)
         media_sequence = playlist.media_sequence
         for segment in playlist.segments:
             if media_sequence >= play_sequence and media_sequence not in self.playlist:
-                self.playlist[media_sequence] = ud.join(url, segment.uri)
+                self.playlist[media_sequence] = ud.join(self.playlist_url, segment.uri)
             media_sequence += 1
         return playlist.target_duration, playlist.media_sequence
 
-    @caching.cache.memoize(timeout=60*60*5)
-    def get_playlist_url(self, cid, qIndex):
-        return self._get_playlist_url(cid, qIndex)
+    def should_login(self):
+        cached_should_login = caching.cache.cached(
+            timeout=60*60,
+            key_prefix=caching.create_key(self.CACHE_KEY) + '-should_login')(self._should_login)
+        return cached_should_login()
+
+    def get_channels_m3u(self):
+        channel_list = []
+        page = 1
+        has_next = True
+        while has_next:
+            channels, has_next, page = self.get_channels(page)
+            channel_list += channels
+            page += 1
+        return self.make_m3u(channel_list)
+
+    def make_m3u(self, channels):
+        m3u = '#EXTM3U\n'
+        #EXTINF:-1 tvg-id="103" tvg-logo="로고url" tvh-chnum="1" tvh-tags="연예/오락",KBS 드라마
+        for channel in channels:
+            m3u += '#EXTINF:-1 tvg-id="{}" tvg-logo="None" tvh-chnum="None",{}\n'.format(channel.id, channel.name)
+            url_for = self.config.get('URL_FOR')
+            url = url_for('.channel_streaming',
+                          _external=True,
+                          streamer=self.__class__.__name__.lower(),
+                          cid=channel.id)
+            m3u += url + '\n'
+        return m3u
 
 
 class Channel(MultiDict):
@@ -138,4 +153,3 @@ class Channel(MultiDict):
     @property
     def chnum(self):
         return self.get('chnum')
-

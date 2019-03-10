@@ -200,14 +200,19 @@ after_install(){
             echo "$PREFIX python-lxml is also required on $target."
             packages=python-lxml
             install_packages
+            cp -r $OPT/lib/python2.7/site-packages/lxml* $VENV/lib/python2.7/site-packages
         fi
-        cp -r $OPT/lib/python2.7/site-packages/lxml* $VENV/lib/python2.7/site-packages
         if ! $PYTHON -c "from Crypto import Cipher" > /dev/null 2>&1; then
             echo "$PREFIX python-crypto is also required on $target."
             packages=python-crypto
             install_packages
+            cp -r $OPT/lib/python2.7/site-packages/Crypto $VENV/lib/python2.7/site-packages
         fi
-        cp -r $OPT/lib/python2.7/site-packages/Crypto $VENV/lib/python2.7/site-packages
+        if ! $PYTHON -c "import gevent" > /dev/null 2>&1; then
+            echo "$PREFIX python-gevent is also required on $target."
+            packages=python-gevent
+            cp -r $OPT/lib/python2.7/site-packages/gevent $OPT/lib/python2.7/site-packages/greenlet.so $VENV/lib/python2.7/site-packages
+        fi
     fi
     mkdir -p $ROOT/var/log $ROOT/var/run
     $SERVICE_START

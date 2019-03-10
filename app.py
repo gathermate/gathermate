@@ -8,6 +8,7 @@ from flask import Flask
 from flask import request
 from flask import send_from_directory
 from flask import render_template
+from flask import url_for
 
 from apps.common import caching
 from apps.common.exceptions import MyFlaskException
@@ -29,6 +30,7 @@ def create_app(software, config, cache_type):
     app.config.from_pyfile('config.py', silent=True)
     app.config['SOFTWARE'] = software
     app.config['ROOT_DIR'] = os.path.dirname(os.path.abspath(__file__))
+    app.config['URL_FOR'] = url_for
     logger.config(software, app.config['LOG_LEVEL'])
     app.logger.info('Server Software: %s', software)
     app.logger.info('Config: %s', app.config['NAME'])
@@ -95,7 +97,7 @@ def index(path):
 @app.before_request
 def before_request_to_do():
     # type: () -> None
-    app.logger.debug('%(line)s Start of the request', {'line': '-'*30})
+    app.logger.debug('%(line)s Start %(request)s', {'line': '-'*30, 'request': request})
     client = '{} requested {} from {}'.format(request.remote_addr, request.full_path, request.referrer)
     app.logger.debug(client)
 
@@ -110,7 +112,7 @@ def teardown_requst_to_do(exception):
     # type: () -> None
     if exception:
         app.logger.error(exception.message)
-    app.logger.debug('%(line)s End of the request', {'line': '-'*30})
+    app.logger.debug('%(line)s End %(request)s', {'line': '-'*30, 'request': request})
 
 @app.errorhandler(Exception)
 def unhandled_exception(e):

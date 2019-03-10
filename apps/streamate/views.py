@@ -2,6 +2,7 @@
 
 import logging
 import json
+from io import BytesIO
 
 from flask import Blueprint
 from flask import request
@@ -9,6 +10,7 @@ from flask import render_template
 from flask import current_app as app
 from flask import stream_with_context
 from flask import Response
+from flask import send_file
 
 from apps.common.datastructures import MultiDict
 from apps.common.exceptions import MyFlaskException
@@ -50,14 +52,24 @@ def channels(streamer):
     channels, hasNext, page = _order(streamer, 'channels', query)
     return json.dumps(dict(channels=channels, hasNext=hasNext, page=page))
 
-@streamate.route('/<path:streamer>/<path:cid>/<path:order>')
+@streamate.route('/<string:streamer>/channels/m3u')
+@auth.requires_auth
+def channels_m3u(streamer):
+    query = MultiDict(request.args)
+    m3u = _order(streamer, 'm3u', query)
+    return send_file(BytesIO(m3u),
+                     as_attachment=True,
+                     mimetype='application/m3u',
+                     attachment_filename='%s.m3u' % streamer)
+
+@streamate.route('/<string:streamer>/<string:cid>/<string:order>')
 @auth.requires_auth
 def channel_info(streamer, cid, order):
     query = MultiDict(request.args)
     query['cid'] = cid
     return _order(streamer, order, query)
 
-@streamate.route('/<path:streamer>/<path:cid>')
+@streamate.route('/<string:streamer>/<string:cid>')
 def channel_streaming(streamer, cid):
     qIndex = int(request.args.get('q', -1))
     gen = _order(streamer, 'streaming', None)

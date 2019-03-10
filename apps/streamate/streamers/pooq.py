@@ -9,6 +9,7 @@ import m3u8
 from apps.common import urldealer as ud
 from apps.streamate.streamer import HlsStreamer
 from apps.streamate.streamer import Channel
+from apps.common.exceptions import MyFlaskException
 
 log = logging.getLogger(__name__)
 
@@ -35,10 +36,14 @@ class Pooq(HlsStreamer):
         pooqzone='none',
         drm='wm')
 
+    streaming_instance = None
+
     def __init__(self, config):
+        self.playlist = {}
+        self.should_stream = True
         self.config = config
         self.settings = config.get('POOQ')
-        if self.should_login():
+        if bool(self.should_login()):
             self.api_login()
 
     def get_channels(self, page):
@@ -58,7 +63,7 @@ class Pooq(HlsStreamer):
         has_next = True if js['pagecount'] > js['count'] else False
         return sorted(channels, key=lambda item: item.rating, reverse=True), has_next, page
 
-    def _get_playlist_url(self, cid, qIndex):
+    def get_playlist_url(self, cid, qIndex):
         '''
         If you are authorized for streams, AWS Policy allows you
         to access them while 6 hours. If not, only 10 minutes.
@@ -74,16 +79,6 @@ class Pooq(HlsStreamer):
             return ud.join(url, variant.playlists[-1].uri)
         else:
             return ud.join(url, variant.playlists[qIndex].uri)
-
-    def should_login(self):
-        response = self.fetch(self.LOGIN_CHECK_URL, referer=self.BASE_URL)
-        match = self.JS_ALERT.search(response.content)
-        if match is not None:
-            msg = match.group(1)
-            if '로그인한' in msg:
-                return False
-        else:
-            return True
 
     def api_ip(self):
         api = ud.Url(ud.join(self.API_URL, '/ip'))
@@ -131,6 +126,19 @@ class Pooq(HlsStreamer):
         query = dict(genre='all', type='all', free='all', offset=offset, limit=amount)
         return self.request_api(api, query=query, referer=self.BASE_URL)
 
+    def _should_login(self):
+        cookies = self.get_cookie()
+        if cookies.get('cs') is None:
+            return True
+        js = json.loads(ud.unquote(cookies.get('cs').value))
+        self.API_QUERY['credential'] = js.get('credential')
+        try:
+            self.api_user()
+        except MyFlaskException as e:
+            log.debug(e.message)
+            return True
+        return False
+
     def api_login(self):
         api = ud.Url(ud.join(self.API_URL, '/login'))
         api.update_query(self.API_QUERY)
@@ -150,6 +158,7 @@ class Pooq(HlsStreamer):
     def api_user(self):
         api = ud.Url(ud.join(self.API_URL, '/user'))
         api.update_query(self.API_QUERY)
+        api = re.sub('/user', '//user', api.text)
         response = self.fetch(api, referer=self.BASE_URL)
         return json.loads(response.content)
 

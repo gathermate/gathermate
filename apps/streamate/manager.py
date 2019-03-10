@@ -31,6 +31,9 @@ class StreamManager(Manager):
     def _order_streaming(self, streamer, query):
         return streamer.streaming
 
+    def _order_m3u(self, streamer, query):
+        return streamer.get_channels_m3u()
+
     def request(self, streamer, order, query):
         # type: (str, Type[Dict[str, Union[List[str], str]]]) -> ?
         try:

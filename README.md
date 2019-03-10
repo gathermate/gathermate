@@ -15,6 +15,8 @@ Gathermate
 - gunicorn
 - tld
 - m3u8
+- pycrypto
+- gevent
 
 ---
 

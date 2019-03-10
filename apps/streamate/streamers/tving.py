@@ -48,12 +48,16 @@ class Tving(HlsStreamer):
     LOGIN_OK_REGEXP = re.compile(r'\([\'\"]LOGIN_OK[\'"]\)')
     ZZANG_REGEXP = re.compile(r'var zzang = ["\'](.+)["\'];')
 
+    streaming_instance = None
+
     def __init__(self, config):
+        self.playlist = {}
+        self.should_stream = True
         self.config = config
         self.settings = config.get('TVING')
         if self.get_cache('pcid') is None:
             self.set_cookie(self._make_pcid_cookie())
-        if self.should_login():
+        if bool(self.should_login()):
             self.login()
 
     def get_channels(self, pageNo):
@@ -87,7 +91,7 @@ class Tving(HlsStreamer):
                 break
         return sorted(channels, key=lambda item: item.rating, reverse=True), hasNext, pageNo
 
-    def _get_playlist_url(self, cid, qIndex):
+    def get_playlist_url(self, cid, qIndex):
         quality = self.get_quality(qIndex)
         broad_url, current_time = self.api_streaminfo(cid, quality)
         url = ud.Url(broad_url)
@@ -205,7 +209,7 @@ class Tving(HlsStreamer):
             log.debug('Login failed.')
             return False
 
-    def should_login(self):
+    def _should_login(self):
         my = 'http://www.tving.com/my/main'
         r = self.fetch(my)
         match = re.search(self.settings.get('ID', str(random.random())), r.content)
