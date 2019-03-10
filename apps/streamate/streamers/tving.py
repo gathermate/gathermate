@@ -14,6 +14,7 @@ import m3u8
 from Crypto.Cipher import DES3
 
 from apps.common import urldealer as ud
+from apps.common.exceptions import MyFlaskException
 from apps.streamate.streamer import HlsStreamer
 from apps.streamate.streamer import Channel
 
@@ -211,7 +212,11 @@ class Tving(HlsStreamer):
 
     def _should_login(self):
         my = 'http://www.tving.com/my/main'
-        r = self.fetch(my)
+        try:
+            r = self.fetch(my)
+        except MyFlaskException as e:
+            log.error(e.message)
+            return True
         match = re.search(self.settings.get('ID', str(random.random())), r.content)
         if match:
             return False
