@@ -9,7 +9,8 @@ log = logging.getLogger(__name__)
 def pack_m3u(channels):
     yield '#EXTM3U\n'
     for channel in channels:
-        yield '#EXTINF:-1 tvg-id="{}" tvg-logo="None" tvh-chnum="None",{}\n'.format(channel.id, channel.name)
+        yield '#EXTINF:-1 tvg-id="{}" tvg-logo="{}" tvh-chnum="None",{}\n' \
+            .format(channel.id, channel.logo, channel.name)
         url = url_for('.streamer_channel_streaming',
                       _external=True,
                       streamer=channel.streamer.lower(),

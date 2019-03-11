@@ -22,9 +22,7 @@ class Pooq(HlsStreamer):
     BASE_URL = 'https://www.pooq.co.kr/'
     API_URL = 'https://apis.pooq.co.kr'
     PLAYER_URL = 'https://www.pooq.co.kr/player/live.html?channelid=%s'
-    LOGIN_CHECK_URL = 'https://member.pooq.co.kr/me'
     LOGIN_REFERER = 'https://www.pooq.co.kr/member/login.html?referer=http%3A%2F%2Fwww.pooq.co.kr%2Findex.html'
-    JS_ALERT = re.compile(r'alert\(["\'](.+)[\'"]\)')
     CACHE_KEY = 'pooq-data'
     API_QUERY = dict(
         apikey='E5F3E0D30947AA5440556471321BB6D9',
@@ -49,19 +47,23 @@ class Pooq(HlsStreamer):
     def _get_channels(self, page):
         js = self.api_channels(page)
         channels = []
-        for channel in js.get('list'):
-            channels.append(
-                Channel(
-                    dict(streamer='Pooq',
-                         id=channel.get('channelid'),
-                         name=channel.get('channelname'),
-                         cProgram=channel.get('title'),
-                         thumbnail=channel.get('image'),
-                         rating=channel.get('playratio'))
+        for genres in js.get('list'):
+            genre = genres.get('genretitle')
+            for channel in genres.get('list'):
+                channels.append(
+                    Channel(
+                        dict(streamer='Pooq',
+                             id=channel.get('channelid'),
+                             name=channel.get('channelname'),
+                             cProgram=channel.get('title'),
+                             thumbnail=channel.get('image'),
+                             rating=channel.get('playratio'),
+                             logo=channel.get('tvimage'),
+                             genre=genre
+                        )
+                    )
                 )
-            )
-        has_next = True if js['pagecount'] > js['count'] else False
-        return sorted(channels, key=lambda item: item.rating, reverse=True), has_next, page
+        return sorted(channels, key=lambda item: item.genre), False, 0
 
     def get_playlist_url(self, cid, qIndex):
         '''
@@ -75,10 +77,7 @@ class Pooq(HlsStreamer):
             self.set_cookie(aws_cookie)
         response = self.fetch(url, referer=self.PLAYER_URL % cid)
         variant = m3u8.loads(response.content)
-        if qIndex >= len(variant.playlists):
-            return ud.join(url, variant.playlists[-1].uri)
-        else:
-            return ud.join(url, variant.playlists[qIndex].uri)
+        return ud.join(url, variant.playlists[-1 if qIndex >= len(variant.playlists) else qIndex].uri)
 
     def api_ip(self):
         api = ud.Url(ud.join(self.API_URL, '/ip'))
@@ -116,22 +115,26 @@ class Pooq(HlsStreamer):
                      authtype='cookie',
                      isabr='y',
                      ishevc='n')
-        js = self.request_api(api, referer=self.PLAYER_URL % cid, query=query)
-        return js
+        return self.request_api(api, referer=self.PLAYER_URL % cid, query=query)
 
     def api_channels(self, page):
+        '''
         amount = 12
         offset = 0 if page is 1 else page * amount
         api = ud.Url(ud.join(self.API_URL, '/live/popular-channels'))
         query = dict(genre='all', type='all', free='all', offset=offset, limit=amount)
-        return self.request_api(api, query=query, referer=self.BASE_URL)
+        return self.request_api(api, query=query, referer=self.BASE_URL, cached=True)
+        '''
+        api = ud.Url(ud.join(self.API_URL, '/live/genrechannels'))
+        query = dict(free='all')
+        return self.request_api(api, query=query, referer=self.BASE_URL, cached=True)
 
-    def _should_login(self):
+
+    def should_login(self):
         cookies = self.get_cookie()
         if cookies.get('cs') is None:
             return True
-        js = json.loads(ud.unquote(cookies.get('cs').value))
-        self.API_QUERY['credential'] = js.get('credential')
+        self.API_QUERY['credential'] = json.loads(ud.unquote(cookies.get('cs').value)).get('credential')
         try:
             self.api_user()
         except MyFlaskException as e:
@@ -153,20 +156,16 @@ class Pooq(HlsStreamer):
         credential = js.get('credential')
         self.API_QUERY.update(credential=credential)
         self.set_cookie('cs=%s' % ud.quote(json.dumps(js)))
-        return js
 
     def api_user(self):
         api = ud.Url(ud.join(self.API_URL, '/user'))
         api.update_query(self.API_QUERY)
         api = re.sub('/user', '//user', api.text)
-        response = self.fetch(api, referer=self.BASE_URL)
-        return json.loads(response.content)
+        self.fetch(api, referer=self.BASE_URL, cached=True)
 
-    def request_api(self, url, query=None, referer=None):
+    def request_api(self, url, query=None, referer=None, cached=False):
         url.update_query(self.API_QUERY)
         if query is not None:
             url.update_query(query)
-        if referer is None:
-            referer = self.BASE_URL
-        response = self.fetch(url, referer=referer)
+        response = self.fetch(url, referer=referer or self.BASE_URL, cached=cached)
         return json.loads(response.content)

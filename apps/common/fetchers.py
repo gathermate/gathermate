@@ -61,7 +61,7 @@ class Fetcher(object):
         self.deadline = deadline
         self.cookie_path = cookie_path
 
-    def fetch(self, url, referer=None, method='GET', payload=None, headers=None, forced_update=False, follow_redirects=False, cached=True):
+    def fetch(self, url, payload=None, forced_update=False, cached=True, **kwargs):
         # type: (Union[urldealer.Url, str], str, str, Dict[str, str], Dict[str, str], boolean, boolean, boolean) -> Response
         url = ud.Url(url) if type(url) is not ud.Url else url
         self.counter += 1
@@ -70,24 +70,23 @@ class Fetcher(object):
             raise MyFlaskException('Too many fetchings by a request.')
         if cached:
             key = caching.create_key(ud.Url(url.text).update_query(payload).text if payload else url.text)
-            cached_fetch = caching.cache.cached(timeout=self.timeout,
+            func = caching.cache.cached(timeout=self.timeout,
                                         key_prefix=key,
                                         forced_update=lambda:forced_update)(self.cacheable_fetch)
-            return cached_fetch(url, referer, method, payload, headers, follow_redirects, key)
         else:
-            return self.cacheable_fetch(url, referer, method, payload, headers, follow_redirects)
+            key = None
+            func = self.cacheable_fetch
+        return func(url, payload=payload, key=key, **kwargs)
 
-    def cacheable_fetch(self, url, referer=None, method='GET', payload=None, headers=None, follow_redirects=False, key=None):
+    def cacheable_fetch(self, url, referer=None, headers=None, key=None, **kwargs):
         # type: () -> Response
         r = None
         for _ in range(2):
             try:
                 r = self._fetch(url,
                                 deadline=self.deadline,
-                                payload=payload,
-                                method=method,
                                 headers=self._get_headers(url, referer, headers),
-                                follow_redirects=follow_redirects)
+                                **kwargs)
             except httplib.BadStatusLine:
                 MyFlaskException.trace_error()
             except Exception as e:
@@ -182,6 +181,7 @@ class Fetcher(object):
             if path is not None:
                 if not os.path.exists(path):
                     os.makedirs(path)
+                    log.debug('##### make path')
                 with open(cls.get_cookie_file(url, path), 'w+' ) as f:
                     f.write(cookies)
             else:

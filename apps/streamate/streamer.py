@@ -17,8 +17,8 @@ log = logging.getLogger(__name__)
 
 class Streamer(object):
 
-    def fetch(self, url, **kwargs):
-        response = fetchers.hire_fetcher(config=self.config).fetch(url, cached=False, **kwargs)
+    def fetch(self, url, cached=False, **kwargs):
+        response = fetchers.hire_fetcher(config=self.config).fetch(url, cached=cached, **kwargs)
         if str(response.status_code).startswith('2'):
             return response
         else:
@@ -30,23 +30,18 @@ class Streamer(object):
 
     def get_caches(self):
         cached = caching.cache.get(caching.create_key(self.CACHE_KEY))
-        if cached is None:
-            return {}
-        return json.loads(str(cached))
+        return json.loads(str(cached)) if cached is not None else {}
 
     def set_cache(self, key, value, timeout=0):
         cached = self.get_caches()
         cached[key] = value
         caching.cache.set(caching.create_key(self.CACHE_KEY), json.dumps(cached), timeout=timeout)
-        del cached
 
     def set_cookie(self, value, url=None):
-        if url is None:
-            url = self.BASE_URL
-        fetchers.Fetcher.set_cookie(value, url, path=self.config['FETCHER']['COOKIE_PATH'])
+        fetchers.Fetcher.set_cookie(value, url or self.BASE_URL, path=self.config.get('FETCHER', {}).get('COOKIE_PATH', None))
 
     def get_cookie(self, tostring=False):
-        return fetchers.Fetcher.get_cookie(self.BASE_URL, tostring=tostring, path=self.config['FETCHER']['COOKIE_PATH'])
+        return fetchers.Fetcher.get_cookie(self.BASE_URL, tostring=tostring, path=self.config.get('FETCHER', {}).get('COOKIE_PATH', None))
 
     def get_resource(self, url):
         r = self.fetch(url, referer=self.BASE_URL)
@@ -76,6 +71,8 @@ class HlsStreamer(Streamer):
                     play_sequence += 1
             else:
                 for _ in range(int(duration)):
+                    if not self.should_stream:
+                        break
                     time.sleep(1)
                     yield ''
                 if self.should_stream:
@@ -90,20 +87,16 @@ class HlsStreamer(Streamer):
             media_sequence += 1
         return playlist.target_duration, playlist.media_sequence
 
-    def should_login(self):
-        cached_should_login = caching.cache.cached(
-            timeout=60*60,
-            key_prefix=caching.create_key(self.CACHE_KEY) + '-should_login')(self._should_login)
-        return cached_should_login()
-
     def get_channels(self):
         page = 1
         has_next = True
-        while has_next:
+        safe_counter = 50
+        while has_next and safe_counter > 0:
             channels, has_next, page = self._get_channels(page)
             page += 1
             for channel in channels:
                 yield channel
+            safe_counter -= 1
 
 
 class Channel(MultiDict):
@@ -139,3 +132,7 @@ class Channel(MultiDict):
     @property
     def chnum(self):
         return self.get('chnum')
+
+    @property
+    def genre(self):
+        return self.get('genre')

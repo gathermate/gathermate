@@ -64,8 +64,8 @@ class Tving(HlsStreamer):
     def _get_channels(self, pageNo):
         channels = []
         hasNext =True
-        safe_counter = 0
-        while len(channels) < 12 and hasNext:
+        safe_counter = 10
+        while len(channels) < 12 and hasNext and safe_counter > 0:
             results, hasNext = self.api_channels(pageNo)
             if results is None:
                 break
@@ -86,11 +86,8 @@ class Tving(HlsStreamer):
                              thumbnail='http://stillshot.tving.com/thumbnail/' + item['live_code'] + '_0_320x180.jpg',
                              rating=item['live_rating']['realtime'])))
             pageNo += 1
-            safe_counter += 1
-            if safe_counter > 10:
-                log.warning('counter break')
-                break
-        return sorted(channels, key=lambda item: item.rating, reverse=True), hasNext, pageNo
+            safe_counter -= 1
+        return sorted(channels, key=lambda item: item.name), hasNext, pageNo
 
     def get_playlist_url(self, cid, qIndex):
         quality = self.get_quality(qIndex)
@@ -133,6 +130,7 @@ class Tving(HlsStreamer):
                                  expires=datetime.datetime(2100, 1, 1).strftime("%a, %d-%b-%Y %H:%M:%S GMT")))
         return cookie
 
+    '''
     def api_streamlist(self, cid, stream_code):
         ooc = 'height=1^isPrimary=true^pointerId=1^pointerType=mouse^pressure=0^tiltX=0^tiltY=0^twist=0^width=1^altKey=false^button=0^buttons=0^clientX=239^clientY=93^ctrlKey=false^layerX=170^layerY=93^metaKey=false^movementX=0^movementY=0^offsetX=31^offsetY=35^pageX=239^pageY=93^screenX=239^screenY=207^shiftKey=false^which=1^x=239^y=93^detail=1^bubbles=true^cancelBubble=false^cancelable=true^defaultPrevented=true^eventPhase=2^isTrusted=true^returnValue=false^timeStamp=69351.9603^type=click^AT_TARGET=2^BUBBLING_PHASE=3^CAPTURING_PHASE=1^NONE=0^'
         self.set_cookie('onClickEvent2=%s; Path=/; Domain=.tving.com' % ud.quote(ooc))
@@ -144,6 +142,7 @@ class Tving(HlsStreamer):
                        ooc=ooc)
         r = self.fetch(url, method='POST', referer=self.PLAYER_URL % cid, payload=payload)
         return json.loads(r.content)['stream']['broadcast']['broad_url']
+    '''
 
     def api_streaminfo(self, cid, stream_code):
         url = ud.Url(self.API_URL + '/media/stream/info')
@@ -183,7 +182,7 @@ class Tving(HlsStreamer):
             networkCode=self.CS.get('networkCode'), osCode=self.CS.get('osCode'),
             teleCode=self.CS.get('teleCode'), totalCountYn='Y'
         ))
-        r = self.fetch(url, referer='http://www.tving.com/live/list/top')
+        r = self.fetch(url, referer='http://www.tving.com/live/list/top', cached=True)
         js = json.loads(r.content)
         return js['body']['result'], True if js['body']['has_more'] == 'Y' else False
 
@@ -210,10 +209,10 @@ class Tving(HlsStreamer):
             log.debug('Login failed.')
             return False
 
-    def _should_login(self):
+    def should_login(self):
         my = 'http://www.tving.com/my/main'
         try:
-            r = self.fetch(my)
+            r = self.fetch(my, cached=True)
         except MyFlaskException as e:
             log.error(e.message)
             return True
