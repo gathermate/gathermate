@@ -50,6 +50,8 @@ class Pooq(HlsStreamer):
         for genres in js.get('list'):
             genre = genres.get('genretitle')
             for channel in genres.get('list'):
+                if int(channel.get('price')) is 1:
+                    continue
                 channels.append(
                     Channel(
                         dict(streamer='Pooq',
