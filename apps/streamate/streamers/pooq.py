@@ -147,7 +147,7 @@ class Pooq(HlsStreamer):
     def api_login(self):
         api = ud.Url(ud.join(self.API_URL, '/login'))
         api.update_query(self.API_QUERY)
-        self.fetch(api, method='OPTIONS', referer=self.LOGIN_REFERER)
+        #self.fetch(api, method='OPTIONS', referer=self.LOGIN_REFERER)
         payload = dict(type='general',
                        id=self.settings.get('ID', ''),
                        password=self.settings.get('PW', ''),

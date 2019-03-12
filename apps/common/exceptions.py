@@ -22,7 +22,8 @@ class MyFlaskException(Exception):
                 self.content = toolbox.decode(self.response.content)
             else:
                 self.content = 'The response has no content.'
-            caching.cache.delete(self.response.key)
+            if self.response.key is not None:
+                caching.cache.delete(self.response.key)
         for key, value in kwargs.iteritems():
             self.message += '\n{}: {}'.format(key, value)
         super(MyFlaskException, self).__init__(self.message)
