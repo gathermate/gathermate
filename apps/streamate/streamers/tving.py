@@ -55,7 +55,7 @@ class Tving(HlsStreamer):
         self.playlist = {}
         self.should_stream = True
         self.config = config
-        self.settings = config.get('TVING')
+        self.settings = config.get('STREAMERS').get('Tving')
         if self.get_cache('pcid') is None:
             self.set_cookie(self._make_pcid_cookie())
         if bool(self.should_login()):

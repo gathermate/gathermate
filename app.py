@@ -8,7 +8,6 @@ from flask import Flask
 from flask import request
 from flask import send_from_directory
 from flask import render_template
-from flask import url_for
 
 from apps.common import caching
 from apps.common.exceptions import MyFlaskException
@@ -18,7 +17,7 @@ from apps.common import urldealer as ud
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
-def create_app(software, config, cache_type):
+def create_app():
     # type: () -> flask.app.Flask
     # Make flask instance
     app = Flask(__name__,
@@ -26,39 +25,43 @@ def create_app(software, config, cache_type):
                 static_folder='static',
                 template_folder='templates')
     # Set configuration.
-    app.config.from_object('default_config.' + config)
     app.config.from_pyfile('config.py', silent=True)
-    app.config['SOFTWARE'] = software
+    app.config['SERVER_SOFTWARE'] = os.environ.get('SERVER_SOFTWARE', '')
     app.config['ROOT_DIR'] = os.path.dirname(os.path.abspath(__file__))
-    app.config['URL_FOR'] = url_for
+    software = app.config.get('SERVER_SOFTWARE')
+    if software.startswith('Google App Engine/') or software.startswith('Development/'):
+        software = 'GoogleAppEngine'
+        config_cls = 'GOOGLEAPPENGINE_CLASS'
+        cache_type = {'CACHE_TYPE': 'memcached'}
+    else:
+        config_cls = 'LOCALHOST_CLASS'
+        cache_type = {'CACHE_TYPE': 'simple'}
+    app.config.from_object(app.config.get(config_cls)())
+    app.config['FETCHER']['SERVER_SOFTWARE'] = software
     logger.config(software, app.config['LOG_LEVEL'])
     app.logger.info('Server Software: %s', software)
     app.logger.info('Config: %s', app.config['NAME'])
     caching.init(app, app.config, cache_type)
-    # Register blueprints from config.
-    for name, settings in app.config['BLUEPRINTS'].items():
-        if software == 'GoogleAppEngine' and name == 'Streamate':
-            continue
-        try:
-            blueprint = getattr(importlib.import_module(
-                settings['module']),
-                settings['instance'])
-            app.register_blueprint(
-                blueprint,
-                url_prefix=settings['url_prefix'])
-            app.logger.info(
-                '{} has been registered as Blueprint.'.format(blueprint.name))
-        except:
-            MyFlaskException.trace_error()
-    # Register managers from config.
+    # Register apps from config.
     app.managers = {}
-    for name, module in app.config['MANAGERS'].items():
-        if software == 'GoogleAppEngine' and name == 'Streamate':
-            continue
-        app.managers[name] = importlib.import_module(module).hire_manager(app.config)
+    should_send = False
+    for app_config in app.config.get('APPS'):
+        app_config.update(ROOT_DIR=app.config['ROOT_DIR'],
+                          FETCHER=app.config['FETCHER'])
+        app.managers[app_config['NAME']] = importlib.import_module(app_config['MANAGER']).hire_manager(app_config)
+        if app_config.get('BLUEPRINT') is not None:
+            bp = getattr(importlib.import_module(
+                app_config['BLUEPRINT']),
+                app_config['BLUEPRINT_INSTANCE'])
+            app.register_blueprint(
+                bp,
+                url_prefix=app_config['BLUEPRINT_URL_PREFIX'])
+            app.logger.info('{} has been registered as Blueprint.'.format(bp.name))
+        if app_config['NAME'] == 'Callmewhen':
+            should_send = app_config['NOTIFY']
     # Register a function for sending messages to telegram bot.
     def send(sender, msg):
-        if app.config.get('NOTIFY', False) and app.managers.get('Callmewhen', None):
+        if should_send:
             result = app.managers['Callmewhen'].request('send',
                                                         {'msg':msg, 'sender': sender})
             if result:
@@ -68,16 +71,7 @@ def create_app(software, config, cache_type):
     app.send = send
     return app
 
-# Before create flask...
-software = os.environ.get('SERVER_SOFTWARE', '')
-if software.startswith('Google App Engine/') or software.startswith('Development/'):
-    software = 'GoogleAppEngine'
-    config = software
-    cache_type = {'CACHE_TYPE': 'memcached'}
-else:
-    config = 'Localhost'
-    cache_type = {'CACHE_TYPE': 'simple'}
-app = create_app(software, config, cache_type)
+app = create_app()
 
 # Run as main.
 if __name__ == '__main__':

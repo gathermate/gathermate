@@ -30,7 +30,7 @@ class Manager(object):
     def _register_modules(self, package, module_type, parent_class=None):
         # type: (str, str, Optional[type]) -> Dict[str, Union[type, module]]
         modules = {}
-        modules_path = '{}/'.format(os.path.join(self.__config['ROOT_DIR'], package.replace('.', '/')))
+        modules_path = '{}/'.format(os.path.join(self.config['ROOT_DIR'], package.replace('.', '/')))
         for file in glob.iglob("{}[!_]*.py".format(modules_path)):
             fname, fext = os.path.splitext(os.path.basename(file))
             module = importlib.import_module('{}.{}'.format(package, fname))

@@ -18,7 +18,7 @@ log = logging.getLogger(__name__)
 class Streamer(object):
 
     def fetch(self, url, cached=False, **kwargs):
-        response = fetchers.hire_fetcher(config=self.config).fetch(url, cached=cached, **kwargs)
+        response = fetchers.hire_fetcher(self.config['FETCHER']).fetch(url, cached=cached, **kwargs)
         if str(response.status_code).startswith('2'):
             return response
         else:
@@ -136,3 +136,11 @@ class Channel(MultiDict):
     @property
     def genre(self):
         return self.get('genre')
+
+'''
+- tvg-id is value of '<channel id="">' in EPG xml file. If the tag is absent then addon will use tvg-name for map channel to EPG;
+- tvg-name is value of display-name in EPG there all space chars replaced to _ (underscore char) if this value is not found in xml then addon will use the channel name to find correct EPG.
+- tvg-logo is name of channel logo file. If this tag is absent then addon will use channel name to find logo.
+- tvg-shift is value in hours to shift EPG time. This tag can be used in #EXTM3U for apply shift to all channels or in #EXTINF for apply shift only to current channel.
+- group-name is channels group name. If the tag is absent then addon will use group name from the previous channel.
+'''

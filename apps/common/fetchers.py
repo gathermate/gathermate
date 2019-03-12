@@ -15,9 +15,7 @@ from apps.common import toolbox as tb
 log = logging.getLogger(__name__)
 
 def hire_fetcher(config=None):
-    software = config.get('SOFTWARE', '')
-    if config.get('FETCHER', None) is not None:
-        config = config.get('FETCHER')
+    software = config.get('SERVER_SOFTWARE', '')
     deadline = config.get('DEADLINE')
     cache_timeout = config.get('CACHE_TIMEOUT')
     cookie_timeout = config.get('COOKIE_TIMEOUT')

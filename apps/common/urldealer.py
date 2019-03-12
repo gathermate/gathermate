@@ -221,8 +221,11 @@ def unsplit(url_dict):
     # <scheme>://<username>:<password>@<host>:<port>/<path>;<parameters>?<query>#<fragment>
     # urlparse.urlunparse((scheme, netloc, path, params, query, fragment))
     query = unsplit_qs(url_dict[QUERY])
+    netloc = url_dict.get(NETLOC)
+    if url_dict.get(USERNAME) and url_dict.get(PASSWORD):
+        netloc = '{}:{}@{}'.format(url_dict.get(USERNAME), url_dict.get(PASSWORD), url_dict.get(NETLOC))
     url = urlparse.urlunsplit((url_dict.get(SCHEME),
-                               url_dict.get(NETLOC),
+                               netloc,
                                url_dict.get(PATH),
                                query,
                                url_dict.get(FRAGMENT)))

@@ -40,7 +40,7 @@ class Pooq(HlsStreamer):
         self.playlist = {}
         self.should_stream = True
         self.config = config
-        self.settings = config.get('POOQ')
+        self.settings = config.get('STREAMERS').get('Pooq')
         if bool(self.should_login()):
             self.api_login()
 

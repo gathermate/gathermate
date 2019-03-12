@@ -13,7 +13,7 @@ log = logging.getLogger(__name__)
 
 def hire_manager(config):
     # type: (flask.config.Config) -> ScrapmateManager
-    packer.ACCEPTED_EXT = config.get('ACCEPTED_EXT', [])
+    packer.ACCEPTED_EXT = config['ACCEPTED_EXT']
     return ScrapmateManager(config)
 
 
@@ -50,7 +50,7 @@ class ScrapmateManager(Manager):
         # type: (Type[scraper.Scraper], Dict[str, Dict[str, Optional[bool, str, int, List[str]]]])
         # -> Type[scraper.Scraper]
         instance_config = self._get_default_config(class_.__name__, config)
-        scraper = class_(instance_config, fetchers.hire_fetcher(config=self.config))
+        scraper = class_(instance_config, fetchers.hire_fetcher(self.config['FETCHER']))
         return scraper
 
     def _get_default_config(self, name, config):

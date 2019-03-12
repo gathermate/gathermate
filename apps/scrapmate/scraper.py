@@ -106,6 +106,8 @@ class Scraper(object):
                               pretty_print=True,
                               encoding=self.encoding)
 
+class EpgScraper(Scraper):
+    pass
 
 class BoardScraper(Scraper):
     def __init__(self, config, fetcher):
@@ -295,7 +297,7 @@ class BoardScraper(Scraper):
         # type: (List[str]) -> List[_sre.SRE_Pattern]
         if not want_list:
             return [re.compile(r'\.torrent$')]
-        return [re.compile(keyword) for keyword in want_list]
+        return [re.compile(keyword, re.I) for keyword in want_list]
 
 
     def _parse_item_from_list(self, articles):

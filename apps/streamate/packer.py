@@ -3,6 +3,9 @@
 import logging
 
 from flask import url_for
+from flask import current_app as app
+
+from apps.common import urldealer as ud
 
 log = logging.getLogger(__name__)
 
@@ -15,4 +18,7 @@ def pack_m3u(channels):
                       _external=True,
                       streamer=channel.streamer.lower(),
                       cid=channel.id)
-        yield url + '\n'
+        url = ud.Url(url)
+        url.username = app.config.get('AUTH_ID')
+        url.password = app.config.get('AUTH_PW')
+        yield url.text + '\n'
