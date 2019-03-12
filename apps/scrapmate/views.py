@@ -78,6 +78,13 @@ def order(order):
     data = app.managers[name].request(order, query)
     return globals()['order_{}'.format(order)](data)
 
+@scrapmate.route('/<string:site>/epg', methods=['GET'])
+@caching.cache.cached(key_prefix=make_cache_key, timeout=caching.config.get('TIMEOUT'))
+@auth.requires_auth
+def epg(site):
+    query = MultiDict(request.args)
+    return app.managers[name].request_epg(site, query)
+
 def order_rss(data):
     # type: (Text) -> flask.wrappers.Response
     return Response(data, mimetype='text/xml')

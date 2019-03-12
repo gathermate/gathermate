@@ -51,11 +51,11 @@ class Tving(HlsStreamer):
 
     streaming_instance = None
 
-    def __init__(self, config):
+    def __init__(self, fetcher, settings):
+        super(Tving, self).__init__(fetcher)
         self.playlist = {}
         self.should_stream = True
-        self.config = config
-        self.settings = config.get('STREAMERS').get('Tving')
+        self.settings = settings
         if self.get_cache('pcid') is None:
             self.set_cookie(self._make_pcid_cookie())
         if bool(self.should_login()):

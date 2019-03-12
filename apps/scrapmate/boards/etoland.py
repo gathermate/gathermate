@@ -19,11 +19,11 @@ class Etoland(BoardScraper):
     SEARCH_QUERY = 'sca=&sfl=wr_subject&stx=%s&x=0&y=0'
     PAGE_QUERY = 'page=%d'
 
-    def set_login(self, config):
+    def set_login(self, login_info):
         self.login_info = {
             'payload': {
-                'mb_id': config.get('mb_id'),
-                'mb_password': config.get('mb_password'),
+                'mb_id': login_info.get('mb_id'),
+                'mb_password': login_info.get('mb_password'),
                 'url': 'http://www.etoland.co.kr',
                 'auto_login': 1,
                 'x': 0,

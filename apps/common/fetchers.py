@@ -46,7 +46,6 @@ class Fetcher(object):
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36',
     }
     COOKIE_ATTRS = ['expires', 'path', 'comment', 'domain', 'max-age', 'secure', 'version', 'httponly']
-    THRESHOLD = 50
 
     def __init__(self, module, deadline=30, cache_timeout=60,
                  cookie_timeout=0, cookie_path=None):
@@ -62,10 +61,6 @@ class Fetcher(object):
     def fetch(self, url, payload=None, forced_update=False, cached=True, **kwargs):
         # type: (Union[urldealer.Url, str], str, str, Dict[str, str], Dict[str, str], boolean, boolean, boolean) -> Response
         url = ud.Url(url) if type(url) is not ud.Url else url
-        self.counter += 1
-        if self.counter > self.THRESHOLD:
-            log.error('Fetching counter exceeds threshold by a request. : %d', self.counter)
-            raise MyFlaskException('Too many fetchings by a request.')
         if cached:
             key = caching.create_key(ud.Url(url.text).update_query(payload).text if payload else url.text)
             func = caching.cache.cached(timeout=self.timeout,
@@ -179,7 +174,6 @@ class Fetcher(object):
             if path is not None:
                 if not os.path.exists(path):
                     os.makedirs(path)
-                    log.debug('##### make path')
                 with open(cls.get_cookie_file(url, path), 'w+' ) as f:
                     f.write(cookies)
             else:

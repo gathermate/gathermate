@@ -6,7 +6,6 @@ import time
 
 import m3u8
 
-from apps.common import fetchers
 from apps.common import caching
 from apps.common.datastructures import MultiDict
 from apps.common import urldealer as ud
@@ -17,8 +16,11 @@ log = logging.getLogger(__name__)
 
 class Streamer(object):
 
+    def __init__(self, fetcher):
+        self.fetcher = fetcher
+
     def fetch(self, url, cached=False, **kwargs):
-        response = fetchers.hire_fetcher(self.config['FETCHER']).fetch(url, cached=cached, **kwargs)
+        response = self.fetcher.fetch(url, cached=cached, **kwargs)
         if str(response.status_code).startswith('2'):
             return response
         else:
@@ -38,10 +40,10 @@ class Streamer(object):
         caching.cache.set(caching.create_key(self.CACHE_KEY), json.dumps(cached), timeout=timeout)
 
     def set_cookie(self, value, url=None):
-        fetchers.Fetcher.set_cookie(value, url or self.BASE_URL, path=self.config.get('FETCHER', {}).get('COOKIE_PATH', None))
+        self.fetcher.set_cookie(value, url or self.BASE_URL, path=self.fetcher.cookie_path)
 
     def get_cookie(self, tostring=False):
-        return fetchers.Fetcher.get_cookie(self.BASE_URL, tostring=tostring, path=self.config.get('FETCHER', {}).get('COOKIE_PATH', None))
+        return self.fetcher.get_cookie(self.BASE_URL, tostring=tostring, path=self.fetcher.cookie_path)
 
     def get_resource(self, url):
         r = self.fetch(url, referer=self.BASE_URL)

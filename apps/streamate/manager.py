@@ -8,6 +8,7 @@ from apps.common.manager import Manager
 from apps.common import urldealer as ud
 from apps.common.exceptions import MyFlaskException
 from apps.streamate import packer
+from apps.common import fetchers
 
 log = logging.getLogger(__name__)
 
@@ -50,7 +51,7 @@ class StreamManager(Manager):
         except KeyError as e:
             log.error(e.message)
             return "There is no streamer : '%s'" % streamer
-        instance = class_(self.config)
+        instance = class_(fetchers.hire_fetcher(self.config['FETCHER']), self.config['STREAMERS'][streamer.capitalize()])
         #fetchers_log = logging.getLogger('apps.common.fetchers')
         #fetchers_log.setLevel('INFO')
         function = None

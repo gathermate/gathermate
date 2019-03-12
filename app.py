@@ -113,10 +113,12 @@ def unhandled_exception(e):
     # type: (Type[Exception]) -> Text
     MyFlaskException.trace_error()
     app.send('{}#{}'.format(__name__, request.host), e.message)
-    if e.response is not None:
-        return e.response.content, e.response.status_code, dict(e.response.headers)
-    else:
-        return e.message, 404
+    try:
+        if e.response is not None:
+            return e.response.content, e.response.status_code, dict(e.response.headers)
+    except AttributeError as abe:
+        app.logger.debug(abe.message)
+    return e.message, 404
 
 @app.template_filter('quote')
 def quote_filter(url):

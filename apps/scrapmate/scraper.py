@@ -14,14 +14,13 @@ from apps.common import toolbox as tb
 log = logging.getLogger(__name__)
 
 class Scraper(object):
-    def __init__(self, config, fetcher):
+    def __init__(self, fetcher, encoding='utf-8', login_info=None):
         # type: (Dict[str, object], Type[fetchers.Fetcher]) -> None
-        self.encoding = config.get('ENCODING', 'utf-8')
-        self.config = config
+        self.encoding = encoding or 'utf-8'
         self.fetcher = fetcher
-        self.set_login(config)
+        self.set_login(login_info)
 
-    def set_login(self, config):
+    def set_login(self, login_info):
         # type: (Dict[str, object]) -> None
         self.login_info = {}
 
@@ -110,15 +109,27 @@ class EpgScraper(Scraper):
     pass
 
 class BoardScraper(Scraper):
-    def __init__(self, config, fetcher):
-        super(BoardScraper, self).__init__(config, fetcher)
-        self.length = int(config.get('RSS_LENGTH', 1))
+    def __init__(self,
+                 fetcher,
+                 encoding='utf-8',
+                 login_info={},
+                 rss_length=1,
+                 rss_want=[],
+                 rss_aggressive=False,
+                 rss_async=False,
+                 rss_workers=1):
+        super(BoardScraper, self).__init__(fetcher, encoding, login_info)
+        self.length = int(rss_length)
+        self.want = rss_want
+        self.aggressive = rss_aggressive
+        self.async = rss_async
+        self.workers = rss_workers
         self.check_length_count = 0
         self.next_page = 2
         self.isRSS = False
         self.articles = {}
         try:
-            self.want_regex = self._get_want_regex(self.config.get('RSS_WANT', []))
+            self.want_regex = self._get_want_regex(self.want)
         except:
             MyFlaskException.trace_error()
             self.want_regex = self._get_want_regex([])
@@ -246,11 +257,11 @@ class BoardScraper(Scraper):
 
     def parse_items(self, articles):
         # type: (Dict[str, Dict[str, str]]) -> Iterable
-        if not self.config.get('RSS_AGGRESSIVE'):
+        if not self.aggressive:
             return self._parse_item_from_list(articles)
         urls = [ud.Url(article['link']) for article in articles.values()]
-        if self.config.get('RSS_ASYNC', False):
-            with futures.ThreadPoolExecutor(max_workers=self.config.get('RSS_WORKERS', 1),
+        if self.async:
+            with futures.ThreadPoolExecutor(max_workers=self.workers,
                                             thread_name_prefix="_get_item_async") as exe:
                 return exe.map(self.parse_item, urls)
         else:
@@ -277,7 +288,7 @@ class BoardScraper(Scraper):
             MyFlaskException.trace_error()
         self._log_result(article_url)
         if len(items) is not 0:
-            if self.isRSS and not self.config.get('RSS_AGGRESSIVE'):
+            if self.isRSS and not self.aggressive:
                 return [self._want(items)]
         else:
             log.error('No items found : %s', article_url)

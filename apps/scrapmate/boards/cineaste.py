@@ -19,11 +19,11 @@ class Cineaste(BoardScraper):
     SEARCH_QUERY = 'sca=&mv_no=&sfl=wr_subject&stx=%s&sop=and'
     PAGE_QUERY = 'page=%d'
 
-    def set_login(self, config):
+    def set_login(self, login_info):
         self.login_info = {
             'payload': {
-                'mb_id': config.get('mb_id'),
-                'mb_password': config.get('mb_password'),
+                'mb_id': login_info.get('mb_id'),
+                'mb_password': login_info.get('mb_password'),
                 'url': 'http://cineaste.co.kr',
             },
             'url': 'https://cineaste.co.kr:443/bbs/login_check.php',

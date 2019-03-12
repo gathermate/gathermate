@@ -36,11 +36,11 @@ class Pooq(HlsStreamer):
 
     streaming_instance = None
 
-    def __init__(self, config):
+    def __init__(self, fetcher, settings):
+        super(Pooq, self).__init__(fetcher)
         self.playlist = {}
         self.should_stream = True
-        self.config = config
-        self.settings = config.get('STREAMERS').get('Pooq')
+        self.settings = settings
         if bool(self.should_login()):
             self.api_login()
 

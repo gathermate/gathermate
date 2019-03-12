@@ -8,6 +8,7 @@ from apps.common.exceptions import MyFlaskException
 from apps.common import toolbox as tb
 from apps.common import urldealer as ud
 from apps.common.manager import Manager
+from apps.scrapmate.scraper import BoardScraper
 
 log = logging.getLogger(__name__)
 
@@ -23,25 +24,26 @@ class ScrapmateManager(Manager):
         # type: (flask.config.Config) -> None
         super(ScrapmateManager, self).__init__(config)
         scrapers = self._register_modules('apps.scrapmate.boards', 'Scraper')
-        self.__scraper_classes = {ud.Url(class_.URL).hostname: class_ for name, class_ in scrapers.iteritems()}
+        scrapers.update(self._register_modules('apps.scrapmate.epgs', 'Scraper'))
+        self.__scraper_classes = {ud.Url(class_.URL).domain: class_ for name, class_ in scrapers.iteritems()}
 
     def _hire_scraper(self, target):
         # type: (urldealer.Url) -> Type[scraper.Scraper]
-        host = target.hostname if target.hostname else target.netloc
-        if not host:
+        domain = target.domain if target.domain else target.hostname
+        if not domain:
             raise MyFlaskException('Target URL is wrong : %s' % target.text)
         try:
-            class_ = self.__scraper_classes[host]
+            class_ = self.__scraper_classes[domain]
         except KeyError:
             MyFlaskException.trace_error()
-            class_ = self._find_scraper(host)
+            class_ = self._find_scraper(domain)
         log.debug("%s class matches with [%s].", class_.__name__, target.text)
         return self._train_scraper(class_, self.config.get('SCRAPERS'))
 
     def _find_scraper(self, alias):
         # type: (str) -> Type[scraper.Scraper]
-        for host, class_ in self.__scraper_classes.iteritems():
-            if alias in host:
+        for domain, class_ in self.__scraper_classes.iteritems():
+            if alias in domain:
                 log.debug("%s class matches with [%s].", class_.__name__, alias)
                 return class_
         raise MyFlaskException('There is no class associate with : {}'.format(alias))
@@ -50,7 +52,14 @@ class ScrapmateManager(Manager):
         # type: (Type[scraper.Scraper], Dict[str, Dict[str, Optional[bool, str, int, List[str]]]])
         # -> Type[scraper.Scraper]
         instance_config = self._get_default_config(class_.__name__, config)
-        scraper = class_(instance_config, fetchers.hire_fetcher(self.config['FETCHER']))
+        scraper = class_(fetchers.hire_fetcher(self.config['FETCHER']),
+                         instance_config['ENCODING'],
+                         instance_config['LOGIN_INFO'],
+                         instance_config['RSS_LENGTH'],
+                         instance_config['RSS_WANT'],
+                         instance_config['RSS_AGGRESSIVE'],
+                         instance_config['RSS_ASYNC'],
+                         instance_config['RSS_WORKERS'])
         return scraper
 
     def _get_default_config(self, name, config):
@@ -63,6 +72,7 @@ class ScrapmateManager(Manager):
             'RSS_ASYNC': self.config.get('RSS_ASYNC', False),
             'RSS_WORKERS': self.config.get('RSS_WORKERS', 1),
             'RSS_LENGTH': self.config.get('RSS_LENGTH', 5),
+            'LOGIN_INFO': self.config.get('LOGIN_INFO')
         }
         if config.get(name, None):
             default_config.update(config.get(name))
@@ -138,6 +148,9 @@ class ScrapmateManager(Manager):
         page_num = query.get('page')
         if page_num > 0:
             target.update_qs('page={}'.format(page_num))
-        log.info('%s mode', order.upper())
+        log.debug('%s mode', order.upper())
         return self._get_data(order, target, query)
 
+    def request_epg(self, site, query):
+        class_ = self._find_scraper(site)
+        return class_(self.config, fetchers.hire_fetcher(self.config.get('FETCHER'))).channels()
