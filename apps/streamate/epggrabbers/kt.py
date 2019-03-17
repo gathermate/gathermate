@@ -4,15 +4,15 @@ import logging
 import re
 import json
 
-from apps.scrapmate.scraper import EpgScraper
+from apps.streamate.epggrabber import EpgGrabber
 from apps.streamate.streamer import Channel
 
 log = logging.getLogger(__name__)
 
 def register():
-    return 'Scraper', KtEpg
+    return 'EpgGrabber', Kt
 
-class KtEpg(EpgScraper):
+class Kt(EpgGrabber):
     URL = 'https://www.kt.com'
     CHANNELS_URL = 'https://tv.kt.com/tv/channel/pChInfo.asp'
     CH_NUM_NAME_REGEXP = re.compile(r'(\d{1,4})[\xa0\s](.*)')

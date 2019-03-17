@@ -24,7 +24,6 @@ class ScrapmateManager(Manager):
         # type: (flask.config.Config) -> None
         super(ScrapmateManager, self).__init__(config)
         scrapers = self._register_modules('apps.scrapmate.boards', 'Scraper')
-        scrapers.update(self._register_modules('apps.scrapmate.epgs', 'Scraper'))
         self.__scraper_classes = {ud.Url(class_.URL).domain: class_ for name, class_ in scrapers.iteritems()}
 
     def _hire_board(self, target):
@@ -143,8 +142,3 @@ class ScrapmateManager(Manager):
             target.update_qs('page={}'.format(page_num))
         log.debug('%s mode', order.upper())
         return self._get_data(order, target, query)
-
-    def request_epg(self, site, query):
-        class_ = self._find_scraper(site)
-        scraper = class_(fetchers.hire_fetcher(self.config.get('FETCHER')))
-        return packer.pack_epg(scraper.get_epg(query.get('name'), query.get('cid'), query.get('days', 1)))

@@ -8,16 +8,16 @@ from datetime import datetime as dt
 
 from lxml import etree
 
-from apps.scrapmate.scraper import EpgScraper
+from apps.streamate.epggrabber import EpgGrabber
 from apps.common import urldealer as ud
 
 log = logging.getLogger(__name__)
 
 def register():
-    return 'Scraper', Naver
+    return 'EpgGrabber', Naver
 
 
-class Naver(EpgScraper):
+class Naver(EpgGrabber):
     URL = 'https://m.naver.com'
     SEARCH_URL = 'https://m.search.naver.com/search.naver?query=%s'
     search_count = 0

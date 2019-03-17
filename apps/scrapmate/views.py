@@ -113,13 +113,6 @@ def order_page(data):
     # type: (Iterable) -> Text
     return data
 
-@scrapmate.route('/<string:site>/epg', methods=['GET'])
-@auth.requires_auth
-def epg(site):
-    query = MultiDict(request.args.iteritems(multi=True))
-    data = app.managers[name].request_epg(site, query)
-    return Response(data, mimetype='text/xml')
-
 @scrapmate.errorhandler(Exception)
 @auth.requires_auth
 def unhandled_exception(e):

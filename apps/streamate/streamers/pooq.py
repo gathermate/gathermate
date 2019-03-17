@@ -50,19 +50,24 @@ class Pooq(HlsStreamer):
         for genres in js.get('list'):
             genre = genres.get('genretitle')
             for channel in genres.get('list'):
-                if int(channel.get('price')) is 1:
+                cid = channel.get('channelid')
+                if int(channel.get('price')) is 1 or cid in self.settings.get('EXCEPT_CHANNELS'):
                     continue
+                name = [channel.get('channelname')]
+                alter_name = self.settings.get('ALTERNATIVE_CHANNEL_NAME').get(cid)
+                name += [alter_name] if alter_name is not None else []
+                exclusive = True if cid in self.settings.get('EXCLUSIVE_CHANNELS') else False
                 channels.append(
                     Channel(
                         dict(streamer='Pooq',
-                             cid=channel.get('channelid'),
-                             name=channel.get('channelname'),
+                             cid=cid,
+                             name=name,
                              cProgram=channel.get('title'),
                              thumbnail=channel.get('image'),
                              rating=channel.get('playratio'),
                              logo=channel.get('tvimage'),
                              genre=genre,
-                             exclusive=True if channel.get('channelid') in self.settings.get('EXCLUSIVE_CHANNELS') else False,
+                             exclusive=exclusive,
                         )
                     )
                 )

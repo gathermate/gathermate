@@ -26,9 +26,6 @@ def get_rss_builder():
     )
     return rss
 
-def get_epg_builder():
-    return E.tv({'generator-info-name': 'Gathermate'})
-
 def pack_rss(articles):
     # type (Union[List[object], Generator], Text) -> Text
     rss = get_rss_builder()
@@ -87,25 +84,3 @@ def pack_item(items):
         item['ticket'] = ud.quote(ud.unsplit_qs(item['ticket']))
     items = [ item for idx, item in enumerate(items) if not idx in denied ]
     return items
-
-def pack_epg(items):
-    '''
-    Change it to generator!
-    '''
-    tv = get_epg_builder()
-    ch_name = items.get('name')
-    cid = items.get('cid')
-    channel = E.channel({'id': cid})
-    dp_name = etree.SubElement(channel, 'display-name')
-    dp_name.text = ch_name
-    tv.append(channel)
-    for p in items.get('programs'):
-        program = E.programme({'start': p.get('start'), 'stop': p.get('stop'), 'channel': cid},
-                              E.title({'lang': 'kr'}, p.get('title'))
-        )
-        tv.append(program)
-    return etree.tostring(tv,
-                          xml_declaration=True,
-                          encoding='utf-8',
-                          pretty_print=True,
-                          doctype='<!DOCTYPE tv SYSTEM "xmltv.dtd">')

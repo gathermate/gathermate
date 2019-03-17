@@ -4,7 +4,6 @@ import logging
 import json
 import time
 from collections import deque
-import itertools
 
 import m3u8
 from concurrent import futures
@@ -13,8 +12,6 @@ from apps.common import caching
 from apps.common.datastructures import MultiDict
 from apps.common import urldealer as ud
 from apps.common.exceptions import MyFlaskException
-from apps.scrapmate.epgs.naver import Naver
-from apps.common import fetchers
 
 log = logging.getLogger(__name__)
 
@@ -105,50 +102,27 @@ class HlsStreamer(Streamer):
                 yield channel
             safe_counter -= 1
 
-    def get_epg(self, scrapers):
-        channels =[
-            Channel(dict(name='KBS 1', cid='K01')),
-            Channel(dict(name='KBS 2', cid='K02')),
-            Channel(dict(name='SBS', cid='S01')),
-            Channel(dict(name='MBC', cid='M01')),
-            Channel(dict(name='JTBC', cid='J01')),
-            Channel(dict(name='TVN', cid='T01')),
-        ]
+    def get_epg(self, grabbers, days=1):
         channels = self.get_channels()
-        '''
-        for ch in list(channels):
-            log.debug(ch.exclusive)
-        raise Exception('Test')
-        '''
         def set_epg(pair):
             if pair[1].exclusive:
                 return pair[1]
-            scraper_order = deque(scrapers)
-            scraper_order.rotate(pair[0] % len(scrapers))
+            grabbers_deque = deque(grabbers)
+            grabbers_deque.rotate(pair[0] % len(grabbers))
             epg = dict(fails=[], programs=None, source=None)
-            while len(scraper_order) > 0:
-                scraper = scraper_order.pop()
-                programs = scraper.get_epg(pair[1].name, pair[1].cid, days=1).get('programs')
+            while len(grabbers_deque) > 0:
+                grabber = grabbers_deque.pop()
+                programs = grabber.get_epg(pair[1].getlist('name')[-1], pair[1].cid, days=days).get('programs')
                 if len(programs) > 0:
                     epg['programs'] = programs
-                    epg['source'] = scraper.URL
+                    epg['source'] = grabber.URL
                     break
-                epg['fails'].append(scraper.URL)
+                epg['fails'].append(grabber.URL)
             pair[1]['epg'] = epg
             return pair[1]
 
-        with futures.ThreadPoolExecutor(max_workers=len(scrapers)) as exe:
-            channels = exe.map(set_epg, enumerate(channels))
-            for ch in list(channels):
-                log.debug('(%s, %s) : %s', ch.cid, ch.name, str(ch.epg.get('fails')) if ch.epg else ch.exclusive)
-
-        for s in scrapers:
-            log.debug('############ %s : %d / %d', s.URL, s.search_count, s.fail_count)
-        raise Exception('Test')
-        return ''
-
-
-
+        with futures.ThreadPoolExecutor(max_workers=8) as exe:
+            return exe.map(set_epg, enumerate(channels))
 
 
 class Channel(MultiDict):

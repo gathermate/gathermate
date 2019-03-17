@@ -23,6 +23,7 @@ class StreamManager(Manager):
         # type: (flask.config.Config) -> None
         super(StreamManager, self).__init__(config)
         self.__streamer_classes = self._register_modules('apps.streamate.streamers', 'Streamer')
+        self.__epg_grabber_classes = self._register_modules('apps.streamate.epggrabbers', 'EpgGrabber')
 
     def _order_resource(self, streamer, query):
         return streamer.get_resource(ud.Url(ud.unquote(query.get('url'))))
@@ -40,12 +41,14 @@ class StreamManager(Manager):
         return packer.pack_m3u(streamer.get_channels())
 
     def _order_epg(self, streamer, query):
-        scrapmate_manager = query.get('scrapmate_manager')
-        scrapers = []
-        for scraper in query.getlist('scraper'):
-            class_ = scrapmate_manager._find_scraper(scraper)
-            scrapers.append(class_(fetchers.hire_fetcher(self.config['FETCHER'])))
-        return streamer.get_epg(scrapers)
+        grabbers = []
+        for grabber in query.getlist('grabber'):
+            try:
+                class_ = self.__epg_grabber_classes[grabber.capitalize()]
+                grabbers.append(class_(fetchers.hire_fetcher(self.config['FETCHER'])))
+            except KeyError as e:
+                log.error(e.message)
+        return packer.pack_epg(streamer.get_epg(grabbers, query.get('days', default=1, type=int)))
 
     def order_all_m3u(self, query):
         with futures.ThreadPoolExecutor(max_workers=2) as exe:

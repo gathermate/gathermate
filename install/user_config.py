@@ -134,6 +134,44 @@ class Localhost(Flask):
                 'PW': '',
                 # 720p 이상은 유료 계정 필요.
                 'QUALITY': ['100p', '270p', '360p', '480p'],
+                'EXCEPT_CHANNELS': {
+
+                },
+                'EXCLUSIVE_CHANNELS': {
+                    'K15': 'KBS 1박 2일',
+                    'PM1': 'MBC 무한도전',
+                    'M10': 'ALL THE K-POP',
+                    'PM2': 'MBC 나 혼자 산다',
+                    'S13': 'SBS Mobidic',
+                    'S14': 'SBS THE K-POP',
+                    'S15': 'SBS TV동물농장',
+                    'K18': 'KBS 남자의 자격',
+                    'C2306': 'JTBC 아는형님',
+                    'C2307': 'JTBC 냉장고를 부탁해',
+                    'M12': 'MBC 라디오스타',
+                    'M13': 'MBC 서프라이즈',
+                    'K24': 'KBS 슈퍼맨이 돌아왔다',
+                    'S16': 'SBS 런닝맨',
+                    'C7801': '블렌딩 뮤직 비디오',
+                    'C2701': 'KISS - 최신인기가요',
+                    'C2702': 'KISS - 발라드',
+                    'C2703': 'KISS - 8090인기가요',
+                    'C2704': 'KISS - K-POP 아이돌',
+                    'C2705': 'KISS - 2000년대 인기가요',
+                    'C2706': 'KISS - 재즈 라운지',
+                    'D01': 'Disney',
+                    'H01': 'PLAYY 웰메이드 영화',
+                    'H07': 'PLAYY 액션영화',
+                    'C4202': 'GS MY SHOP',
+                    'C4102': '현대홈쇼핑+샵',
+                    'C4901': '쇼핑엔T',
+                    'C4801': '신세계TV쇼핑',
+                },
+                'ALTERNATIVE_CHANNEL_NAME': {
+                    'K01': 'KBS1',
+                    'K02': 'KBS2',
+                    'D01': '디즈니채널',
+                },
             },
             'Tving': {
                 'ID': '',
@@ -141,6 +179,14 @@ class Localhost(Flask):
                 # CJ One 회원: 10, Tvning 회원: 20
                 'LOGIN_TYPE': 20,
                 'QUALITY': ['stream20', 'stream25', 'stream30', 'stream40', 'stream50'],
+                'EXCEPT_CHANNELS': {
+
+                },
+                'EXCLUSIVE_CHANNELS': {
+                    'C28041': '엠피디 직캠 - M2',
+                },
+                'ALTERNATIVE_CHANNEL_NAME': {
+                },
             },
         }
     )

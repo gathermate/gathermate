@@ -6,15 +6,15 @@ from datetime import datetime as dt
 
 from lxml import etree
 
-from apps.scrapmate.scraper import EpgScraper
+from apps.streamate.epggrabber import EpgGrabber
 
 log = logging.getLogger(__name__)
 
 def register():
-    return 'Scraper', Daum
+    return 'EpgGrabber', Daum
 
 
-class Daum(EpgScraper):
+class Daum(EpgGrabber):
     URL = 'https://www.daum.net'
     SEARCH_URL = 'https://m.search.daum.net/search?w=tot&q=%s'
     search_count = 0

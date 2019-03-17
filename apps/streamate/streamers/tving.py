@@ -72,20 +72,24 @@ class Tving(HlsStreamer):
             for item in results:
                 channel = item['schedule']['channel']
                 program = item['schedule']['program']
-                name = channel['name']['ko']
+                name = [channel['name']['ko']]
                 free = True if channel['free_yn'] == 'Y' else False
-                if name.startswith('CH.') or (not free and self.get_cache('pay_type') == 'U'):
+                cid = item.get('live_code')
+                if cid in self.settings.get('EXCEPT_CHANNELS') or name[0].startswith('CH.') or (not free and self.get_cache('pay_type') == 'U'):
                     # log.debug('%s would be excluded by drm_multi_yn.', name)
                     continue
+                alter_name = self.settings.get('ALTERNATIVE_CHANNEL_NAME').get(cid)
+                name += [alter_name] if alter_name is not None else []
+                exclusive = True if cid in self.settings.get('EXCLUSIVE_CHANNELS') else False
                 channels.append(
                     Channel(
                         dict(streamer='Tving',
-                             cid=item.get('live_code'),
+                             cid=cid,
                              name=name,
                              cProgram=program['name']['ko'],
                              thumbnail='http://stillshot.tving.com/thumbnail/' + item['live_code'] + '_0_320x180.jpg',
                              rating=item['live_rating']['realtime'],
-                             exclusive=True if item.get('live_code') in self.settings.get('EXCLUSIVE_CHANNELS') else False,
+                             exclusive=exclusive,
                         )
                     )
                 )

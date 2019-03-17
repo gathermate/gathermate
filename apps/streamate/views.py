@@ -67,9 +67,8 @@ def streamer_m3u(streamer):
 @auth.requires_auth
 def streamer_epg(streamer):
     query = MultiDict(request.args.iteritems(multi=True))
-    query['scrapmate_manager'] = app.managers['Scrapmate']
     epg_gen = _order(streamer, 'epg', query)
-    return Response(stream_with_context(epg_gen), mimetype='text/plain')
+    return Response(stream_with_context(epg_gen), mimetype='text/xml')
 
 @streamate.route('/m3u')
 @auth.requires_auth
