@@ -50,9 +50,18 @@ class Fetcher(object):
     def __init__(self, module, deadline=30, cache_timeout=60,
                  cookie_timeout=0, cookie_path=None):
         # type : (Callable, int, int, int, Optional[str]) -> None
-        self.module = module
-        self.counter = 0
+        self.set_config(module, deadline, cache_timeout, cookie_timeout, cookie_path)
         self.current_response = None
+
+    def get_config(self):
+        return dict(module=self.module,
+                    deadline=self.deadline,
+                    cache_timeout=self.cache_timeout,
+                    cookie_timeout=self.cookie_timeout,
+                    cookie_path=self.cookie_path)
+
+    def set_config(self, module, deadline, cache_timeout, cookie_timeout, cookie_path):
+        self.module = module
         self.timeout = cache_timeout
         self.cookie_timeout = cookie_timeout
         self.deadline = deadline

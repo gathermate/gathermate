@@ -51,7 +51,7 @@ class Tving(HlsStreamer):
 
     streaming_instance = None
 
-    def __init__(self, fetcher, settings):
+    def __init__(self, settings, fetcher):
         super(Tving, self).__init__(fetcher)
         self.playlist = {}
         self.should_stream = True
@@ -80,11 +80,15 @@ class Tving(HlsStreamer):
                 channels.append(
                     Channel(
                         dict(streamer='Tving',
-                             id=item.get('live_code'),
+                             cid=item.get('live_code'),
                              name=name,
                              cProgram=program['name']['ko'],
                              thumbnail='http://stillshot.tving.com/thumbnail/' + item['live_code'] + '_0_320x180.jpg',
-                             rating=item['live_rating']['realtime'])))
+                             rating=item['live_rating']['realtime'],
+                             exclusive=True if item.get('live_code') in self.settings.get('EXCLUSIVE_CHANNELS') else False,
+                        )
+                    )
+                )
             pageNo += 1
             safe_counter -= 1
         return sorted(channels, key=lambda item: item.name), hasNext, pageNo
@@ -104,6 +108,9 @@ class Tving(HlsStreamer):
             self.set_cookie(cf_cookie)
         response = self.fetch(url, referer=self.PLAYER_URL % cid)
         variant = m3u8.loads(response.content)
+        if len(variant.playlists) is 0:
+            log.warning('M3U8 playlist is empty.')
+            log.warning('Response content : %s', response.content)
         return ud.join(url.text, variant.playlists[0].uri)
 
     def get_quality(self, index):

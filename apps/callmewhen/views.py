@@ -31,5 +31,5 @@ def make_cache_key():
 @auth.requires_auth
 def send(order):
     # type: () -> Text
-    query = MultiDict(request.args)
+    query = MultiDict(request.args.iteritems(multi=True))
     return app.managers[name].request(order, query)

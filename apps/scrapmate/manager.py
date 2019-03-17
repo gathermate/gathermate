@@ -27,7 +27,7 @@ class ScrapmateManager(Manager):
         scrapers.update(self._register_modules('apps.scrapmate.epgs', 'Scraper'))
         self.__scraper_classes = {ud.Url(class_.URL).domain: class_ for name, class_ in scrapers.iteritems()}
 
-    def _hire_scraper(self, target):
+    def _hire_board(self, target):
         # type: (urldealer.Url) -> Type[scraper.Scraper]
         domain = target.domain if target.domain else target.hostname
         if not domain:
@@ -38,7 +38,7 @@ class ScrapmateManager(Manager):
             MyFlaskException.trace_error()
             class_ = self._find_scraper(domain)
         log.debug("%s class matches with [%s].", class_.__name__, target.text)
-        return self._train_scraper(class_, self.config.get('SCRAPERS'))
+        return self._train_baord(class_, self.config.get('SCRAPERS'))
 
     def _find_scraper(self, alias):
         # type: (str) -> Type[scraper.Scraper]
@@ -48,23 +48,9 @@ class ScrapmateManager(Manager):
                 return class_
         raise MyFlaskException('There is no class associate with : {}'.format(alias))
 
-    def _train_scraper(self, class_, config):
+    def _train_baord(self, class_, config):
         # type: (Type[scraper.Scraper], Dict[str, Dict[str, Optional[bool, str, int, List[str]]]])
         # -> Type[scraper.Scraper]
-        instance_config = self._get_default_config(class_.__name__, config)
-        scraper = class_(fetchers.hire_fetcher(self.config['FETCHER']),
-                         instance_config['ENCODING'],
-                         instance_config['LOGIN_INFO'],
-                         instance_config['RSS_LENGTH'],
-                         instance_config['RSS_WANT'],
-                         instance_config['RSS_AGGRESSIVE'],
-                         instance_config['RSS_ASYNC'],
-                         instance_config['RSS_WORKERS'])
-        return scraper
-
-    def _get_default_config(self, name, config):
-        # type: (str, Dict[str, Dict[str, Optional[bool, str, int, List[str]]]])
-        # -> Dict[str, Dict[str, Optional[bool, str, int, List[str]]]]
         default_config = {
             'ENCODING': 'utf-8',
             'RSS_WANT': self.config.get('RSS_WANT', []),
@@ -74,32 +60,39 @@ class ScrapmateManager(Manager):
             'RSS_LENGTH': self.config.get('RSS_LENGTH', 5),
             'LOGIN_INFO': self.config.get('LOGIN_INFO')
         }
-        if config.get(name, None):
-            default_config.update(config.get(name))
-        return default_config
+        if config.get(class_.__name__, None):
+            default_config.update(config.get(class_.__name__))
+        return class_(fetchers.hire_fetcher(self.config['FETCHER']),
+                      default_config['ENCODING'],
+                      default_config['LOGIN_INFO'],
+                      default_config['RSS_LENGTH'],
+                      default_config['RSS_WANT'],
+                      default_config['RSS_AGGRESSIVE'],
+                      default_config['RSS_ASYNC'],
+                      default_config['RSS_WORKERS'])
 
     def _order_rss(self, target, query):
         # type: (urldealer.Url, apps.common.datastructures.MultiDict[unicode, List[unicode]]) -> str
-        scraper = self._hire_scraper(target)
-        scraper.isRSS = True
+        board = self._hire_board(target)
+        board.isRSS = True
         length = query.get('length', None, type=int)
         if length is not None:
-            scraper.length = length
-        listing = scraper.parse_list(target)
-        return packer.pack_rss(scraper.parse_items(listing))
+            board.length = length
+        listing = board.parse_list(target)
+        return packer.pack_rss(board.parse_items(listing))
 
     def _order_item(self, target, query):
         # type: (urldealer.Url, apps.common.datastructures.MultiDict[unicode, List[unicode]])
         # -> List[Dict[str, Union[str, unicode]]]
-        scraper = self._hire_scraper(target)
-        items = scraper.parse_item(target)
+        board = self._hire_board(target)
+        items = board.parse_item(target)
         return packer.pack_item(items)
 
     def _order_list(self, target, query):
         # type: (urldealer.Url, apps.common.datastructures.MultiDict[unicode, List[unicode]])
         # -> Dict[str, Union[int, List[Tuple[int, Dict[str, Union[int, str, unicode]]]]]]
-        scraper = self._hire_scraper(target)
-        listing = scraper.parse_list(target)
+        board = self._hire_board(target)
+        listing = board.parse_list(target)
         return packer.pack_list(listing)
 
     def _order_down(self, target, query):
@@ -107,22 +100,22 @@ class ScrapmateManager(Manager):
         ticket = query.get('ticket')
         if ticket:
             ticket = ud.split_qs(ud.unquote(ticket))
-            scraper = self._hire_scraper(ud.Url(ticket['referer']))
-            return scraper.parse_file(target, ticket)
+            board = self._hire_board(ud.Url(ticket['referer']))
+            return board.parse_file(target, ticket)
         # RSS_AGGRESSIVE = False
-        scraper = self._hire_scraper(target)
-        scraper.isRSS = True
-        items = scraper.parse_item(target)
+        board = self._hire_board(target)
+        board.isRSS = True
+        items = board.parse_item(target)
         if len(items) is 0:
             raise MyFlaskException('No items found.')
         if items[0]['type'] in ['magnet', 'link']:
             return items[0]['link']
-        return scraper.parse_file(ud.Url(items[0]['link']), items[0]['ticket'])
+        return board.parse_file(ud.Url(items[0]['link']), items[0]['ticket'])
 
     def _order_page(self, target, query):
         # type: (urldealer.Url, apps.common.datastructures.MultiDict[unicode, List[unicode]]) -> Iterable
-        scraper = self._hire_scraper(target)
-        return scraper.get_page(scraper.fetch(target))
+        board = self._hire_board(target)
+        return board.get_page(board.fetch(target))
 
     @tb.timeit
     def _get_data(self, order, target, query):
@@ -131,7 +124,7 @@ class ScrapmateManager(Manager):
         data = getattr(self, '_order_{}'.format(order))(target, query)
         return data
 
-    def request(self, order, query):
+    def request_board(self, order, query):
         # type: (str, apps.common.datastructures.MultiDict[unicode, List[unicode]]) -> Union[str, fetchers.Response, Iterable]
         if query.get('url'):
             target = ud.Url(ud.unquote(query['url']))
@@ -153,4 +146,5 @@ class ScrapmateManager(Manager):
 
     def request_epg(self, site, query):
         class_ = self._find_scraper(site)
-        return class_(self.config, fetchers.hire_fetcher(self.config.get('FETCHER'))).channels()
+        scraper = class_(fetchers.hire_fetcher(self.config.get('FETCHER')))
+        return packer.pack_epg(scraper.get_epg(query.get('name'), query.get('cid'), query.get('days', 1)))

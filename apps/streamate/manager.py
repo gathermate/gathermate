@@ -28,7 +28,7 @@ class StreamManager(Manager):
         return streamer.get_resource(ud.Url(ud.unquote(query.get('url'))))
 
     def _order_channels(self, streamer, query):
-        return streamer.get_channels(int(query.get('page')))
+        return streamer.get_channels()
 
     def _order_info(self, streamer, query):
         return 'info'
@@ -38,6 +38,14 @@ class StreamManager(Manager):
 
     def _order_m3u(self, streamer, query):
         return packer.pack_m3u(streamer.get_channels())
+
+    def _order_epg(self, streamer, query):
+        scrapmate_manager = query.get('scrapmate_manager')
+        scrapers = []
+        for scraper in query.getlist('scraper'):
+            class_ = scrapmate_manager._find_scraper(scraper)
+            scrapers.append(class_(fetchers.hire_fetcher(self.config['FETCHER'])))
+        return streamer.get_epg(scrapers)
 
     def order_all_m3u(self, query):
         with futures.ThreadPoolExecutor(max_workers=2) as exe:
@@ -51,7 +59,7 @@ class StreamManager(Manager):
         except KeyError as e:
             log.error(e.message)
             return "There is no streamer : '%s'" % streamer
-        instance = class_(fetchers.hire_fetcher(self.config['FETCHER']), self.config['STREAMERS'][streamer.capitalize()])
+        instance = class_(self.config['STREAMERS'][streamer.capitalize()], fetchers.hire_fetcher(self.config['FETCHER']))
         #fetchers_log = logging.getLogger('apps.common.fetchers')
         #fetchers_log.setLevel('INFO')
         function = None

@@ -2,6 +2,7 @@
 
 import logging
 from io import BytesIO
+import json
 
 from flask import Blueprint
 from flask import render_template
@@ -12,6 +13,7 @@ from flask import current_app as app
 from flask import redirect
 from flask import render_template_string
 from flask import flash
+from flask import stream_with_context
 
 from apps.common import caching
 from apps.common.auth import auth
@@ -51,10 +53,10 @@ def quote():
 @auth.requires_auth
 def rss_by_alias(site, board):
     # type: (Text, Text) -> Text
-    query = MultiDict(request.args)
+    query = MultiDict(request.args.iteritems(multi=True))
     query['site'] = site
     query['board'] = board
-    data = app.managers[name].request('rss', query)
+    data = app.managers[name].request_board('rss', query)
     return order_rss(data)
 
 @scrapmate.route('/<string:site>/<string:board>', methods=['GET'])
@@ -62,10 +64,10 @@ def rss_by_alias(site, board):
 @auth.requires_auth
 def list_by_alias(site, board):
     # type: (Text, Text) -> Text
-    query = MultiDict(request.args)
+    query = MultiDict(request.args.iteritems(multi=True))
     query['site'] = site
     query['board'] = board
-    data = app.managers[name].request('list', query)
+    data = app.managers[name].request_board('list', query)
     return order_list(data)
 
 @scrapmate.route('/<string:order>', methods=['GET'])
@@ -74,16 +76,9 @@ def list_by_alias(site, board):
 def order(order):
     # type: (Text) -> Union[unicode, flask.wrappers.Response]
     ''' Do not name order()'s args with query names ex) path, netloc, scheme etc... '''
-    query = MultiDict(request.args)
-    data = app.managers[name].request(order, query)
+    query = MultiDict(request.args.iteritems(multi=True))
+    data = app.managers[name].request_board(order, query)
     return globals()['order_{}'.format(order)](data)
-
-@scrapmate.route('/<string:site>/epg', methods=['GET'])
-@caching.cache.cached(key_prefix=make_cache_key, timeout=caching.config.get('TIMEOUT'))
-@auth.requires_auth
-def epg(site):
-    query = MultiDict(request.args)
-    return app.managers[name].request_epg(site, query)
 
 def order_rss(data):
     # type: (Text) -> flask.wrappers.Response
@@ -117,6 +112,13 @@ def order_item(data):
 def order_page(data):
     # type: (Iterable) -> Text
     return data
+
+@scrapmate.route('/<string:site>/epg', methods=['GET'])
+@auth.requires_auth
+def epg(site):
+    query = MultiDict(request.args.iteritems(multi=True))
+    data = app.managers[name].request_epg(site, query)
+    return Response(data, mimetype='text/xml')
 
 @scrapmate.errorhandler(Exception)
 @auth.requires_auth

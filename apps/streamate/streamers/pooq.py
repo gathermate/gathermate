@@ -36,7 +36,7 @@ class Pooq(HlsStreamer):
 
     streaming_instance = None
 
-    def __init__(self, fetcher, settings):
+    def __init__(self, settings, fetcher):
         super(Pooq, self).__init__(fetcher)
         self.playlist = {}
         self.should_stream = True
@@ -55,13 +55,14 @@ class Pooq(HlsStreamer):
                 channels.append(
                     Channel(
                         dict(streamer='Pooq',
-                             id=channel.get('channelid'),
+                             cid=channel.get('channelid'),
                              name=channel.get('channelname'),
                              cProgram=channel.get('title'),
                              thumbnail=channel.get('image'),
                              rating=channel.get('playratio'),
                              logo=channel.get('tvimage'),
-                             genre=genre
+                             genre=genre,
+                             exclusive=True if channel.get('channelid') in self.settings.get('EXCLUSIVE_CHANNELS') else False,
                         )
                     )
                 )

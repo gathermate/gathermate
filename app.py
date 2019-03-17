@@ -31,12 +31,12 @@ def create_app():
     software = app.config.get('SERVER_SOFTWARE')
     if software.startswith('Google App Engine/') or software.startswith('Development/'):
         software = 'GoogleAppEngine'
-        config_cls = 'GOOGLEAPPENGINE_CLASS'
+        config_instance = 'GOOGLEAPPENGINE'
         cache_type = {'CACHE_TYPE': 'memcached'}
     else:
-        config_cls = 'LOCALHOST_CLASS'
+        config_instance = 'LOCALHOST'
         cache_type = {'CACHE_TYPE': 'simple'}
-    app.config.from_object(app.config.get(config_cls)())
+    app.config.from_object(app.config.get(config_instance + '_INSTANCE'))
     app.config['FETCHER']['SERVER_SOFTWARE'] = software
     logger.config(software, app.config['LOG_LEVEL'])
     app.logger.info('Server Software: %s', software)
