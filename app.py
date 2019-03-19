@@ -48,6 +48,8 @@ def create_app():
     for app_config in app.config.get('APPS'):
         app_config.update(ROOT_DIR=app.config['ROOT_DIR'],
                           FETCHER=app.config['FETCHER'])
+        if app_config['NAME'] == 'Streamate':
+            app_config['CHANNELS'] = app.config['CHANNELS']
         app.managers[app_config['NAME']] = importlib.import_module(app_config['MANAGER']).hire_manager(app_config)
         if app_config.get('BLUEPRINT') is not None:
             bp = getattr(importlib.import_module(

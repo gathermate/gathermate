@@ -7,6 +7,7 @@ import random
 import time
 import Cookie
 import datetime
+from datetime import datetime as dt
 import base64
 import string
 
@@ -49,13 +50,10 @@ class Tving(HlsStreamer):
     LOGIN_OK_REGEXP = re.compile(r'\([\'\"]LOGIN_OK[\'"]\)')
     ZZANG_REGEXP = re.compile(r'var zzang = ["\'](.+)["\'];')
 
-    streaming_instance = None
+    epg_search_type = 'id'
 
     def __init__(self, settings, fetcher):
-        super(Tving, self).__init__(fetcher)
-        self.playlist = {}
-        self.should_stream = True
-        self.settings = settings
+        super(Tving, self).__init__(settings, fetcher)
         if self.get_cache('pcid') is None:
             self.set_cookie(self._make_pcid_cookie())
         if bool(self.should_login()):
@@ -65,31 +63,31 @@ class Tving(HlsStreamer):
         channels = []
         hasNext =True
         safe_counter = 10
-        while len(channels) < 12 and hasNext and safe_counter > 0:
+        while hasNext and safe_counter > 0:
             results, hasNext = self.api_channels(pageNo)
             if results is None:
                 break
             for item in results:
+                cid = [item.get('live_code')]
                 channel = item['schedule']['channel']
-                program = item['schedule']['program']
-                name = [channel['name']['ko']]
                 free = True if channel['free_yn'] == 'Y' else False
-                cid = item.get('live_code')
-                if cid in self.settings.get('EXCEPT_CHANNELS') or name[0].startswith('CH.') or (not free and self.get_cache('pay_type') == 'U'):
-                    # log.debug('%s would be excluded by drm_multi_yn.', name)
+                cookies = self.get_cookie()
+                #USER_PAY_TYPE : free=U, piad=?
+                if cid[0] in self.settings.get('EXCEPT_CHANNELS') \
+                   or (not free and cookies.get('USER_PAY_TYPE').value == 'U'):
                     continue
-                alter_name = self.settings.get('ALTERNATIVE_CHANNEL_NAME').get(cid)
-                name += [alter_name] if alter_name is not None else []
-                exclusive = True if cid in self.settings.get('EXCLUSIVE_CHANNELS') else False
+                name = [channel['name']['ko']]
+                mapped_channel = self._get_mapped_channel('tving', cid[0])
+                if mapped_channel:
+                    cid.append(mapped_channel.get('cid'))
+                    name.append(mapped_channel.get('name'))
                 channels.append(
                     Channel(
                         dict(streamer='Tving',
                              cid=cid,
+                             chnum=mapped_channel.get('chnum') if mapped_channel else 0,
                              name=name,
-                             cProgram=program['name']['ko'],
-                             thumbnail='http://stillshot.tving.com/thumbnail/' + item['live_code'] + '_0_320x180.jpg',
-                             rating=item['live_rating']['realtime'],
-                             exclusive=exclusive,
+                             logo=mapped_channel.get('logo') if mapped_channel else 'http://image.tving.com%s' % channel['image'][2]['url'],
                         )
                     )
                 )
@@ -124,6 +122,22 @@ class Tving(HlsStreamer):
             log.error(e.message)
             return self.settings.get('QUALITY')[-1]
 
+    def get_epg(self, mapped_channel, days):
+        tving_id = mapped_channel.get('tving')
+        if tving_id is None:
+            log.warning("Couldn't find epg for the channel : %s", mapped_channel.get('name'))
+            return []
+        schedules = self.api_epg(tving_id, days if days is not None else 1)
+        programs = []
+        for schedule in schedules:
+            for program in schedule:
+                programs.append({
+                    'start': str(program['broadcast_start_time']) + ' +0900',
+                    'stop': str(program['broadcast_end_time']) + ' +0900',
+                    'title' : program['program']['name']['ko'],
+                    })
+        return programs
+
     def _make_jsonp_name(self):
         jq_version = self.get_cache('jquery_version', '1.12.3')
         return 'jQuery' + re.sub(r'\D', '', jq_version + repr(random.random())) + '_' + str(int(time.time()*1000))
@@ -154,6 +168,39 @@ class Tving(HlsStreamer):
         r = self.fetch(url, method='POST', referer=self.PLAYER_URL % cid, payload=payload)
         return json.loads(r.content)['stream']['broadcast']['broad_url']
     '''
+
+    def api_epg(self, cid, days=1):
+        url = ud.Url(self.API_URL + '/media/schedules')
+        url.update_query(dict(
+            apiKey=self.API_KEY.get('mobile'),
+            pageNo=1,
+            pageSize=20,
+            order='chno',
+            scope='all',
+            adult='n',
+            free='all',
+            channelCode=cid,
+            screenCode=self.CS.get('screenCode'), teleCode=self.CS.get('teleCode'),
+            networkCode=self.CS.get('networkCode'), osCode=self.CS.get('osCode'),
+            )
+        )
+        broadDate = dt.today().date()
+        for _ in range(days):
+            broadTime = 0
+            for _ in range(8):
+                url.query_dict['broadDate'] = dt.strftime(broadDate, '%Y%m%d')
+                url.query_dict['broadcastDate'] = dt.strftime(broadDate, '%Y%m%d')
+                url.query_dict['startBroadTime'] = '%02d0000' % broadTime
+                url.query_dict['endBroadTime'] = '%02d0000' % int(broadTime + 3)
+                r = self.fetch(url, referer=self.PLAYER_URL % cid)
+                js = json.loads(r.content)
+                try:
+                    yield js['body']['result'][0]['schedules']
+                except Exception as e:
+                    log.error(e.message)
+                broadTime += 3
+            broadDate += datetime.timedelta(days=1)
+
 
     def api_streaminfo(self, cid, stream_code):
         url = ud.Url(self.API_URL + '/media/stream/info')
@@ -190,7 +237,7 @@ class Tving(HlsStreamer):
         url.update_query(dict(
             free='all', adult='all', order='rating', apiKey=self.API_KEY.get('mobile'),
             pageNo=pageNo, pageSize=30, screenCode=self.CS.get('screenCode'),
-            networkCode=self.CS.get('networkCode'), osCode=self.CS.get('osCode'),
+            channelType='CPCS0100', networkCode=self.CS.get('networkCode'), osCode=self.CS.get('osCode'),
             teleCode=self.CS.get('teleCode'), totalCountYn='Y'
         ))
         r = self.fetch(url, referer='http://www.tving.com/live/list/top', cached=True)
@@ -213,8 +260,6 @@ class Tving(HlsStreamer):
             match = self.JQUERY_VERSION_REGEXP.search(r.content)
             if match is not None:
                 self.set_cache('jquery_version', match.group(1))
-            cookies = self.get_cookie()
-            self.set_cache('pay_type', cookies.get('USER_PAY_TYPE').value)
             return True
         else:
             log.debug('Login failed.')

@@ -8,6 +8,7 @@ from apps.common.manager import Manager
 from apps.common import urldealer as ud
 from apps.common.exceptions import MyFlaskException
 from apps.streamate import packer
+from apps.streamate import epggrabber
 from apps.common import fetchers
 
 log = logging.getLogger(__name__)
@@ -52,8 +53,19 @@ class StreamManager(Manager):
 
     def order_all_m3u(self, query):
         with futures.ThreadPoolExecutor(max_workers=2) as exe:
-            generators = exe.map(lambda class_: class_(self.config).get_channels(), self.__streamer_classes.itervalues())
+            generators = exe.map(lambda item: item[1](self.config['STREAMERS'][item[0].capitalize()], fetchers.hire_fetcher(self.config['FETCHER'])).get_channels(), self.__streamer_classes.iteritems())
             return packer.pack_m3u(chain.from_iterable(generators))
+
+    def order_all_epg(self, query):
+        grabbers = [class_(fetchers.hire_fetcher(self.config['FETCHER'])) for name, class_ in self.__epg_grabber_classes.iteritems()]
+        for streamer, class_ in self.__streamer_classes.iteritems():
+            config = self.config['STREAMERS'][streamer.capitalize()]
+            config['CHANNELS'] = self.config['CHANNELS']
+            grabbers.append(class_(config, fetchers.hire_fetcher(self.config['FETCHER'])))
+        return packer.pack_epg(epggrabber.get_epg(self.config['CHANNELS'], grabbers, query.get('days', default=1, type=int)))
+
+    def _order_test(self, streamer, query):
+        return streamer.get_internal_epg(query.get('ch'), query.get('days', type=int))
 
     def request(self, streamer, order, query):
         # type: (str, Type[Dict[str, Union[List[str], str]]]) -> ?
@@ -62,7 +74,9 @@ class StreamManager(Manager):
         except KeyError as e:
             log.error(e.message)
             return "There is no streamer : '%s'" % streamer
-        instance = class_(self.config['STREAMERS'][streamer.capitalize()], fetchers.hire_fetcher(self.config['FETCHER']))
+        config = self.config['STREAMERS'][streamer.capitalize()]
+        config['CHANNELS'] = self.config['CHANNELS']
+        instance = class_(config, fetchers.hire_fetcher(self.config['FETCHER']))
         #fetchers_log = logging.getLogger('apps.common.fetchers')
         #fetchers_log.setLevel('INFO')
         function = None

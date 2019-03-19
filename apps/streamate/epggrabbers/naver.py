@@ -22,6 +22,7 @@ class Naver(EpgGrabber):
     SEARCH_URL = 'https://m.search.naver.com/search.naver?query=%s'
     search_count = 0
     fail_count = 0
+    epg_search_type = 'keyword'
 
     def parse_html(self, html_str):
         for e in etree.HTML(html_str).xpath('//div[@class="inner"]'):
@@ -40,11 +41,12 @@ class Naver(EpgGrabber):
             return json.loads(re.sub(r'(\w+):\s', r'"\1":', match.group(1)))
         return {}
 
-    def get_epg(self, ch_name, cid, days=1):
+    def get_epg(self, mapped_channel, days=1):
+        ch_name = mapped_channel.get('name')
         self.search_count += 1
         url = self.SEARCH_URL % ch_name + ' 편성표'
         api_config = self._get_api_config(self.fetch(url, referer=self.URL))
-        epgs = {'name': ch_name, 'cid': cid, 'programs': [], 'from': 'naver'}
+        programs = []
         if 'url' in api_config and 'scheduleParam' in api_config:
             api_url = ud.Url(api_config.get('url'))
             api_url.update_query(api_config.get('scheduleParam'))
@@ -55,10 +57,10 @@ class Naver(EpgGrabber):
                 data = json.loads(response.content)
                 if data.get('statusCode', None) == 'SUCCESS':
                     for item in data.get('dataHtml'):
-                        epgs['programs'] += self.get_info(item, proc_date)
+                        programs += self.get_info(item, proc_date)
                 proc_date += datetime.timedelta(days=1)
-            return self.set_times(epgs)
+            return self.set_times(programs)
         else:
             log.warning("Couldn't find epg for the channel : %s", ch_name)
             self.fail_count += 1
-            return epgs
+            return programs

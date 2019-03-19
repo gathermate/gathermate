@@ -50,8 +50,13 @@ def streamer(streamer):
 def streamer_channels(streamer):
     query = MultiDict(request.args.iteritems(multi=True))
     def gen():
+        counter = 1
         for ch in _order(streamer, 'channels', query):
-            yield ch.name + '\n'
+            if ch.exclusive:
+                info = "dict(cid='%s', chnum='%d', tving='%s', logo='%s', name='%s')," % (
+                    ch.name[0] + str(counter), counter, ch.cid, ch.logo, ch.name)
+                yield info + '\n'
+            counter += 1
     return Response(stream_with_context(gen()), mimetype='text/plain')
 
 @streamate.route('/<string:streamer>/m3u')
@@ -77,6 +82,15 @@ def m3u():
     m3u_gen = app.managers[name].order_all_m3u(query)
     response = Response(stream_with_context(m3u_gen), mimetype='application/x-mpegURL')
     response.headers['Content-Disposition'] = 'attachment; filename=all.m3u'
+    return response
+
+@streamate.route('/epg')
+@auth.requires_auth
+def epg():
+    query = MultiDict(request.args.iteritems(multi=True))
+    epg_gen = app.managers[name].order_all_epg(query)
+    response = Response(stream_with_context(epg_gen), mimetype='text/xml')
+    response.headers['Content-Disposition'] = 'attachment; filename=all.xml'
     return response
 
 @streamate.route('/<string:streamer>/<string:cid>/<string:order>')

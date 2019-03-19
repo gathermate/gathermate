@@ -3,6 +3,7 @@ import re
 import json
 import logging
 import datetime
+from datetime import datetime as dt
 
 import m3u8
 
@@ -33,14 +34,10 @@ class Pooq(HlsStreamer):
         credential='none',
         pooqzone='none',
         drm='wm')
-
-    streaming_instance = None
+    epg_search_type = 'id'
 
     def __init__(self, settings, fetcher):
-        super(Pooq, self).__init__(fetcher)
-        self.playlist = {}
-        self.should_stream = True
-        self.settings = settings
+        super(Pooq, self).__init__(settings, fetcher)
         if bool(self.should_login()):
             self.api_login()
 
@@ -48,30 +45,27 @@ class Pooq(HlsStreamer):
         js = self.api_channels(page)
         channels = []
         for genres in js.get('list'):
-            genre = genres.get('genretitle')
             for channel in genres.get('list'):
-                cid = channel.get('channelid')
-                if int(channel.get('price')) is 1 or cid in self.settings.get('EXCEPT_CHANNELS'):
+                cid = [channel.get('channelid')]
+                if int(channel.get('price')) is 1 or cid[0] in self.settings['EXCEPT_CHANNELS']:
                     continue
                 name = [channel.get('channelname')]
-                alter_name = self.settings.get('ALTERNATIVE_CHANNEL_NAME').get(cid)
-                name += [alter_name] if alter_name is not None else []
-                exclusive = True if cid in self.settings.get('EXCLUSIVE_CHANNELS') else False
+                mapped_channel = self._get_mapped_channel('pooq', cid[0])
+                if mapped_channel:
+                    cid.append(mapped_channel.get('cid'))
+                    name.append(mapped_channel.get('name'))
                 channels.append(
                     Channel(
                         dict(streamer='Pooq',
                              cid=cid,
+                             chnum=mapped_channel.get('chnum') if mapped_channel else 0,
                              name=name,
-                             cProgram=channel.get('title'),
-                             thumbnail=channel.get('image'),
-                             rating=channel.get('playratio'),
-                             logo=channel.get('tvimage'),
-                             genre=genre,
-                             exclusive=exclusive,
+                             logo=mapped_channel.get('logo') if mapped_channel else channel.get('tvimage'),
                         )
                     )
                 )
-        return sorted(channels, key=lambda item: item.genre), False, 0
+
+        return sorted(channels, key=lambda item: item.name), False, 0
 
     def get_playlist_url(self, cid, qIndex):
         '''
@@ -87,6 +81,25 @@ class Pooq(HlsStreamer):
         variant = m3u8.loads(response.content)
         return ud.join(url, variant.playlists[-1 if qIndex >= len(variant.playlists) else qIndex].uri)
 
+    def get_epg(self, mapped_channel, days):
+        pooq_id = mapped_channel.get('pooq')
+        if pooq_id is None:
+            log.warning("Couldn't find epg for the channel : %s", mapped_channel.get('name'))
+            return []
+        info = self.api_epg(pooq_id, days if days is not None else 1)
+        programs = []
+        for program in info.get('list'):
+            start_time = dt.strftime(dt.strptime(program.get('starttime'), '%Y-%m-%d %H:%M'),
+                                    '%Y%m%d%H%M%S') + ' +0900'
+            end_time = dt.strftime(dt.strptime(program.get('endtime'), '%Y-%m-%d %H:%M'),
+                                   '%Y%m%d%H%M%S') + ' +0900'
+            programs.append({
+                'start': start_time,
+                'stop': end_time,
+                'title': program.get('title'),
+                })
+        return programs
+
     def api_ip(self):
         api = ud.Url(ud.join(self.API_URL, '/ip'))
         return self.request_api(api)
@@ -97,16 +110,16 @@ class Pooq(HlsStreamer):
         self.set_cache('guid', guid)
         return guid
 
-    def api_channel(self, channel):
-        api = ud.Url(ud.join(self.API_URL, '/live/channels/%s' % channel))
-        return self.request_api(api, referer=self.PLAYER_URL % channel)
+    def api_channel(self, cid):
+        api = ud.Url(ud.join(self.API_URL, '/live/channels/%s' % cid))
+        return self.request_api(api, referer=self.PLAYER_URL % cid)
 
-    def api_epg(self, channel):
-        api = ud.Url(ud.join(self.API_URL, '/live/epgs/channels/%s' % channel))
-        stime = datetime.datetime.strftime(datetime.datetime.today(), '%Y-%m-%d %H:%M')
-        etime = datetime.datetime.strftime(datetime.datetime.today() + datetime.timedelta(days=1), '%Y-%m-%d %H:%M')
+    def api_epg(self, cid, days=1):
+        api = ud.Url(ud.join(self.API_URL, '/live/epgs/channels/%s' % cid))
+        stime = dt.strftime(dt.today(), '%Y-%m-%d %H:%M')
+        etime = dt.strftime(dt.today() + datetime.timedelta(days=days), '%Y-%m-%d %H:%M')
         query = dict(startdatetime=stime, enddatetime=etime, offset=0, limit=999, orderby='old')
-        return self.request_api(api, referer=self.PLAYER_URL % channel, query=query)
+        return self.request_api(api, referer=self.PLAYER_URL % cid, query=query)
 
     def api_streamlist(self, cid, quality):
         api = ud.Url(ud.join(self.API_URL, '/streaming'))

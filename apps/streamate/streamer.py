@@ -54,6 +54,14 @@ class Streamer(object):
 
 class HlsStreamer(Streamer):
 
+    streaming_instance = None
+
+    def __init__(self, settings, fetcher):
+        super(HlsStreamer, self).__init__(fetcher)
+        self.settings = settings
+        self.playlist = {}
+        self.should_stream = True
+
     def streaming(self, cid, qIndex):
         '''
         Allows only one request.
@@ -102,27 +110,36 @@ class HlsStreamer(Streamer):
                 yield channel
             safe_counter -= 1
 
-    def get_epg(self, grabbers, days=1):
+    def old_get_epg(self, grabbers, days=1):
         channels = self.get_channels()
-        def set_epg(pair):
-            if pair[1].exclusive:
-                return pair[1]
+        with futures.ThreadPoolExecutor(max_workers=8) as exe:
+            future_list = []
+            for idx, channel in enumerate(channels):
+                future_list.append(exe.submit(self.set_epg, idx, channel, grabbers, days))
+            for f in future_list:
+                yield f.result()
+
+    def old_set_epg(self, idx, channel, grabbers, days):
+        epg = dict(fails=[], programs=None, source=None)
+        if channel.exclusive:
+            epg['programs'] = self.get_internal_epg(channel, days)
+            epg['source'] = channel.streamer
+        else:
             grabbers_deque = deque(grabbers)
-            grabbers_deque.rotate(pair[0] % len(grabbers))
-            epg = dict(fails=[], programs=None, source=None)
+            grabbers_deque.rotate(idx % len(grabbers))
             while len(grabbers_deque) > 0:
                 grabber = grabbers_deque.pop()
-                programs = grabber.get_epg(pair[1].getlist('name')[-1], pair[1].cid, days=days).get('programs')
+                programs = grabber.get_epg(channel.getlist('name')[-1], channel.cid, days=days).get('programs')
                 if len(programs) > 0:
                     epg['programs'] = programs
                     epg['source'] = grabber.URL
                     break
                 epg['fails'].append(grabber.URL)
-            pair[1]['epg'] = epg
-            return pair[1]
+        channel['epg'] = epg
+        return channel
 
-        with futures.ThreadPoolExecutor(max_workers=8) as exe:
-            return exe.map(set_epg, enumerate(channels))
+    def _get_mapped_channel(self, streamer, cid):
+        return next((ch for ch in self.settings['CHANNELS'] if ch.get(streamer) == cid), None)
 
 
 class Channel(MultiDict):
