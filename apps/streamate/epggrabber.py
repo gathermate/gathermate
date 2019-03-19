@@ -10,6 +10,7 @@ import threading
 from concurrent import futures
 
 log = logging.getLogger(__name__)
+lock = threading.RLock()
 
 def get_epg(channel_map, grabbers, days=1):
     pq = PriorityQueue()
@@ -30,7 +31,8 @@ def set_epg(mapped_channel, days, pq):
     skip = mapped_channel.get('skip')
     used = skip.split('|') if skip else []
     if only:
-        grabber = pq.get(only)
+        with lock:
+            grabber = pq.get(only)
         programs = grabber.get_epg(mapped_channel, days)
         if len(programs) > 0:
             epg['programs'].extend(programs)
@@ -39,10 +41,12 @@ def set_epg(mapped_channel, days, pq):
             epg['fails'].append(grabber.__class__.__name__)
     else:
         while len(used) < pq.size():
-            name, grabber = pq.except_get(used)
+            with lock:
+                name, grabber = pq.except_get(used)
             used.append(name)
             if grabber.epg_search_type == 'id' and mapped_channel.get(name) is None:
-                pq.de_priority(name)
+                with lock:
+                    pq.de_priority(name)
                 continue
             programs = grabber.get_epg(mapped_channel, days)
             if len(programs) > 0:
@@ -95,17 +99,19 @@ class EpgGrabber(object):
 
 
 class PriorityQueue(object):
+    '''
+    Not thread safe.
+    '''
 
     entries = {}
     counter = itertools.count()
-    lock = threading.Lock()
 
     def set(self, key, value, priority=0):
-        with self.lock:
-            self.entries[key] = [priority, next(self.counter), key, value]
+        self.entries[key] = [priority, next(self.counter), key, value]
 
     def get(self, key):
         priority, count, key, value = self.entries[key]
+        #log.debug('---------- %d, %d, %s / %s', priority, count, key, self.entries)
         self.set(key, value, priority + 1)
         return value
 
@@ -115,6 +121,7 @@ class PriorityQueue(object):
         for key in names:
             heapq.heappush(pq, self.entries[key])
         priority, count, key, value = heapq.heappop(pq)
+        #log.debug('---------- %d, %d, %s / %s', priority, count, key, self.entries)
         self.set(key, value, priority + 1)
         return key, value
 
