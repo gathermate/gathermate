@@ -12,6 +12,13 @@ from apps.common import urldealer as ud
 log = logging.getLogger(__name__)
 
 def pack_m3u(channels):
+    '''
+    - tvg-id is value of '<channel id="">' in EPG xml file. If the tag is absent then addon will use tvg-name for map channel to EPG;
+    - tvg-name is value of display-name in EPG there all space chars replaced to _ (underscore char) if this value is not found in xml then addon will use the channel name to find correct EPG.
+    - tvg-logo is name of channel logo file. If this tag is absent then addon will use channel name to find logo.
+    - tvg-shift is value in hours to shift EPG time. This tag can be used in #EXTM3U for apply shift to all channels or in #EXTINF for apply shift only to current channel.
+    - group-name is channels group name. If the tag is absent then addon will use group name from the previous channel.
+    '''
     yield '#EXTM3U\n'
     for channel in channels:
         yield '#EXTINF:-1 tvg-id="{cid}" tvg-logo="{logo}" tvh-chnum="{chnum}" tvh-network="{streamer}",{name}\n' \
@@ -30,9 +37,6 @@ def pack_m3u(channels):
         yield url.text + '\n'
 
 def pack_epg(channel_generator):
-    '''
-    Change it to generator!
-    '''
     yield '''<?xml version="1.0" encoding="UTF-8"?>
 <tv generator-info-name="Gathermate">\n'''
     for ch in channel_generator:

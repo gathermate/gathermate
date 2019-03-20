@@ -8,9 +8,9 @@ from datetime import datetime as dt
 import m3u8
 
 from apps.common import urldealer as ud
+from apps.common.exceptions import MyFlaskException
 from apps.streamate.streamer import HlsStreamer
 from apps.streamate.streamer import Channel
-from apps.common.exceptions import MyFlaskException
 
 log = logging.getLogger(__name__)
 
@@ -34,7 +34,8 @@ class Pooq(HlsStreamer):
         credential='none',
         pooqzone='none',
         drm='wm')
-    epg_search_type = 'id'
+    EPG_SEARCH_TYPE = 'id'
+    streaming_instance = None
 
     def __init__(self, settings, fetcher):
         super(Pooq, self).__init__(settings, fetcher)

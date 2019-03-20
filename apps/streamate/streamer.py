@@ -54,8 +54,6 @@ class Streamer(object):
 
 class HlsStreamer(Streamer):
 
-    streaming_instance = None
-
     def __init__(self, settings, fetcher):
         super(HlsStreamer, self).__init__(fetcher)
         self.settings = settings
@@ -110,36 +108,14 @@ class HlsStreamer(Streamer):
                 yield channel
             safe_counter -= 1
 
-    def old_get_epg(self, grabbers, days=1):
-        channels = self.get_channels()
-        with futures.ThreadPoolExecutor(max_workers=8) as exe:
-            future_list = []
-            for idx, channel in enumerate(channels):
-                future_list.append(exe.submit(self.set_epg, idx, channel, grabbers, days))
-            for f in future_list:
-                yield f.result()
-
-    def old_set_epg(self, idx, channel, grabbers, days):
-        epg = dict(fails=[], programs=None, source=None)
-        if channel.exclusive:
-            epg['programs'] = self.get_internal_epg(channel, days)
-            epg['source'] = channel.streamer
-        else:
-            grabbers_deque = deque(grabbers)
-            grabbers_deque.rotate(idx % len(grabbers))
-            while len(grabbers_deque) > 0:
-                grabber = grabbers_deque.pop()
-                programs = grabber.get_epg(channel.getlist('name')[-1], channel.cid, days=days).get('programs')
-                if len(programs) > 0:
-                    epg['programs'] = programs
-                    epg['source'] = grabber.URL
-                    break
-                epg['fails'].append(grabber.URL)
-        channel['epg'] = epg
-        return channel
-
     def _get_mapped_channel(self, streamer, cid):
         return next((ch for ch in self.settings['CHANNELS'] if ch.get(streamer) == cid), None)
+
+    def get_playlist_url(self):
+        raise NotImplementedError
+
+    def _get_channels(self):
+        raise NotImplementedError
 
 
 class Channel(MultiDict):
@@ -157,42 +133,9 @@ class Channel(MultiDict):
         return self.get('name')
 
     @property
-    def cProgram(self):
-        return self.get('cProgram')
-
-    @property
-    def thumbnail(self):
-        return self.get('thumbnail')
-
-    @property
-    def rating(self):
-        return self.get('rating')
-
-    @property
     def logo(self):
         return self.get('logo')
 
     @property
     def chnum(self):
         return self.get('chnum')
-
-    @property
-    def genre(self):
-        return self.get('genre')
-
-    @property
-    def epg(self):
-        return self.get('epg')
-
-    @property
-    def exclusive(self):
-        return self.get('exclusive')
-
-
-'''
-- tvg-id is value of '<channel id="">' in EPG xml file. If the tag is absent then addon will use tvg-name for map channel to EPG;
-- tvg-name is value of display-name in EPG there all space chars replaced to _ (underscore char) if this value is not found in xml then addon will use the channel name to find correct EPG.
-- tvg-logo is name of channel logo file. If this tag is absent then addon will use channel name to find logo.
-- tvg-shift is value in hours to shift EPG time. This tag can be used in #EXTM3U for apply shift to all channels or in #EXTINF for apply shift only to current channel.
-- group-name is channels group name. If the tag is absent then addon will use group name from the previous channel.
-'''

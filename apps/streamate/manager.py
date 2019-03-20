@@ -26,14 +26,44 @@ class StreamManager(Manager):
         self.__streamer_classes = self._register_modules('apps.streamate.streamers', 'Streamer')
         self.__epg_grabber_classes = self._register_modules('apps.streamate.epggrabbers', 'EpgGrabber')
 
+    def hire_grabbers(self, *grabber_names):
+        grabbers = []
+        for name in grabber_names:
+            name = name.capitalize()
+            if name in self.__epg_grabber_classes:
+                grabbers.append(self.__epg_grabber_classes[name](fetchers.hire_fetcher(self.config['FETCHER'])))
+            if name in self.__streamer_classes and self.__streamer_classes[name].get_epg:
+                grabbers.append(self.hire_streamers(name)[0])
+        if grabber_names and len(grabbers) < 1:
+            raise KeyError('There is no grabber named : %s' % ', '.join(grabber_names))
+        if len(grabbers) < 1:
+            grabbers = [class_(fetchers.hire_fetcher(self.config['FETCHER'])) for class_ in self.__epg_grabber_classes.itervalues()]
+            for streamer_class in self.__streamer_classes.itervalues():
+                if streamer_class.get_epg:
+                    grabbers.append(self.hire_streamers(streamer_class.__name__)[0])
+        return grabbers
+
+    def hire_streamers(self, *streamer_names):
+        classes = []
+        for name in streamer_names:
+            if name.capitalize() in self.__streamer_classes:
+                classes.append(self.__streamer_classes[name.capitalize()])
+        if streamer_names and len(classes) < 1:
+            raise KeyError('There is no streamer named : %s' % ', '.join(streamer_names))
+        if len(classes) < 1:
+            classes = [class_ for class_ in self.__streamer_classes.itervalues()]
+        streamers = []
+        for class_ in classes:
+            config = self.config['STREAMERS'][class_.__name__]
+            config['CHANNELS'] = self.config['CHANNELS']
+            streamers.append(class_(config, fetchers.hire_fetcher(self.config['FETCHER'])))
+        return streamers
+
     def _order_resource(self, streamer, query):
         return streamer.get_resource(ud.Url(ud.unquote(query.get('url'))))
 
     def _order_channels(self, streamer, query):
         return streamer.get_channels()
-
-    def _order_info(self, streamer, query):
-        return 'info'
 
     def _order_streaming(self, streamer, query):
         return streamer.streaming
@@ -41,50 +71,30 @@ class StreamManager(Manager):
     def _order_m3u(self, streamer, query):
         return packer.pack_m3u(streamer.get_channels())
 
-    def _order_epg(self, streamer, query):
-        grabbers = []
-        for grabber in query.getlist('grabber'):
-            try:
-                class_ = self.__epg_grabber_classes[grabber.capitalize()]
-                grabbers.append(class_(fetchers.hire_fetcher(self.config['FETCHER'])))
-            except KeyError as e:
-                log.error(e.message)
-        return packer.pack_epg(streamer.get_epg(grabbers, query.get('days', default=1, type=int)))
-
     def order_all_m3u(self, query):
         with futures.ThreadPoolExecutor(max_workers=2) as exe:
-            generators = exe.map(lambda item: item[1](self.config['STREAMERS'][item[0].capitalize()], fetchers.hire_fetcher(self.config['FETCHER'])).get_channels(), self.__streamer_classes.iteritems())
+            generators = exe.map(lambda streamer: streamer.get_channels(), self.hire_streamers())
             return packer.pack_m3u(chain.from_iterable(generators))
 
     def order_all_epg(self, query):
-        grabbers = [class_(fetchers.hire_fetcher(self.config['FETCHER'])) for name, class_ in self.__epg_grabber_classes.iteritems()]
-        for streamer, class_ in self.__streamer_classes.iteritems():
-            config = self.config['STREAMERS'][streamer.capitalize()]
-            config['CHANNELS'] = self.config['CHANNELS']
-            grabbers.append(class_(config, fetchers.hire_fetcher(self.config['FETCHER'])))
+        grabbers = self.hire_grabbers(*query.getlist('grabber'))
         return packer.pack_epg(epggrabber.get_epg(self.config['CHANNELS'], grabbers, query.get('days', default=1, type=int)))
 
     def _order_test(self, streamer, query):
         return streamer.get_internal_epg(query.get('ch'), query.get('days', type=int))
 
+
     def request(self, streamer, order, query):
         # type: (str, Type[Dict[str, Union[List[str], str]]]) -> ?
         try:
-            class_ = self.__streamer_classes[streamer.capitalize()]
-        except KeyError as e:
-            log.error(e.message)
-            return "There is no streamer : '%s'" % streamer
-        config = self.config['STREAMERS'][streamer.capitalize()]
-        config['CHANNELS'] = self.config['CHANNELS']
-        instance = class_(config, fetchers.hire_fetcher(self.config['FETCHER']))
-        #fetchers_log = logging.getLogger('apps.common.fetchers')
-        #fetchers_log.setLevel('INFO')
-        function = None
+            self.__streamer_classes[streamer.capitalize()]
+        except KeyError:
+            raise MyFlaskException("There is no streamer : '%s'", streamer.capitalize())
+        instance = self.hire_streamers(streamer.capitalize())[0]
         try:
             function = getattr(self, '_order_%s' % order)
         except AttributeError as e:
             log.error(e.message)
             return "there is no such order : '%s'" % order
         data = function(instance, query)
-        #fetchers_log.setLevel(self.config.get('LOG_LEVEL'))
         return data

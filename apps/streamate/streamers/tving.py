@@ -50,12 +50,13 @@ class Tving(HlsStreamer):
     LOGIN_OK_REGEXP = re.compile(r'\([\'\"]LOGIN_OK[\'"]\)')
     ZZANG_REGEXP = re.compile(r'var zzang = ["\'](.+)["\'];')
 
-    epg_search_type = 'id'
+    EPG_SEARCH_TYPE = 'id'
+    streaming_instance = None
 
     def __init__(self, settings, fetcher):
         super(Tving, self).__init__(settings, fetcher)
         if self.get_cache('pcid') is None:
-            self.set_cookie(self._make_pcid_cookie())
+            self.set_cookie(self.make_pcid_cookie())
         if bool(self.should_login()):
             self.login()
 
@@ -138,11 +139,11 @@ class Tving(HlsStreamer):
                     })
         return programs
 
-    def _make_jsonp_name(self):
+    def make_jsonp_name(self):
         jq_version = self.get_cache('jquery_version', '1.12.3')
         return 'jQuery' + re.sub(r'\D', '', jq_version + repr(random.random())) + '_' + str(int(time.time()*1000))
 
-    def _make_pcid_cookie(self):
+    def make_pcid_cookie(self):
         value = str(int(time.time()*1000))
         for _ in range(10):
             value += repr(random.random())[2]
@@ -218,8 +219,8 @@ class Tving(HlsStreamer):
         r = self.fetch(url, referer=self.PLAYER_URL % cid)
         js = json.loads(r.content)
         stream_url = self.decrypt(key, cid, js['body']['stream']['broadcast']['broad_url'])
-        server_time = self._get_datetime(js['body']['server']['time'])
-        start_time = self._get_datetime(js['body']['content']['broadcast_start_date'])
+        server_time = self.get_datetime(js['body']['server']['time'])
+        start_time = self.get_datetime(js['body']['content']['broadcast_start_date'])
         current_time = (server_time - start_time).total_seconds()
         return stream_url, current_time
 
@@ -229,7 +230,7 @@ class Tving(HlsStreamer):
         decrypted = cipher.decrypt(base64.b64decode(value))
         return filter(string.printable.__contains__, decrypted)
 
-    def _get_datetime(self, value):
+    def get_datetime(self, value):
         return datetime.datetime.strptime(str(value), '%Y%m%d%H%M%S')
 
     def api_channels(self, pageNo):

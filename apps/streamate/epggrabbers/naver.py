@@ -20,11 +20,11 @@ def register():
 class Naver(EpgGrabber):
     URL = 'https://m.naver.com'
     SEARCH_URL = 'https://m.search.naver.com/search.naver?query=%s'
+    EPG_SEARCH_TYPE = 'keyword'
     search_count = 0
     fail_count = 0
-    epg_search_type = 'keyword'
 
-    def parse_html(self, html_str):
+    def parse_epg_html(self, html_str):
         for e in etree.HTML(html_str).xpath('//div[@class="inner"]'):
             start_time = e.find('div[1]').text
             pr_info = e.find('div[2]')
@@ -57,9 +57,9 @@ class Naver(EpgGrabber):
                 data = json.loads(response.content)
                 if data.get('statusCode', None) == 'SUCCESS':
                     for item in data.get('dataHtml'):
-                        programs += self.get_info(item, proc_date)
+                        programs += self.get_epg_info(item, proc_date)
                 proc_date += datetime.timedelta(days=1)
-            return self.set_times(programs)
+            return self.set_epg_times(programs)
         else:
             log.warning("Couldn't find epg for the channel : %s", ch_name)
             self.fail_count += 1

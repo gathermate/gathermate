@@ -23,38 +23,38 @@ def get_epg(channel_map, grabbers, days=1):
             future_list.append(exe.submit(set_epg, ch, days, pq))
     for f in future_list:
         yield f.result()
-    log.debug(pq.entries)
+    log.debug('\n' + '\n'.join(['%s : priority(%d), age(%d)' % (n.upper(), p, c) for p, c, n, _ in pq.entries.values()]) + '\n')
 
 def set_epg(mapped_channel, days, pq):
     epg = dict(fails=[], programs=[], source=None)
+    mapped_channel['epg'] = epg
     only = mapped_channel.get('only')
     skip = mapped_channel.get('skip')
-    used = skip.split('|') if skip else []
+    skip = skip.split('|') if skip else []
+    programs = epg['programs']
     if only:
-        with lock:
-            grabber = pq.get(only)
-        programs = grabber.get_epg(mapped_channel, days)
-        if len(programs) > 0:
-            epg['programs'].extend(programs)
-            epg['source'] = grabber.__class__.__name__
-        else:
+        for o in only.split('|'):
+            try:
+                with lock: grabber = pq.get(o)
+            except KeyError as ke:
+                log.error('%s is required to grab %s', ke.message.capitalize(), mapped_channel['name'])
+                return mapped_channel
+            programs = grabber.get_epg(mapped_channel, days)
+            if programs: break
             epg['fails'].append(grabber.__class__.__name__)
     else:
-        while len(used) < pq.size():
+        while len(skip) < pq.size():
             with lock:
-                name, grabber = pq.except_get(used)
-            used.append(name)
-            if grabber.epg_search_type == 'id' and mapped_channel.get(name) is None:
-                with lock:
-                    pq.de_priority(name)
+                name, grabber = pq.except_get(skip)
+            skip.append(name)
+            if grabber.EPG_SEARCH_TYPE == 'id' and mapped_channel.get(name) is None:
+                with lock: pq.de_priority(name)
                 continue
             programs = grabber.get_epg(mapped_channel, days)
-            if len(programs) > 0:
-                epg['programs'].extend(programs)
-                epg['source'] = name
-                break
+            if programs: break
             epg['fails'].append(name)
-    mapped_channel['epg'] = epg
+    if programs:
+        epg['source'] = grabber.__class__.__name__
     return mapped_channel
 
 
@@ -66,12 +66,13 @@ class EpgGrabber(object):
     def fetch(self, url, cached=False, **kwargs):
         return self.fetcher.fetch(url, cached=cached, **kwargs)
 
-    def set_times(self, programs):
+    def set_epg_times(self, programs):
         programs = sorted(programs, key=lambda item: item.get('start'))
         for idx, p in enumerate(programs):
             if idx + 1 < len(programs):
                 p['stop'] = programs[idx + 1].get('start')
             else:
+                # give 3 hours to the last program duration.
                 p['stop'] = p['start'] + datetime.timedelta(hours=3)
                 '''
                 p['stop'] = dt.combine(p['start'].date() + datetime.timedelta(days=1),
@@ -84,10 +85,9 @@ class EpgGrabber(object):
     def parse_time(self, time_str, time_format='%H:%M'):
         return dt.strptime(time_str, time_format).time()
 
-
-    def get_info(self, raw_html, proc_date):
+    def get_epg_info(self, raw_html, proc_date):
         programs = []
-        for start_time, title in self.parse_html(raw_html):
+        for start_time, title in self.parse_epg_html(raw_html):
             start_time = self.parse_time(start_time)
             start_datetime = dt.combine(proc_date, start_time)
             programs.append({
