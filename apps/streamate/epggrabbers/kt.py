@@ -53,4 +53,4 @@ class Kt(EpgGrabber):
             for div in e.find('div[@class="data"]').iterchildren():
                 minute = div.find('div[@class="minute"]').text
                 title = div.find('div[@class="name"]/div/span').text
-                yield '%s:%s' % (hour, minute), unicode(title)
+                yield '%s:%s' % (hour, minute), unicode(title.strip())

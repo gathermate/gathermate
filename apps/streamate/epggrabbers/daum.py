@@ -25,7 +25,7 @@ class Daum(EpgGrabber):
         for e in etree.HTML(html_str).xpath('//div[@class="tvlist_cont"]//div[@class="panel"]//div[@class="schedule_broadcast"]/ul/li'):
             start_time = e.find('.//span[@class="txt_time"]').text
             title = e.find('.//span[@class="txt_name"]').text
-            yield start_time, unicode(title)
+            yield start_time, unicode(title.strip())
 
     def get_epg(self, mapped_channel, days=1):
         ch_name = mapped_channel.get('name')

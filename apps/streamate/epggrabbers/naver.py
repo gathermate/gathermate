@@ -33,7 +33,7 @@ class Naver(EpgGrabber):
             title = pr_title.xpath('string()').strip()
             if sub_info is not None:
                 title = '{} {}'.format(title, sub_info.text)
-            yield start_time, unicode(title)
+            yield start_time, unicode(title.strip())
 
     def _get_api_config(self, response):
         match = re.search(r'apiConfig:\s({.+u2:\s"\d+"\s}\s})', response.content)

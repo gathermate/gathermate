@@ -58,4 +58,4 @@ class Lg(EpgGrabber):
         for tr in etree.HTML(html_str).xpath('//div[@class="tblType list"]/table/tbody/tr'):
             start_time = tr.find('td[@class="txtC"]').text
             title = tr.find('td[@class="txtL"]').text
-            yield start_time, unicode(title)
+            yield start_time, unicode(title.strip())
