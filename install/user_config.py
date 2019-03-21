@@ -176,8 +176,8 @@ class GoogleAppEngine(Localhost):
     FETCHER['COOKIE_PATH'] = None
     #APPS = [Localhost.SCRAPMATE, Localhost.CALLMEWHEN]
 
-LOCALHOST_CLASS = Localhost()
-GOOGLEAPPENGINE_CLASS = GoogleAppEngine()
+LOCALHOST_INSTANCE = Localhost()
+GOOGLEAPPENGINE_INSTANCE = GoogleAppEngine()
 
 # cid : 채널 매핑에 사용할 채널 ID (e.g. tvg-id)
 # only : EPG 검색시 필요한 그래버(화이트리스트). 복수 입력시 '|'로 구분
