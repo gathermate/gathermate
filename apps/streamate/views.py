@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import logging
+from datetime import datetime as dt
 
 from flask import Blueprint
 from flask import request
@@ -61,7 +62,7 @@ def streamer_m3u(streamer):
     query = MultiDict(request.args.iteritems(multi=True))
     m3u_gen = _order(streamer, 'm3u', query)
     response = Response(stream_with_context(m3u_gen), mimetype='application/x-mpegURL')
-    response.headers['Content-Disposition'] = 'attachment; filename={}.m3u'.format(streamer)
+    response.headers['Content-Disposition'] = 'attachment; filename=gathermate-{}.m3u'.format(streamer)
     return response
 
 @streamate.route('/m3u')
@@ -70,7 +71,7 @@ def m3u():
     query = MultiDict(request.args.iteritems(multi=True))
     m3u_gen = app.managers[name].order_all_m3u(query)
     response = Response(stream_with_context(m3u_gen), mimetype='application/x-mpegURL')
-    response.headers['Content-Disposition'] = 'attachment; filename=all.m3u'
+    response.headers['Content-Disposition'] = 'attachment; filename=gathermate.m3u'
     return response
 
 @streamate.route('/epg')
@@ -78,8 +79,8 @@ def m3u():
 def epg():
     query = MultiDict(request.args.iteritems(multi=True))
     epg_gen = app.managers[name].order_all_epg(query)
-    response = Response(stream_with_context(epg_gen), mimetype='text/xml')
-    response.headers['Content-Disposition'] = 'attachment; filename=all.xml'
+    response = Response(stream_with_context(epg_gen), mimetype='application/xml')
+    response.headers['Content-Disposition'] = 'attachment; filename=gathermate.xml'
     return response
 
 @streamate.route('/<string:streamer>/<string:cid>')
