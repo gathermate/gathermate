@@ -31,7 +31,6 @@ def set_epg(mapped_channel, days, pq):
     only = mapped_channel.get('only')
     skip = mapped_channel.get('skip')
     skip = skip.split('|') if skip else []
-    programs = epg['programs']
     if only:
         for o in only.split('|'):
             try:
@@ -39,8 +38,8 @@ def set_epg(mapped_channel, days, pq):
             except KeyError as ke:
                 log.error('%s is required to grab %s', ke.message.capitalize(), mapped_channel['name'])
                 return mapped_channel
-            programs = grabber.get_epg(mapped_channel, days)
-            if programs: break
+            epg['programs'] = grabber.get_epg(mapped_channel, days)
+            if epg['programs']: break
             epg['fails'].append(grabber.__class__.__name__)
     else:
         while len(skip) < pq.size():
@@ -50,10 +49,10 @@ def set_epg(mapped_channel, days, pq):
             if grabber.EPG_SEARCH_TYPE == 'id' and mapped_channel.get(name) is None:
                 with lock: pq.de_priority(name)
                 continue
-            programs = grabber.get_epg(mapped_channel, days)
-            if programs: break
+            epg['programs'] = grabber.get_epg(mapped_channel, days)
+            if epg['programs']: break
             epg['fails'].append(name)
-    if programs:
+    if epg['programs']:
         epg['source'] = grabber.__class__.__name__
     return mapped_channel
 
