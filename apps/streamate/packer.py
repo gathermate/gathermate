@@ -35,7 +35,7 @@ def pack_m3u(channels, ffmpeg):
         url.username = app.config.get('AUTH_ID')
         url.password = app.config.get('AUTH_PW')
         if ffmpeg:
-            yield 'pipe://{} -i "{}" -c copy -f mpegts pipe:1\n'.format(ffmpeg, url.text)
+            yield 'pipe://{} -i {} -c copy -f mpegts pipe:1\n'.format(ffmpeg, url.text)
         else:
             yield url.text + '\n'
 
