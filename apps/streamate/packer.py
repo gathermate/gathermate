@@ -11,7 +11,7 @@ from apps.common import urldealer as ud
 
 log = logging.getLogger(__name__)
 
-def pack_m3u(channels):
+def pack_m3u(channels, ffmpeg):
     '''
     - tvg-id is value of '<channel id="">' in EPG xml file. If the tag is absent then addon will use tvg-name for map channel to EPG;
     - tvg-name is value of display-name in EPG there all space chars replaced to _ (underscore char) if this value is not found in xml then addon will use the channel name to find correct EPG.
@@ -34,7 +34,10 @@ def pack_m3u(channels):
         url = ud.Url(url)
         url.username = app.config.get('AUTH_ID')
         url.password = app.config.get('AUTH_PW')
-        yield url.text + '\n'
+        if ffmpeg:
+            yield 'pipe://{} -i "{}" -c copy -f mpegts pipe:1\n'.format(ffmpeg, url.text)
+        else:
+            yield url.text + '\n'
 
 def pack_epg(channel_generator):
     yield '''<?xml version="1.0" encoding="UTF-8"?>

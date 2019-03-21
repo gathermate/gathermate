@@ -84,7 +84,6 @@ class HlsStreamer(Streamer):
                     if not self.should_stream:
                         break
                     time.sleep(1)
-                    yield ''
                 if self.should_stream:
                     duration = self.set_playlist(cid, qIndex, play_sequence)[0]
 

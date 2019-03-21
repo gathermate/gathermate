@@ -69,7 +69,7 @@ class StreamManager(Manager):
         return streamer.streaming
 
     def _order_m3u(self, streamer, query):
-        return packer.pack_m3u(streamer.get_channels())
+        return packer.pack_m3u(streamer.get_channels(), query.get('ffmpeg'))
 
     def order_all_m3u(self, query):
         with futures.ThreadPoolExecutor(max_workers=2) as exe:

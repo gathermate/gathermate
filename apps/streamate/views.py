@@ -34,8 +34,7 @@ def index():
 
 @streamate.route('/<path:streamer>/resource')
 def resource(streamer):
-    query = MultiDict(request.args.iteritems(multi=True))
-    return _order(streamer, 'resource', query)
+    return _order(streamer, 'resource', request.args)
 
 @streamate.route('/<path:streamer>', strict_slashes=False)
 @auth.requires_auth
@@ -45,9 +44,8 @@ def streamer(streamer):
                            streamer=streamer)
 
 @streamate.route('/<path:streamer>/<string:cid>')
-@auth.requires_auth
 def streamer_channel_streaming(streamer, cid):
-    qIndex = int(request.args.get('q', -1))
+    qIndex = request.args.get('q', -1, int)
     gen = _order(streamer, 'streaming', None)
     response = Response(stream_with_context(gen(cid, qIndex)), mimetype='video/MP2T')
     response.headers['Content-Disposition'] = 'attachment; filename={}-{}.ts'.format(streamer, cid)
@@ -56,9 +54,8 @@ def streamer_channel_streaming(streamer, cid):
 @streamate.route('/<path:streamer>/channels')
 @auth.requires_auth
 def streamer_channels(streamer):
-    query = MultiDict(request.args.iteritems(multi=True))
     def gen():
-        for ch in _order(streamer, 'channels', query):
+        for ch in _order(streamer, 'channels', request.args):
             info = "dict(cid='', chnum='', %s='%s', logo='%s', name='%s')," % (
                 streamer, ch.cid, ch.logo, ch.name)
             yield info + '\n'
@@ -67,29 +64,30 @@ def streamer_channels(streamer):
 @streamate.route('/<path:streamer>/<string:filename>.m3u')
 @auth.requires_auth
 def streamer_m3u(streamer, filename):
-    query = MultiDict(request.args.iteritems(multi=True))
-    m3u_gen = _order(streamer, 'm3u', query)
-    response = Response(stream_with_context(m3u_gen), mimetype='application/x-mpegURL')
-    response.headers['Content-Disposition'] = 'attachment; filename={}.m3u'.format(filename)
-    return response
+    gen = _order(streamer, 'm3u', request.args)
+    return _get_m3u_response(gen, filename)
 
 @streamate.route('/<string:filename>.m3u')
 @auth.requires_auth
 def m3u(filename):
-    query = MultiDict(request.args.iteritems(multi=True))
-    m3u_gen = app.managers[name].order_all_m3u(query)
-    response = Response(stream_with_context(m3u_gen), mimetype='application/x-mpegURL')
-    response.headers['Content-Disposition'] = 'attachment; filename={}.m3u'.format(filename)
-    return response
+    gen = app.managers[name].order_all_m3u(request.args)
+    return _get_m3u_response(gen, filename)
 
 @streamate.route('/<string:filename>.xml')
 @auth.requires_auth
 def epg(filename):
-    query = MultiDict(request.args.iteritems(multi=True))
-    epg_gen = app.managers[name].order_all_epg(query)
-    response = Response(stream_with_context(epg_gen), mimetype='application/xml')
-    response.headers['Content-Disposition'] = 'attachment; filename={}.xml'.format(filename)
-    return response
+    gen = app.managers[name].order_all_epg(request.args)
+    return _get_epg_response(gen, filename)
 
 def _order(streamer, order, query):
     return app.managers[name].request(streamer, order, query)
+
+def _get_m3u_response(generator, filename):
+    response = Response(stream_with_context(generator), mimetype='application/x-mpegURL')
+    response.headers['Content-Disposition'] = 'attachment; filename={}.m3u'.format(filename)
+    return response
+
+def _get_epg_response(generator, filename):
+    response = Response(stream_with_context(generator), mimetype='application/xml')
+    response.headers['Content-Disposition'] = 'attachment; filename={}.xml'.format(filename)
+    return response

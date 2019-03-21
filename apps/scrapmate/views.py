@@ -2,7 +2,6 @@
 
 import logging
 from io import BytesIO
-import json
 
 from flask import Blueprint
 from flask import render_template
@@ -13,13 +12,11 @@ from flask import current_app as app
 from flask import redirect
 from flask import render_template_string
 from flask import flash
-from flask import stream_with_context
 
 from apps.common import caching
 from apps.common.auth import auth
 from apps.common.exceptions import MyFlaskException
 from apps.common import urldealer as ud
-from apps.common.datastructures import MultiDict
 
 log = logging.getLogger(__name__)
 
@@ -53,10 +50,9 @@ def quote():
 @auth.requires_auth
 def rss_by_alias(site, board):
     # type: (Text, Text) -> Text
-    query = MultiDict(request.args.iteritems(multi=True))
-    query['site'] = site
-    query['board'] = board
-    data = app.managers[name].request_board('rss', query)
+    request.args['site'] = site
+    request.args['board'] = board
+    data = app.managers[name].request_board('rss', request.args)
     return order_rss(data)
 
 @scrapmate.route('/<string:site>/<string:board>', methods=['GET'])
@@ -64,10 +60,9 @@ def rss_by_alias(site, board):
 @auth.requires_auth
 def list_by_alias(site, board):
     # type: (Text, Text) -> Text
-    query = MultiDict(request.args.iteritems(multi=True))
-    query['site'] = site
-    query['board'] = board
-    data = app.managers[name].request_board('list', query)
+    request.args['site'] = site
+    request.args['board'] = board
+    data = app.managers[name].request_board('list', request.args)
     return order_list(data)
 
 @scrapmate.route('/<string:order>', methods=['GET'])
@@ -76,8 +71,7 @@ def list_by_alias(site, board):
 def order(order):
     # type: (Text) -> Union[unicode, flask.wrappers.Response]
     ''' Do not name order()'s args with query names ex) path, netloc, scheme etc... '''
-    query = MultiDict(request.args.iteritems(multi=True))
-    data = app.managers[name].request_board(order, query)
+    data = app.managers[name].request_board(order, request.args)
     return globals()['order_{}'.format(order)](data)
 
 def order_rss(data):

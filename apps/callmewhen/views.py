@@ -9,7 +9,6 @@ from flask import current_app as app
 from apps.common.cache import cache
 from apps.common.auth import auth
 from apps.common import urldealer as ud
-from apps.common.datastructures import MultiDict
 
 log = logging.getLogger(__name__)
 
@@ -31,5 +30,4 @@ def make_cache_key():
 @auth.requires_auth
 def send(order):
     # type: () -> Text
-    query = MultiDict(request.args.iteritems(multi=True))
-    return app.managers[name].request(order, query)
+    return app.managers[name].request(order, request.args)

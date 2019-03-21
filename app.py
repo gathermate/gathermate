@@ -13,6 +13,7 @@ from apps.common import caching
 from apps.common.exceptions import MyFlaskException
 from apps.common import logger
 from apps.common import urldealer as ud
+from apps.common.datastructures import MultiDict
 
 reload(sys)
 sys.setdefaultencoding('utf-8')
@@ -93,10 +94,10 @@ def index(path):
 @app.before_request
 def before_request_to_do():
     # type: () -> None
+    request.args = MultiDict(request.args.iteritems(multi=True))
     app.logger.debug('%(line)s Start %(request)s', {'line': '-'*30, 'request': request})
     client = '{} requested {} from {}'.format(request.remote_addr, request.full_path, request.referrer)
     app.logger.debug(client)
-
 
 @app.after_request
 def after_request_to_do(response):
