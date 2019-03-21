@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import copy
 
 
 class Flask(object):
@@ -70,6 +71,9 @@ class Flask(object):
 class Localhost(Flask):
     # 이 설정의 이름입니다.
     NAME = 'Localhost @ user_config.py'
+
+    FETCHER = copy.deepcopy(Flask.FETCHER)
+    FETCHER['COOKIE_PATH'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'cookies')
 
     SCRAPMATE = Flask.SCRAPMATE
     STREAMATE = Flask.STREAMATE
@@ -168,12 +172,12 @@ class Localhost(Flask):
 class GoogleAppEngine(Localhost):
     NAME = 'GoogleAppEngine @ user_config.py'
     # GAE는 파일 쓰기 권한이 없으므로 쿠키를 캐시에 저장
-    FETCHER = Localhost.FETCHER
+    FETCHER = copy.deepcopy(Localhost.FETCHER)
     FETCHER['COOKIE_PATH'] = None
-    APPS = [Localhost.SCRAPMATE, Localhost.CALLMEWHEN]
+    #APPS = [Localhost.SCRAPMATE, Localhost.CALLMEWHEN]
 
-LOCALHOST_CLASS = Localhost
-GOOGLEAPPENGINE_CLASS = GoogleAppEngine
+LOCALHOST_CLASS = Localhost()
+GOOGLEAPPENGINE_CLASS = GoogleAppEngine()
 
 # cid : 채널 매핑에 사용할 채널 ID (e.g. tvg-id)
 # only : EPG 검색시 필요한 그래버(화이트리스트). 복수 입력시 '|'로 구분
