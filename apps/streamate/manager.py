@@ -74,7 +74,7 @@ class StreamManager(Manager):
     def order_all_m3u(self, query):
         with futures.ThreadPoolExecutor(max_workers=2) as exe:
             generators = exe.map(lambda streamer: streamer.get_channels(), self.hire_streamers())
-            return packer.pack_m3u(chain.from_iterable(generators))
+            return packer.pack_m3u(chain.from_iterable(generators), query.get('ffmpeg'))
 
     def order_all_epg(self, query):
         grabbers = self.hire_grabbers(*query.getlist('grabber'))
