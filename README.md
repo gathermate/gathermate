@@ -364,6 +364,7 @@ download_auth:
         </tr>
     </tbody>
 </table>
+
 - 모든 쿼리는 생략 가능합니다.
 - `m3u`와 `xml` 파일은 원하는 이름을 지정하여 다운로드 할 수 있습니다.
 - `ffmpeg` 쿼리에 ffmpeg의 실행경로를 입력하면 재생목록의 주소를 `pipe://ffmpg경로 -i 스트리밍주소 -c copy -f mpegts pipe:1` 형태로 저장할 수 있습니다. `tvheadend`의 먹스로 등록할 경우 필요합니다.
