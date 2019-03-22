@@ -28,10 +28,8 @@ class Lg(EpgGrabber):
     fail_count = 0
 
     def get_epg(self, mapped_channel, days=1):
-        lg_id = mapped_channel.get('lg')
-        if lg_id is None:
-            log.warning("Couldn't find epg for the channel : %s", mapped_channel.get('name'))
-            return []
+        lg_id = self.check_id(mapped_channel, 'lg')
+        if not lg_id: return []
         self.search_count += 1
         proc_date = dt.today()
         programs = []

@@ -13,12 +13,10 @@ APP=app:app
 # 기본 포트 번호를 변경 후 외부 접속을 차단해주세요.
 BIND=0.0.0.0:8181
 WORKERS=1
-LOGLEVEL=INFO
+LOGLEVEL=ERROR
 PIDFILE=/var/run/$DAEMON.pid
 LOGFILE=/var/log/$DAEMON.log
 SYS_LOG_ADDR=unix:///dev/log#dgram
-# The maximum number of requests a worker will process before restarting.
-MAX_REQUESTS=0
 
 # instance/config.py 에서 사용할 정보를 입력해 주세요.
 export GATHERMATE_AUTH_ID=admin
@@ -34,7 +32,7 @@ case "$1" in
   start)
         log_daemon_msg "Starting gunicorn" "$APPNAME"
         source $ACTIVATE
-        $DAEMON  $APP --daemon --reload --preload --chdir $ROOT -k gevent --bind=$BIND --max-requests $MAX_REQUESTS --pid=$PIDFILE --workers=$WORKERS --log-file=$LOGFILE --log-level $LOGLEVEL --log-syslog-to $SYS_LOG_ADDR --log-syslog-prefix $APPNAME
+        $DAEMON  $APP --daemon --reload --preload --chdir $ROOT -k gevent --bind=$BIND --pid=$PIDFILE --workers=$WORKERS --log-file=$LOGFILE --log-level $LOGLEVEL --log-syslog-to $SYS_LOG_ADDR --log-syslog-prefix $APPNAME
         log_end_msg $?
     ;;
   stop)

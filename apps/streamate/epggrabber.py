@@ -96,6 +96,13 @@ class EpgGrabber(object):
             })
         return programs
 
+    def check_id(self, mapped_channel, key):
+        ch_id = mapped_channel.get(key)
+        if ch_id is None:
+            log.warning("Couldn't find epg for the channel : %s", mapped_channel.get('name'))
+            return False
+        return ch_id
+
 
 class PriorityQueue(object):
     '''

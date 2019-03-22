@@ -56,7 +56,7 @@ def pack_epg(channel_generator):
         if epg is None or epg.get('programs') is None:
             continue
         for p in epg.get('programs'):
-            program = E.programme({'start': p.get('start'), 'stop': p.get('stop'), 'channel': cid},
+            program = E.programme({'start': p.get('start'), 'stop': p.get('stop'), 'channel': cid, 'source':epg.get('source')},
                                   E.title({'lang': 'kr'}, p.get('title'))
             )
             yield etree.tostring(program,

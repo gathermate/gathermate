@@ -28,10 +28,8 @@ class Kt(EpgGrabber):
     fail_count = 0
 
     def get_epg(self, mapped_channel, days=1):
-        kt_id = mapped_channel.get('kt')
-        if kt_id is None:
-            log.warning("Couldn't find epg for the channel : %s", mapped_channel.get('name'))
-            return []
+        kt_id = self.check_id(mapped_channel, 'kt')
+        if not kt_id: return []
         self.search_count += 1
         proc_date = dt.today()
         programs = []
