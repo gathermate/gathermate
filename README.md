@@ -35,13 +35,15 @@ opt/
                     static/
                     templates/
                 streamate/
+                    epggrabbers/
                     static/
                     streamers/
                     templates/
             install/
             instance/
+                cookies/
             static/
-            templates/                        
+            templates/
             venv/
                 bin/
                 gae/
@@ -115,11 +117,11 @@ git clone https://github.com/gathermate/gathermate.git /opt/apps/gathermate
     
 ```shell
 # Entware on ASUS RT-AC68U aka T-mobile AC1900
-opkg install python-light python-pip python-lxml python-crypto
+opkg install python-light python-pip python-lxml python-crypto ffmpeg
 ```
 ```shell
 # Debian/Ubuntu on WSL
-apt install python-minimal python-pip
+apt install python-minimal python-pip ffmpeg
 ```
 
 #### 3. 파이썬 가상환경 만들기
@@ -142,6 +144,19 @@ cp -r /opt/lib/python2.7/site-packages/Crypto /opt/apps/gathermate/venv/lib/pyth
 ```shell
 # Debian/Ubuntu on WSL
 pip install -r /opt/apps/gathermate/install/requirements.txt
+```
+
+##### GAE 파이썬 패키지 설치
+
+```shell
+pip install -t /opt/apps/gathermate/venv/gae/lib -r /opt/apps/gathermate/install/requirements-gae.txt --no-dependencies
+```
+
+혹은 가상환경 내 이미 설치한 일부 패키지 (chardet, concurrent, flask_caching)를 `venv/gae/lib` 폴더로 복사
+```shell
+mkdir -p /opt/apps/gathermate/venv/gae/lib
+cd /opt/apps/gathermate/venv/lib/python2.7/site-packages
+cp -r chardet concurrent flask_caching tld m3u8 iso8601 /opt/apps/gathermate/venv/gae/lib/
 ```
 
 #### 5. 실행하기
@@ -210,7 +225,8 @@ iptables -L
 
 설정하기
 --------
-서버 실행시 `instance/config.py` 파일의 설정이 덮어씌우기 됩니다. 설정 수정은 꼭 `instance/config.py`에서 해주세요.
+실행시 `instance/config.py` 파일의 설정을 사용하게 됩니다. 설정 수정은 꼭 `instance/config.py`에서 해주세요. Google App Engine 환경이 아닌 직접 서버를 운영할 경우 Localhost 클래스의 설정을 수정하면 됩니다.
+
 #### 꼭 변경해야 하는 값들
 
 아래의 값은 반드시 기본 설정과 다르게 설정하세요.
@@ -245,52 +261,47 @@ AUTH_ID = 'admin' # instance/config.py
 
 사용법
 ------
-**당연한 이야기이지만 해당 사이트의 콘텐츠 수집 코드가 `Scraper`의 서브 클래스로 구현되어 있어야 합니다.**
+**당연한 이야기이지만 해당 사이트의 콘텐츠 수집 코드가 `Scraper`, `Streamer`, `EpgGrabber`의 서브 클래스로 구현되어 있어야 합니다.**
 
-#### 서버가 처리할 수 있는 요청의 형태는 아래와 같습니다.
+### Scrapmate
+
 <table>
     <thead>
         <tr>
             <th>유형</th>
             <th>형식</th>
-            <th>사용 메소드</th>
         </tr>
     </thead>
     <tbody>
         <tr>
             <td rowspan="2"><b>목록</b></td>
-            <td>scrap/<code>사이트</code>/<code>게시판</code>?search=<code>검색어</code>&page=<code>3</code></td>
-            <td rowspan="2">get_list()</td>
+            <td>scrap/<code>사이트</code>/<code>게시판</code>?search=<code>검색어</code>&page=<code>3</code><br/><code>scrap/wal/torrent_movie</code></td>
         </tr>
         <tr>
-            <td>scrap/list?url=<code>encoded-url</code>&search=<code>검색어</code>&page=<code>2</code></td>
+            <td>scrap/list?url=<code>encoded-url</code>&search=<code>검색어</code>&page=<code>2</code><br/><code>scrap/list?url=https%3A%2F%2Fwww.google.com%2F%3Fsearch%3Dtorrent</code></td>
         </tr>
         <tr>
             <td rowspan="2"><b>RSS</b></td>
-            <td>scrap/<code>사이트</code>/<code>게시판</code>/rss?search=<code>검색어</code>&page=<code>3</code>&length=<code>5</code></td>
-            <td rowspan="2">get_list()<br />get_item()</td>
+            <td>scrap/<code>사이트</code>/<code>게시판</code>/rss?search=<code>검색어</code>&page=<code>3</code>&length=<code>5</code><br/><code>scrap/tfreeca/tent/rss</code></td>
         </tr>
         <tr>
-            <td>scrap/rss?url=<code>encoded-url</code>&search=<code>검색어</code>&page=<code>1</code>&length=<code>5</code>
-            </td>            
+            <td>scrap/rss?url=<code>encoded-url</code>&search=<code>검색어</code>&page=<code>1</code>&length=<code>5</code><br/><code>scrap/rss?url=https%3A%2F%2Fwww.google.com%2F%3Fsearch%3Drss</code></td>            
         </tr>
         <tr>
             <td><b>글</b></td>
-            <td>scrap/item?url=<code>encoded-url</code></td>
-            <td>get_item()</td>
+            <td>scrap/item?url=<code>encoded-url</code><br/><code>scrap/item?url=https%3A%2F%2Fwww.google.com%2F%3Fsearch%3Ditem</code></td>
         </tr>
         <tr>
             <td><b>다운로드</b></td>
-            <td>scrap/down?url=<code>encoded-url</code>&ticket=<code>encoded-query-string</code></td>
-            <td>get_file()<br />get_item()</td>
+            <td>scrap/down?url=<code>encoded-url</code>&ticket=<code>encoded-query-string</code><br/><code>scrap/down?url=https%3A%2F%2Fwww.google.com%2F%3Fsearch%3Dfile&ticket=referer...</code></td>
         </tr>
         <tr>
             <td><b>사용자 정의</b></td>
-            <td>scrap/page?url=<code>encoded-url</code></td>
-            <td>get_page()</td>
+            <td>scrap/page?url=<code>encoded-url</code><br/><code>scrap/page?url=https%3A%2F%2Fwww.google.com%2F%3Fsearch%3Dpage</code></td>
         </tr>
     </tbody>
 </table>
+
 
 - `사이트`가 `Gatherer`의 `URL` 속성과 매치가 된다면 해당 클래스로 요청을 처리합니다. 예를 들어 `ple-1`은 `https://www.sample-1.co.kr`, `https://www.samplesample.com` 중에서 첫번째와 매치됩니다.
 - `게시판`은 해당 사이트에서 사용하는 게시판 아이디를 그대로 입력해 주세요.
@@ -309,47 +320,65 @@ inputs:
   - rss:          
       url: 'http://127.0.0.1:8181/scrap/google/drama/rss?search=-NEXT'
       username: 'MY_ID'
-      password: 'MY_PATH'      
+      password: 'MY_PATH'
 ```
 ```yaml
 download_auth:
 - 127.0.0.1:8181:
     username: 'MY_ID'
-    password: 'MY_PATH'      
+    password: 'MY_PATH'
     type: basic
 ```
 
 ---
 
-웹 스크래핑 연습
--------
-[quotes][quotes]는 스크래핑 연습용 사이트입니다. `gatherers`폴더의 `quotes.py`파일에 코드를 작성하고 아래의 서버 주소에서 결과를 확인해 보세요.
+### Streamate
 
-[quotes]: http://quotes.toscrape.com/
-
-    http://localhost:8181/scrap/page?url=http%3A%2F%2Fquotes.toscrape.com
-
-##### xpath 및 css selector 테스트
-http://videlibri.sourceforge.net/cgi-bin/xidelcgi
+<table>
+    <thead>
+        <tr>
+            <th>유형</th>
+            <th>형식</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>모든 사이트의 재생목록</td>
+            <td>stream/<code>원하는파일이름</code>.m3u?ffmpeg=<code>ffmpeg실행경로</code><br/><code>stream/myserverplaylist.m3u?ffmpeg=/usr/bin/ffmpeg</code></td>
+        </tr>
+        <tr>
+            <td>특정 사이트의 재생목록</td>
+            <td>stream/<code>사이트</code>/<code>원하는파일이름</code>.m3u?ffmpeg=<code>ffmpeg실행경로</code><br/><code>stream/pooq/pooq.m3u?ffmpeg=/opt/bin/ffmpeg</code></td>
+        </tr>
+        <tr>
+            <td>EPG 수집</td>
+            <td>stream/<code>원하는파일이름</code>.xml?grabber=<code>그래버이름</code>&grabber=<code>그래버이름</code>&days=<code>기간</code><br/><code>stream/all-epg.xml?grabber=naver&grabber=daum&grabber=pooq&days=2</code></td>
+        </tr>
+        <tr>
+            <td>채널 정보</td>
+            <td>stream/<code>사이트</code>/channels<br/><code>stream/tving/channels</code></td>
+        </tr>
+        <tr>
+            <td>스트리밍</td>
+            <td>stream/<code>사이트</code>/<code>채널아이디</code>?q=<code>퀄리티</code><br/><code>stream/pooq/K01?q=0</code></td>
+        </tr>
+    </tbody>
+</table>
+- 모든 쿼리는 생략 가능합니다.
+- `m3u`와 `xml` 파일은 원하는 이름을 지정하여 다운로드 할 수 있습니다.
+- `ffmpeg` 쿼리에 ffmpeg의 실행경로를 입력하면 재생목록의 주소를 `pipe://ffmpg경로 -i 스트리밍주소 -c copy -f mpegts pipe:1` 형태로 저장할 수 있습니다. `tvheadend`의 먹스로 등록할 경우 필요합니다.
+- EPG 수집시 `grabber` 쿼리를 지정하지 않으면 등록된 모든 그래버를 활용하여 EPG를 수집합니다. `grabber` 쿼리는 여러번 지정 가능합니다.
+- `days` 쿼리에 정수를 입력하면 해당 기간만큼의 EPG를 수집합니다. 수집에 많은 자원이 소모되므로 `1~2`를 추천합니다.
+- 채널 정보는 단순히 해당 사이트에서 수집한 채널 목록을 보여줍니다.
+- 스트리밍의 `채널아이디`는 해당 사이트에서 사용하는 `채널아이디`를 입력해야 합니다. 대상 사이트에서 스트리밍 해상도를 제공할 경우 `q` 쿼리에 정수(0~n)를 입력하여 스트리밍 해상도를 지정할 수 있습니다.
 
 ---
 
 그 밖에...
 ---------
+
 ##### GAE
 현재 Google App Engine의 Python 3 환경은 무료 사용량의 초과분에 대한 결제가 필수입니다. 때문에 무료 사용량 초과시 차단되는 방식인 Python 2 Standard 환경에 맞추었습니다. [Google App Engine 시작하기](https://cloud.google.com/appengine/docs/standard/python/quickstart)
-
-##### GAE 파이썬 패키지 설치
-
-```shell
-pip install -t /opt/apps/gathermate/venv/gae/lib -r /opt/apps/gathermate/install/requirements-gae.txt --no-dependencies
-```
-
-혹은 가상환경 내 이미 설치한 일부 패키지 (chardet, concurrent, flask_caching)를 `venv/gae/lib` 폴더로 복사
-```shell
-mkdir -p /opt/apps/gathermate/venv/gae/lib
-cp -r /opt/apps/gathermate/venv/lib/python2.7/site-packages/chardet /opt/apps/gathermate/venv/lib/python2.7/site-packages/concurrent /opt/apps/gathermate/venv/lib/python2.7/site-packages/flask_caching /opt/apps/gathermate/venv/gae/lib/
-```
 
 ##### GAE 테스트 서버
 ```shell
