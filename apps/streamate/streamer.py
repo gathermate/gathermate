@@ -3,10 +3,8 @@
 import logging
 import json
 import time
-from collections import deque
 
 import m3u8
-from concurrent import futures
 
 from apps.common import caching
 from apps.common.datastructures import MultiDict

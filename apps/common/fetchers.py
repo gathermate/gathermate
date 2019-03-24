@@ -14,20 +14,9 @@ from apps.common import toolbox as tb
 
 log = logging.getLogger(__name__)
 
-def hire_fetcher(config={}):
-    software = config.get('SERVER_SOFTWARE', '')
-    deadline = config.get('DEADLINE', 30)
-    cache_timeout = config.get('CACHE_TIMEOUT', 60)
-    cookie_timeout = config.get('COOKIE_TIMEOUT', 0)
-    cookie_path = config.get('COOKIE_PATH', None)
-
-    if software == 'GoogleAppEngine':
-        fetcher = Urlfetch(importlib.import_module('google.appengine.api.urlfetch'),
-                           deadline, cache_timeout, cookie_timeout, cookie_path)
-    else:
-        fetcher = Requests(importlib.import_module('requests'),
-                           deadline, cache_timeout, cookie_timeout, cookie_path)
-    return fetcher
+def hire_fetcher(module='requests', deadline=30, cache_timeout=60, cookie_timeout=3600*48, cookie_path=None):
+    mod = importlib.import_module(module)
+    return globals()[mod.__name__.capitalize()](mod, deadline, cache_timeout, cookie_timeout, cookie_path)
 
 
 class Response(object):

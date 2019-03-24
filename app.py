@@ -38,7 +38,6 @@ def create_app():
         config_instance = 'LOCALHOST'
         cache_type = {'CACHE_TYPE': 'simple'}
     app.config.from_object(app.config.get(config_instance + '_INSTANCE'))
-    app.config['FETCHER']['SERVER_SOFTWARE'] = software
     logger.config(software, app.config['LOG_LEVEL'])
     app.logger.info('Server Software: %s', software)
     app.logger.info('Config: %s', app.config['NAME'])

@@ -31,13 +31,13 @@ class StreamManager(Manager):
         for name in grabber_names:
             name = name.capitalize()
             if name in self.__epg_grabber_classes:
-                grabbers.append(self.__epg_grabber_classes[name](fetchers.hire_fetcher(self.config['FETCHER'])))
+                grabbers.append(self.__epg_grabber_classes[name](fetchers.hire_fetcher(**self.config['FETCHER'])))
             if name in self.__streamer_classes and self.__streamer_classes[name].get_epg:
                 grabbers.append(self.hire_streamers(name)[0])
         if grabber_names and len(grabbers) < 1:
             raise KeyError('There is no grabber named : %s' % ', '.join(grabber_names))
         if len(grabbers) < 1:
-            grabbers = [class_(fetchers.hire_fetcher(self.config['FETCHER'])) for class_ in self.__epg_grabber_classes.itervalues()]
+            grabbers = [class_(fetchers.hire_fetcher(**self.config['FETCHER'])) for class_ in self.__epg_grabber_classes.itervalues()]
             for streamer_class in self.__streamer_classes.itervalues():
                 if streamer_class.get_epg:
                     grabbers.append(self.hire_streamers(streamer_class.__name__)[0])
@@ -56,7 +56,7 @@ class StreamManager(Manager):
         for class_ in classes:
             config = self.config['STREAMERS'][class_.__name__]
             config['CHANNELS'] = self.config['CHANNELS']
-            streamers.append(class_(config, fetchers.hire_fetcher(self.config['FETCHER'])))
+            streamers.append(class_(config, fetchers.hire_fetcher(**self.config['FETCHER'])))
         return streamers
 
     def _order_resource(self, streamer, query):
@@ -72,7 +72,7 @@ class StreamManager(Manager):
         return packer.pack_m3u(streamer.get_channels(), query.get('ffmpeg'))
 
     def order_all_m3u(self, query):
-        with futures.ThreadPoolExecutor(max_workers=2) as exe:
+        with futures.ThreadPoolExecutor() as exe:
             generators = exe.map(lambda streamer: streamer.get_channels(), self.hire_streamers())
             return packer.pack_m3u(chain.from_iterable(generators), query.get('ffmpeg'))
 

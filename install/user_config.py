@@ -48,23 +48,26 @@ class Flask(object):
         'MANAGER': 'apps.callmewhen.manager',
     }
     FETCHER = {
+        # 사용할 모듈
+        'module': 'requests',
+
         # 목표 웹 페이지의 캐쉬 지속시간(초) 입니다.
         # 목표 웹 페이지에 대한 너무 잦은 요청과 불필요한 트래픽 발생을
         # 방지하기 위해서 각 목표 웹페이지는 캐쉬로 저장됩니다.
         # 0으로 설정시 캐쉬가 계속 유지됩니다.
-        'CACHE_TIMEOUT': 60,
+        'cache_timeout': 60,
 
         # 목표 웹페이지의 응답을 기다리는 최대 시간(초)입니다.
-        'DEADLINE': 60,
+        'deadline': 60,
 
         # 쿠키를 파일로 저장하려면 경로를 설정하세요.
-        # None 입력시 캐쉬에 저장. (GAE는 파일 쓰기 권한이 없으므로 None)
+        # None 입력시 캐쉬에 저장.
         # instance/cookies
         #'COOKIE_PATH': os.path.join(os.path.dirname(os.path.abspath(__file__)), 'cookies'),
-        'COOKIE_PATH': None,
+        'cookie_path': None,
 
         # 쿠키를 캐시에 저장할 경우 지속 시간
-        'COOKIE_TIMEOUT' : 0,
+        'cookie_timeout' : 0,
     }
 
 
@@ -73,7 +76,7 @@ class Localhost(Flask):
     NAME = 'Localhost @ user_config.py'
 
     FETCHER = copy.deepcopy(Flask.FETCHER)
-    FETCHER['COOKIE_PATH'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'cookies')
+    FETCHER['cookie_path'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'cookies')
 
     SCRAPMATE = Flask.SCRAPMATE
     STREAMATE = Flask.STREAMATE
@@ -174,7 +177,8 @@ class GoogleAppEngine(Localhost):
     NAME = 'GoogleAppEngine @ user_config.py'
     # GAE는 파일 쓰기 권한이 없으므로 쿠키를 캐시에 저장
     FETCHER = copy.deepcopy(Localhost.FETCHER)
-    FETCHER['COOKIE_PATH'] = None
+    FETCHER['cookie_path'] = None
+    FETCHER['module'] = 'google.appengine.api.urlfetch',
     #APPS = [Localhost.SCRAPMATE, Localhost.CALLMEWHEN]
 
 LOCALHOST_INSTANCE = Localhost()
