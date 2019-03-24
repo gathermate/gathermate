@@ -30,7 +30,7 @@ class Sky(EpgGrabber):
         programs = []
         for day in range(days):
             payload = dict(area='in',
-                           indate_type='now' if day is 1 else 'next',
+                           indate_type='now' if day is 0 else 'next',
                            inairdate=proc_date.strftime('%Y-%m-%d'),
                            inFd_channel_id=sky_id)
             for _ in range(2):
