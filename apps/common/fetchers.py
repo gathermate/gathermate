@@ -15,8 +15,8 @@ from apps.common import toolbox as tb
 log = logging.getLogger(__name__)
 
 def hire_fetcher(module='requests', deadline=30, cache_timeout=60, cookie_timeout=3600*48, cookie_path=None):
-    mod = importlib.import_module(module)
-    return globals()[mod.__name__.capitalize()](mod, deadline, cache_timeout, cookie_timeout, cookie_path)
+    mod = module.split('.')[-1]
+    return globals()[mod.capitalize()](importlib.import_module(module), deadline, cache_timeout, cookie_timeout, cookie_path)
 
 
 class Response(object):

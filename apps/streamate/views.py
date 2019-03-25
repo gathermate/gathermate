@@ -29,8 +29,6 @@ streamate = Blueprint(
 @auth.requires_auth
 def index():
     return 'Welcome'
-    return render_template('player.html',
-                           streamer=streamer)
 
 @streamate.route('/<path:streamer>/resource')
 def resource(streamer):
@@ -40,8 +38,6 @@ def resource(streamer):
 @auth.requires_auth
 def streamer(streamer):
     return streamer
-    return render_template('player.html',
-                           streamer=streamer)
 
 @streamate.route('/<path:streamer>/<string:cid>')
 def streamer_channel_streaming(streamer, cid):

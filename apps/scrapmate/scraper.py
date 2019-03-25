@@ -256,17 +256,23 @@ class BoardScraper(Scraper):
     def parse_items(self, articles):
         # type: (Dict[str, Dict[str, str]]) -> Iterable
         if not self.aggressive:
-            return self._parse_item_from_list(articles)
-        urls = [ud.Url(article['link']) for article in articles.values()]
-        if self.async:
-            with futures.ThreadPoolExecutor(max_workers=self.workers,
-                                            thread_name_prefix="_get_item_async") as exe:
-                return exe.map(self.parse_item, urls)
+            for id_num, article in articles.iteritems():
+                item = {}
+                item['name'] = article['title']
+                item['link'] = article['link']
+                item['type'] = 'unknown'
+                yield [item]
         else:
-            result = []
-            for url in urls:
-                result.append(self.parse_item(url))
-            return result
+            urls = [ud.Url(article['link']) for article in articles.values()]
+            if self.async:
+                with futures.ThreadPoolExecutor(max_workers=self.workers,
+                                                thread_name_prefix="_get_item_async") as exe:
+                    fs = [exe.submit(self.parse_item, url) for url in urls]
+                    for f in futures.as_completed(fs):
+                        yield f.result()
+            else:
+                for url in urls:
+                    yield self.parse_item(url)
 
     def parse_item(self, article_url):
         # type: (Union[urldealer.Url, List[urldealer.Url]]) -> List[Optional[Dict[str, str]]]
@@ -307,14 +313,3 @@ class BoardScraper(Scraper):
         if not want_list:
             return [re.compile(r'\.torrent$')]
         return [re.compile(keyword, re.I) for keyword in want_list]
-
-
-    def _parse_item_from_list(self, articles):
-        new_articles = []
-        for id_num, article in articles.iteritems():
-            item = {}
-            item['name'] = article['title']
-            item['link'] = article['link']
-            item['type'] = 'unknown'
-            new_articles.append([item])
-        return new_articles

@@ -47,19 +47,20 @@ def pack_epg(channel_generator):
         channel = E.channel({'id': cid})
         dp_name = etree.SubElement(channel, 'display-name')
         dp_name.text = unicode(ch.get('name'))
+        epg = ch.get('epg')
+        if epg.get('source'):
+            channel.set('source', epg.get('source'))
+        if epg.get('fails'):
+            channel.set('fails', ', '.join(epg.get('fails')))
         yield etree.tostring(channel,
                              encoding='utf-8',
                              pretty_print=True)
-        epg = ch.get('epg')
-        if len(epg.get('fails')) > 0:
-            log.debug('%s fails to get epg with : %s', ch.get('name'), ', '.join(epg.get('fails')))
-        if epg is None or epg.get('programs') is None:
-            continue
-        for p in epg.get('programs'):
-            program = E.programme({'start': p.get('start'), 'stop': p.get('stop'), 'channel': cid, 'source':epg.get('source')},
-                                  E.title({'lang': 'kr'}, p.get('title'))
-            )
-            yield etree.tostring(program,
-                                 encoding='utf-8',
-                                 pretty_print=True)
+        if epg.get('programs') is not None:
+            for p in epg.get('programs'):
+                program = E.programme({'start': p.get('start'), 'stop': p.get('stop'), 'channel': cid},
+                                      E.title({'lang': 'kr'}, p.get('title'))
+                )
+                yield etree.tostring(program,
+                                     encoding='utf-8',
+                                     pretty_print=True)
     yield '</tv>'

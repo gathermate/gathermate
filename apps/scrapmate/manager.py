@@ -8,7 +8,6 @@ from apps.common.exceptions import MyFlaskException
 from apps.common import toolbox as tb
 from apps.common import urldealer as ud
 from apps.common.manager import Manager
-from apps.scrapmate.scraper import BoardScraper
 
 log = logging.getLogger(__name__)
 
@@ -101,7 +100,7 @@ class ScrapmateManager(Manager):
             ticket = ud.split_qs(ud.unquote(ticket))
             board = self._hire_board(ud.Url(ticket['referer']))
             return board.parse_file(target, ticket)
-        # RSS_AGGRESSIVE = False
+        # 'RSS_AGGRESSIVE = False' is doesn't have ticket
         board = self._hire_board(target)
         board.isRSS = True
         items = board.parse_item(target)

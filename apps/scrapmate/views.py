@@ -12,6 +12,7 @@ from flask import current_app as app
 from flask import redirect
 from flask import render_template_string
 from flask import flash
+from flask import stream_with_context
 
 from apps.common import caching
 from apps.common.auth import auth
@@ -45,8 +46,7 @@ def quote():
     # type: () -> str
     return render_template('encode.html')
 
-@scrapmate.route('/<string:site>/<string:board>/rss', methods=['GET'])
-@caching.cache.cached(key_prefix=make_cache_key, timeout=caching.config.get('TIMEOUT'))
+@scrapmate.route('/<path:site>/<path:board>/rss', methods=['GET'])
 @auth.requires_auth
 def rss_by_alias(site, board):
     # type: (Text, Text) -> Text
@@ -55,7 +55,7 @@ def rss_by_alias(site, board):
     data = app.managers[name].request_board('rss', request.args)
     return order_rss(data)
 
-@scrapmate.route('/<string:site>/<string:board>', methods=['GET'])
+@scrapmate.route('/<path:site>/<path:board>', methods=['GET'])
 @caching.cache.cached(key_prefix=make_cache_key, timeout=caching.config.get('TIMEOUT'))
 @auth.requires_auth
 def list_by_alias(site, board):
@@ -65,8 +65,7 @@ def list_by_alias(site, board):
     data = app.managers[name].request_board('list', request.args)
     return order_list(data)
 
-@scrapmate.route('/<string:order>', methods=['GET'])
-@caching.cache.cached(key_prefix=make_cache_key, timeout=caching.config.get('TIMEOUT'))
+@scrapmate.route('/<path:order>', methods=['GET'])
 @auth.requires_auth
 def order(order):
     # type: (Text) -> Union[unicode, flask.wrappers.Response]
@@ -74,9 +73,9 @@ def order(order):
     data = app.managers[name].request_board(order, request.args)
     return globals()['order_{}'.format(order)](data)
 
-def order_rss(data):
+def order_rss(generator):
     # type: (Text) -> flask.wrappers.Response
-    return Response(data, mimetype='text/xml')
+    return Response(stream_with_context(generator), mimetype='text/xml')
 
 def order_down(data):
     # type: (Union[Text, Response]) -> flask.wrappers.Response
