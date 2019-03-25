@@ -202,7 +202,7 @@ dict(cid='CHANNELJ',name='CHANNEL J',chnum=108,kt=108,lg=656,sky=973,pooq='C5501
 dict(cid='CHANNELW',name='채널W',chnum=116,kt=116,lg=161,sky=518,pooq='C3901',logo='https://tv.kt.com/relatedmaterial/ch_logo/live/116.png'),
 dict(cid='DIATV',name='다이아 TV',chnum=72,kt=72,lg=690,sky=912,tving='C15152',logo='http://image.tving.com/upload/cms/caic/CAIC0400/C15152.png'),
 dict(cid='DISNEY-CHANNEL',name='디즈니 채널',chnum=998,kt=998,lg=645,sky=503,pooq='D01',tving='C05661',logo='http://img.pooq.co.kr/BMS/ChannelImg/30_disney.png'),
-dict(cid='DISNEY-JUNIOR',name='디즈니 주니어',chnum=978,kt=978,lg=646,sky=504,pooq='D02',logo='http://img.pooq.co.kr/BMS/ChannelImg/36_disney Junior.png'),
+dict(cid='DISNEY-JUNIOR',name='디즈니 주니어',chnum=978,kt=978,lg=646,sky=504,pooq='D02',logo='http://img.pooq.co.kr/BMS/ChannelImg/36_disney%20Junior.png'),
 dict(cid='DONGATV',name='동아TV',chnum=82,kt=82,lg=660,sky=247,pooq='C7301',logo='http://img.pooq.co.kr/BMS/Channelimage30/image/donga-2.png'),
 dict(cid='EBS1',name='EBS 1',chnum=13,kt=13,lg=505,sky=798,pooq='E01',logo='http://img.pooq.co.kr/BMS/ChannelImg/ebs1.png'),
 dict(cid='EBS2',name='EBS 2',chnum=95,kt=95,lg=506,pooq='E07',logo='http://img.pooq.co.kr/BMS/ChannelImg/ebs2.png'),
