@@ -47,9 +47,11 @@ def pack_epg(channel_generator):
         channel = E.channel({'id': cid})
         dp_name = etree.SubElement(channel, 'display-name')
         dp_name.text = unicode(ch.get('name'))
+        icon = etree.SubElement(channel, 'icon')
+        icon.set('src', ch.get('logo'))
         epg = ch.get('epg')
         if epg.get('source'):
-            channel.set('source', epg.get('source'))
+            channel.set('source-info-name', epg.get('source'))
         if epg.get('fails'):
             channel.set('fails', ', '.join(epg.get('fails')))
         yield etree.tostring(channel,

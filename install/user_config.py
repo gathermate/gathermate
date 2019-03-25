@@ -179,6 +179,8 @@ class GoogleAppEngine(Localhost):
     FETCHER = copy.deepcopy(Localhost.FETCHER)
     FETCHER['cookie_path'] = None
     FETCHER['module'] = 'google.appengine.api.urlfetch',
+    SCRAPMATE = copy.deepcopy(Localhost.SCRAPMATE)
+    SCRAPMATE['RSS_AGGRESSIVE'] = True
     #APPS = [Localhost.SCRAPMATE, Localhost.CALLMEWHEN]
 
 LOCALHOST_INSTANCE = Localhost()
