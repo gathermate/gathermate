@@ -50,8 +50,8 @@ class Scraper(object):
 
     def _log_result(self, url):
         # type: (urldealer.Url) -> None
-        log.debug('Parsing [...%s%s] is done.',
-                  url.path, '?%s' % url.query if url.query else '')
+        log.debug('Parsing [%s%s] is done.',
+                  '...' + url.path if url.path else url.text, '?%s' % url.query if url.query else '')
 
     def credential(self):
         # type: () -> None

@@ -14,25 +14,16 @@ from flask import render_template_string
 from flask import flash
 from flask import stream_with_context
 
-from apps.common import caching
 from apps.common.auth import auth
 from apps.common.exceptions import MyFlaskException
-from apps.common import urldealer as ud
 
 log = logging.getLogger(__name__)
-
 name = 'Scrapmate'
-
 scrapmate = Blueprint(
     name,
     __name__,
     template_folder='templates',
     static_folder='static')
-
-def make_cache_key():
-    # type: () -> Text
-    key = ud.Url(request.url).update_query(request.form).text if request.form else request.url
-    return caching.create_key(key)
 
 @scrapmate.route('/', strict_slashes=False)
 @auth.requires_auth
@@ -56,7 +47,6 @@ def rss_by_alias(site, board):
     return order_rss(data)
 
 @scrapmate.route('/<path:site>/<path:board>', methods=['GET'])
-@caching.cache.cached(key_prefix=make_cache_key, timeout=caching.config.get('TIMEOUT'))
 @auth.requires_auth
 def list_by_alias(site, board):
     # type: (Text, Text) -> Text

@@ -12,11 +12,6 @@ class Flask(object):
     # gunicorn과 GAE는 해당 서버의 로그 레벨을 따릅니다.
     LOG_LEVEL = 'DEBUG'
 
-    # 서버 응답(RSS 또는 웹페이지)의 캐쉬 지속시간(초)입니다.
-    # 동일한 요청이라 판단될 경우 캐쉬된 결과물로 응답합니다.
-    # 0으로 설정시 캐쉬가 계속 유지됩니다.
-    TIMEOUT = 5
-
     # HTTP Basic Authentication에 사용될 아이디와 비밀번호입니다.
     # GAE은 app.yaml에서 환경 설정 값을 지정할 수 있으며
     # gunicorn은 데몬 스크립트에서 export로 설정해 줄 수 있습니다.
