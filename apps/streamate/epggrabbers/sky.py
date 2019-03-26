@@ -6,6 +6,7 @@ from datetime import datetime as dt
 import json
 
 from apps.streamate.epggrabber import EpgGrabber
+from apps.streamate.epggrabber import Program
 
 log = logging.getLogger(__name__)
 
@@ -18,15 +19,9 @@ class Sky(EpgGrabber):
     URL = 'https://skylife.co.kr'
     PRE_URL = 'https://skylife.co.kr/channel/channel_number/channelAll.do'
     SEARCH_URL = 'https://skylife.co.kr/channel/epglist/channelScheduleListJson.do'
-    EPG_SEARCH_TYPE = 'id'
-    search_count = 0
-    fail_count = 0
 
-    def get_epg(self, mapped_channel, days=1):
-        sky_id = self.check_id(mapped_channel, 'sky')
-        if not sky_id: return []
-        self.search_count += 1
-        proc_date = dt.today()
+    def get_programs(self, mapped_channel, proc_date, days):
+        sky_id = mapped_channel.get('sky')
         programs = []
         for day in range(days):
             payload = dict(area='in',
@@ -43,13 +38,20 @@ class Sky(EpgGrabber):
             if not js:
                 log.warning('No JSON data.')
                 continue
-            plist = js.get('scheduleListIn')
-            for p in plist:
-                programs.append({
-                    'start': p['starttime'] + ' +0900',
-                    'stop': p['endtime'] + ' +0900',
-                    'title': p['program_name'],
-                })
-            if day > 1:
+            programs += self.parse_program(js.get('scheduleListIn', []), sky_id, proc_date)
+            if day > 0:
                 proc_date += datetime.timedelta(days=1)
         return programs
+
+    def parse_program(self, content, cid, proc_date):
+        for p in content:
+            yield Program(dict(cid=cid,
+                                   title=p['program_name'],
+                                   sub_title=p['program_subname'],
+                                   start=dt.strptime(p['starttime'], '%Y%m%d%H%M%S'),
+                                   stop=dt.strptime(p['endtime'], '%Y%m%d%H%M%S'),
+                                   rating=p['grade'],
+                                   description=p['description'],
+                                   category=[p['program_category1'], p['program_category2']],
+                                   rerun=True if p['rebroad'] == 'Y' else False,
+                                   episode=p['episode_id']))

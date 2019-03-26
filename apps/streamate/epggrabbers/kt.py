@@ -7,6 +7,7 @@ from datetime import datetime as dt
 from lxml import etree
 
 from apps.streamate.epggrabber import EpgGrabber
+from apps.streamate.epggrabber import Program
 
 log = logging.getLogger(__name__)
 
@@ -23,32 +24,29 @@ class Kt(EpgGrabber):
     '''
     URL = 'https://m.tv.kt.com'
     SEARCH_URL = 'https://m.tv.kt.com/tv/channel/mSchedule.asp'
-    EPG_SEARCH_TYPE = 'id'
-    search_count = 0
-    fail_count = 0
 
-    def get_epg(self, mapped_channel, days=1):
-        kt_id = self.check_id(mapped_channel, 'kt')
-        if not kt_id: return []
-        self.search_count += 1
-        proc_date = dt.today()
+    def get_programs(self, mapped_channel, proc_date, days):
+        kt_id = mapped_channel.get('kt')
         programs = []
-        for day in range(int(days)):
+        for day in range(days):
             payload = dict(ch_type=1, view_type=1, service_ch_no=kt_id, seldate=proc_date.strftime('%Y%m%d'))
             r = self.fetch(self.SEARCH_URL, referer=self.URL, payload=payload, method='POST')
-            programs += self.get_epg_info(r.content.decode('euc-kr'), proc_date)
+            programs += self.parse_program(r.content.decode('euc-kr'), kt_id, proc_date)
             proc_date += datetime.timedelta(days=1)
-        if len(programs) > 0:
-            return self.set_epg_times(programs)
-        else:
-            log.warning("Couldn't find epg for the channel : %s", mapped_channel.get('name'))
-            self.fail_count += 1
-            return programs
+        return self.set_stop(programs, 3)
 
-    def parse_epg_html(self, html_str):
-        for e in etree.HTML(html_str).xpath('//div[@class="tableSchedule"]/ul/li[@class="lists"]'):
+    def parse_program(self, content, cid, proc_date):
+        for e in etree.HTML(content).xpath('//div[@class="tableSchedule"]/ul/li[@class="lists"]'):
             hour = e.find('div[@class="hour"]').text
             for div in e.find('div[@class="data"]').iterchildren():
                 minute = div.find('div[@class="minute"]').text
-                title = div.find('div[@class="name"]/div/span').text
-                yield '%s:%s' % (hour, minute), unicode(title.strip())
+                info = div.find('div[@class="name"]/div[@class="info"]')
+                title = info.find('span[@class="text"]').xpath('string()')
+                rating = info.find('span[@class="icon"]/img[1]').get('alt')
+                category = div.find('div[@class="type"]').text.split('/')
+                yield Program(dict(cid=cid,
+                                       title=unicode(title.strip()),
+                                       start=dt.combine(proc_date, self.parse_time('%s:%s' % (hour, minute))),
+                                       stop='',
+                                       rating=rating,
+                                       category=category))

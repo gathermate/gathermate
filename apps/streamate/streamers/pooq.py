@@ -2,8 +2,6 @@
 import re
 import json
 import logging
-import datetime
-from datetime import datetime as dt
 
 import m3u8
 
@@ -34,11 +32,11 @@ class Pooq(HlsStreamer):
         credential='none',
         pooqzone='none',
         drm='wm')
-    EPG_SEARCH_TYPE = 'id'
+
     streaming_instance = None
 
     def __init__(self, settings, fetcher):
-        super(Pooq, self).__init__(settings, fetcher)
+        HlsStreamer.__init__(self, settings, fetcher)
         if bool(self.should_login()):
             self.api_login()
 
@@ -82,25 +80,6 @@ class Pooq(HlsStreamer):
         variant = m3u8.loads(response.content)
         return ud.join(url, variant.playlists[-1 if qIndex >= len(variant.playlists) else qIndex].uri)
 
-    def get_epg(self, mapped_channel, days):
-        pooq_id = mapped_channel.get('pooq')
-        if pooq_id is None:
-            log.warning("Couldn't find epg for the channel : %s", mapped_channel.get('name'))
-            return []
-        info = self.api_epg(pooq_id, days if days is not None else 1)
-        programs = []
-        for program in info.get('list'):
-            start_time = dt.strftime(dt.strptime(program.get('starttime'), '%Y-%m-%d %H:%M'),
-                                    '%Y%m%d%H%M%S') + ' +0900'
-            end_time = dt.strftime(dt.strptime(program.get('endtime'), '%Y-%m-%d %H:%M'),
-                                   '%Y%m%d%H%M%S') + ' +0900'
-            programs.append({
-                'start': start_time,
-                'stop': end_time,
-                'title': program.get('title'),
-                })
-        return programs
-
     def api_ip(self):
         api = ud.Url(ud.join(self.API_URL, '/ip'))
         return self.request_api(api)
@@ -114,13 +93,6 @@ class Pooq(HlsStreamer):
     def api_channel(self, cid):
         api = ud.Url(ud.join(self.API_URL, '/live/channels/%s' % cid))
         return self.request_api(api, referer=self.PLAYER_URL % cid)
-
-    def api_epg(self, cid, days=1):
-        api = ud.Url(ud.join(self.API_URL, '/live/epgs/channels/%s' % cid))
-        stime = dt.strftime(dt.today(), '%Y-%m-%d %H:%M')
-        etime = dt.strftime(dt.today() + datetime.timedelta(days=days), '%Y-%m-%d %H:%M')
-        query = dict(startdatetime=stime, enddatetime=etime, offset=0, limit=999, orderby='old')
-        return self.request_api(api, referer=self.PLAYER_URL % cid, query=query)
 
     def api_streamlist(self, cid, quality):
         api = ud.Url(ud.join(self.API_URL, '/streaming'))
@@ -150,7 +122,6 @@ class Pooq(HlsStreamer):
         api = ud.Url(ud.join(self.API_URL, '/live/genrechannels'))
         query = dict(free='all')
         return self.request_api(api, query=query, referer=self.BASE_URL, cached=True)
-
 
     def should_login(self):
         cookies = self.get_cookie()

@@ -32,15 +32,10 @@ class StreamManager(Manager):
             name = name.capitalize()
             if name in self.__epg_grabber_classes:
                 grabbers.append(self.__epg_grabber_classes[name](fetchers.hire_fetcher(**self.config['FETCHER'])))
-            if name in self.__streamer_classes and self.__streamer_classes[name].get_epg:
-                grabbers.append(self.hire_streamers(name)[0])
         if grabber_names and len(grabbers) < 1:
             raise KeyError('There is no grabber named : %s' % ', '.join(grabber_names))
         if len(grabbers) < 1:
             grabbers = [class_(fetchers.hire_fetcher(**self.config['FETCHER'])) for class_ in self.__epg_grabber_classes.itervalues()]
-            for streamer_class in self.__streamer_classes.itervalues():
-                if streamer_class.get_epg:
-                    grabbers.append(self.hire_streamers(streamer_class.__name__)[0])
         return grabbers
 
     def hire_streamers(self, *streamer_names):

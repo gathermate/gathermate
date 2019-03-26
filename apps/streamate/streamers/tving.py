@@ -18,6 +18,8 @@ from apps.common import urldealer as ud
 from apps.common.exceptions import MyFlaskException
 from apps.streamate.streamer import HlsStreamer
 from apps.streamate.streamer import Channel
+from apps.streamate.epggrabber import EpgGrabber
+from apps.streamate.epggrabber import Program
 
 log = logging.getLogger(__name__)
 
@@ -50,15 +52,15 @@ class Tving(HlsStreamer):
     LOGIN_OK_REGEXP = re.compile(r'\([\'\"]LOGIN_OK[\'"]\)')
     ZZANG_REGEXP = re.compile(r'var zzang = ["\'](.+)["\'];')
 
-    EPG_SEARCH_TYPE = 'id'
     streaming_instance = None
 
     def __init__(self, settings, fetcher):
-        super(Tving, self).__init__(settings, fetcher)
+        HlsStreamer.__init__(self, settings, fetcher)
         if self.get_cache('pcid') is None:
             self.set_cookie(self.make_pcid_cookie())
         if bool(self.should_login()):
             self.login()
+        self.grabber = Tving.Grabber(self.fetcher, self)
 
     def _get_channels(self, pageNo):
         channels = []
@@ -124,22 +126,6 @@ class Tving(HlsStreamer):
         except Exception as e:
             log.error(e.message)
             return self.settings.get('QUALITY')[-1]
-
-    def get_epg(self, mapped_channel, days):
-        tving_id = mapped_channel.get('tving')
-        if tving_id is None:
-            log.warning("Couldn't find epg for the channel : %s", mapped_channel.get('name'))
-            return []
-        schedules = self.api_epg(tving_id, days if days is not None else 1)
-        programs = []
-        for schedule in schedules:
-            for program in schedule:
-                programs.append({
-                    'start': str(program['broadcast_start_time']) + ' +0900',
-                    'stop': str(program['broadcast_end_time']) + ' +0900',
-                    'title' : program['program']['name']['ko'],
-                    })
-        return programs
 
     def make_jsonp_name(self):
         jq_version = self.get_cache('jquery_version', '1.12.3')
@@ -280,3 +266,23 @@ class Tving(HlsStreamer):
             return False
         else:
             return True
+
+class Grabber(EpgGrabber):
+    def __name__(self):
+        return 'tving'
+
+    def get_programs(self, mapped_channel, proc_date, days):
+        tving_id = mapped_channel.get('tving')
+        schedules = self.streamer.api_epg(tving_id, days if days is not None else 1)
+        programs = []
+        for schedule in schedules:
+            for program in schedule:
+                programs.append(
+                    Program(dict(
+                        cid=tving_id,
+                        title=program['program']['name']['ko'],
+                        start=dt.strptime(program['broadcast_start_time'], '%Y%m%d%H%M'),
+                        stop=dt.strptime(program['broadcast_end_time'], '%Y%m%d%H%M')
+                        ))
+                    )
+        return programs

@@ -39,6 +39,7 @@ def pack_m3u(channels, ffmpeg):
         else:
             yield url.text + '\n'
 
+LANG = {'lang':'kr'}
 def pack_epg(channel_generator):
     yield '''<?xml version="1.0" encoding="UTF-8"?>
 <tv generator-info-name="Gathermate">\n'''
@@ -59,9 +60,27 @@ def pack_epg(channel_generator):
                              pretty_print=True)
         if epg.get('programs') is not None:
             for p in epg.get('programs'):
-                program = E.programme({'start': p.get('start'), 'stop': p.get('stop'), 'channel': cid},
-                                      E.title({'lang': 'kr'}, p.get('title'))
+                program = E.programme(
+                    {
+                        'start': p.starts,
+                        'stop': p.stops,
+                        'channel': cid,
+                    },
+                    E.title(LANG, p['title'] + ' (재)' if p.rerun else p['title'])
                 )
+                if p.cid:
+                    program.set('source-channel', unicode(p.cid))
+                if p.sub_title:
+                    sub_title = etree.SubElement(program, 'sub-title')
+                    sub_title.set('lang', 'kr')
+                    sub_title.text = p.sub_title
+                if p.description:
+                    program.append(E.desc(LANG, p.description))
+                if p.getlist('category'):
+                    for c in p.getlist('category'):
+                        program.append(E.category(LANG, c))
+                if p.rating:
+                    program.append(E.rating(p.rating))
                 yield etree.tostring(program,
                                      encoding='utf-8',
                                      pretty_print=True)

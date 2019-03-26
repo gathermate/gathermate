@@ -9,6 +9,8 @@ import threading
 
 from concurrent import futures
 
+from apps.common.datastructures import MultiDict
+
 log = logging.getLogger(__name__)
 lock = threading.RLock()
 
@@ -34,7 +36,7 @@ def set_epg(mapped_channel, days, pq):
             try:
                 with lock: grabber = pq.get(o)
             except KeyError as ke:
-                log.error('%s is required to grab %s', ke.message.capitalize(), mapped_channel['name'])
+                log.warning('%s is required to grab %s', ke.message.capitalize(), mapped_channel['name'])
                 return mapped_channel
             epg['programs'] = grabber.get_epg(mapped_channel, days)
             if epg['programs']: break
@@ -44,7 +46,7 @@ def set_epg(mapped_channel, days, pq):
             with lock:
                 name, grabber = pq.except_get(skip)
             skip.append(name)
-            if grabber.EPG_SEARCH_TYPE == 'id' and mapped_channel.get(name) is None:
+            if grabber.id_required and mapped_channel.get(name) is None:
                 with lock: pq.de_priority(name)
                 continue
             epg['programs'] = grabber.get_epg(mapped_channel, days)
@@ -57,58 +59,106 @@ def set_epg(mapped_channel, days, pq):
 
 class EpgGrabber(object):
 
+    id_required = True
+
     def __init__(self, fetcher):
         self.fetcher = fetcher
+        self.search_count = 0
+        self.fail_count = 0
 
     def fetch(self, url, cached=False, **kwargs):
         return self.fetcher.fetch(url, cached=cached, **kwargs)
 
-    def set_epg_times(self, programs):
-        programs = sorted(programs, key=lambda item: item.get('start'))
+    def get_epg(self, mapped_channel, days=1):
+        if self.id_required:
+            id_ = self.check_id(mapped_channel, self.__class__.__name__.lower())
+            if not id_: return []
+        self.search_count += 1
+        programs = self.get_programs(mapped_channel, dt.today(), days)
+        if not programs:
+            log.warning("Couldn't get epg for the channel : %s", mapped_channel.get('name'))
+            self.fail_count += 1
+        return programs
+
+    def set_stop(self, programs, last_duration=3):
+        programs = sorted(programs, key=lambda p: p.start)
         for idx, p in enumerate(programs):
             if idx + 1 < len(programs):
-                p['stop'] = programs[idx + 1].get('start')
+                p['stop'] = programs[idx + 1].start
             else:
                 # give 3 hours to the last program duration.
-                p['stop'] = p['start'] + datetime.timedelta(hours=3)
-                '''
-                p['stop'] = dt.combine(p['start'].date() + datetime.timedelta(days=1),
-                                       datetime.time(00, 00))
-                '''
-            p['start'] = dt.strftime(p['start'], '%Y%m%d%H%M%S') + ' +0900'
-            p['stop'] = dt.strftime(p['stop'], '%Y%m%d%H%M%S') + ' +0900'
+                p['stop'] = p.start + datetime.timedelta(hours=last_duration)
         return programs
 
     def parse_time(self, time_str, time_format='%H:%M'):
         return dt.strptime(time_str, time_format).time()
 
-    def get_epg_info(self, raw_html, proc_date):
-        programs = []
-        for start_time, title in self.parse_epg_html(raw_html):
-            start_time = self.parse_time(start_time)
-            start_datetime = dt.combine(proc_date, start_time)
-            programs.append({
-                'start': start_datetime,
-                'stop': '',
-                'title': title,
-            })
-        return programs
-
     def check_id(self, mapped_channel, key):
         ch_id = mapped_channel.get(key)
         if ch_id is None:
-            log.warning("Couldn't find epg for the channel : %s", mapped_channel.get('name'))
+            log.warning("ID is not set : %s", mapped_channel.get('name'))
             return False
         return ch_id
+
+
+class Program(MultiDict):
+
+    @property
+    def cid(self):
+        return self.get('cid')
+
+    @property
+    def title(self):
+        return self.get('title')
+
+    @property
+    def sub_title(self):
+        return self.get('sub_title')
+
+    @property
+    def start(self):
+        return self.get('start')
+
+    @property
+    def starts(self):
+        return dt.strftime(self.get('start'), '%Y%m%d%H%M%S') + ' +0900'
+
+    @property
+    def stop(self):
+        return self.get('stop')
+
+    @property
+    def stops(self):
+        return dt.strftime(self.get('stop'), '%Y%m%d%H%M%S') + ' +0900'
+
+    @property
+    def description(self):
+        return self.get('description')
+
+    @property
+    def category(self):
+        return self.get('category')
+
+    @property
+    def rating(self):
+        return self.get('rating')
+
+    @property
+    def episode(self):
+        return self.get('episode')
+
+    @property
+    def rerun(self):
+        return self.get('rerun')
 
 
 class PriorityQueue(object):
     '''
     Not thread safe.
     '''
-
-    entries = {}
-    counter = itertools.count()
+    def __init__(self):
+        self.entries = {}
+        self.counter = itertools.count()
 
     def set(self, key, value, priority=0):
         self.entries[key] = [priority, next(self.counter), key, value]
