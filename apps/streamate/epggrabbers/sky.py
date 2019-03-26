@@ -52,6 +52,6 @@ class Sky(EpgGrabber):
                                    stop=dt.strptime(p['endtime'], '%Y%m%d%H%M%S'),
                                    rating=p['grade'],
                                    description=p['description'],
-                                   category=[p['program_category1'], p['program_category2']],
+                                   category=p['program_category1'].split('/') + p['program_category2'].split('/'),
                                    rerun=True if p['rebroad'] == 'Y' else False,
                                    episode=p['episode_id']))

@@ -33,9 +33,13 @@ class Tving(EpgGrabber):
                     programs.append(
                         Program(dict(
                             cid=tving_id,
-                            title=program['program']['name']['ko'],
+                            title=program['episode']['name']['ko'] if program['episode'] else program['program']['name']['ko'],
                             start=dt.strptime(str(program['broadcast_start_time']), '%Y%m%d%H%M%S'),
-                            stop=dt.strptime(str(program['broadcast_end_time']), '%Y%m%d%H%M%S')
+                            stop=dt.strptime(str(program['broadcast_end_time']), '%Y%m%d%H%M%S'),
+                            rerun=True if program['rerun_yn'] == 'Y' else False,
+                            category=program['episode']['category1_name']['ko'].split('/') if program['episode'] else program['program']['category1_name']['ko'].split('/'),
+                            episode=program['episode']['frequency'] if program['episode'] else None,
+                            description=program['episode']['synopsis']['ko'] if program['episode'] else program['program']['synopsis']['ko'],
                             ))
                         )
         return programs

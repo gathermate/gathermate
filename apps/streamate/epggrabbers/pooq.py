@@ -34,6 +34,7 @@ class Pooq(EpgGrabber):
                         title=program.get('title'),
                         start=dt.strptime(program.get('starttime'), '%Y-%m-%d %H:%M'),
                         stop=dt.strptime(program.get('endtime'), '%Y-%m-%d %H:%M'),
+                        rating=program.get('targetage'),
                         ))
                     )
         return programs
