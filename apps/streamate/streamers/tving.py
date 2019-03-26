@@ -7,7 +7,6 @@ import random
 import time
 import Cookie
 import datetime
-from datetime import datetime as dt
 import base64
 import string
 
@@ -18,8 +17,6 @@ from apps.common import urldealer as ud
 from apps.common.exceptions import MyFlaskException
 from apps.streamate.streamer import HlsStreamer
 from apps.streamate.streamer import Channel
-from apps.streamate.epggrabber import EpgGrabber
-from apps.streamate.epggrabber import Program
 
 log = logging.getLogger(__name__)
 
@@ -60,7 +57,6 @@ class Tving(HlsStreamer):
             self.set_cookie(self.make_pcid_cookie())
         if bool(self.should_login()):
             self.login()
-        self.grabber = Tving.Grabber(self.fetcher, self)
 
     def _get_channels(self, pageNo):
         channels = []
@@ -158,39 +154,6 @@ class Tving(HlsStreamer):
         return json.loads(r.content)['stream']['broadcast']['broad_url']
     '''
 
-    def api_epg(self, cid, days=1):
-        url = ud.Url(self.API_URL + '/media/schedules')
-        url.update_query(dict(
-            apiKey=self.API_KEY.get('mobile'),
-            pageNo=1,
-            pageSize=20,
-            order='chno',
-            scope='all',
-            adult='n',
-            free='all',
-            channelCode=cid,
-            screenCode=self.CS.get('screenCode'), teleCode=self.CS.get('teleCode'),
-            networkCode=self.CS.get('networkCode'), osCode=self.CS.get('osCode'),
-            )
-        )
-        broadDate = dt.today().date()
-        for _ in range(days):
-            broadTime = 0
-            for _ in range(8):
-                url.query_dict['broadDate'] = dt.strftime(broadDate, '%Y%m%d')
-                url.query_dict['broadcastDate'] = dt.strftime(broadDate, '%Y%m%d')
-                url.query_dict['startBroadTime'] = '%02d0000' % broadTime
-                url.query_dict['endBroadTime'] = '%02d0000' % int(broadTime + 3)
-                r = self.fetch(url, referer=self.PLAYER_URL % cid)
-                js = json.loads(r.content)
-                try:
-                    yield js['body']['result'][0]['schedules']
-                except Exception as e:
-                    log.error(e.message)
-                broadTime += 3
-            broadDate += datetime.timedelta(days=1)
-
-
     def api_streaminfo(self, cid, stream_code):
         url = ud.Url(self.API_URL + '/media/stream/info')
         key = int(time.time()*1000)
@@ -266,23 +229,3 @@ class Tving(HlsStreamer):
             return False
         else:
             return True
-
-class Grabber(EpgGrabber):
-    def __name__(self):
-        return 'tving'
-
-    def get_programs(self, mapped_channel, proc_date, days):
-        tving_id = mapped_channel.get('tving')
-        schedules = self.streamer.api_epg(tving_id, days if days is not None else 1)
-        programs = []
-        for schedule in schedules:
-            for program in schedule:
-                programs.append(
-                    Program(dict(
-                        cid=tving_id,
-                        title=program['program']['name']['ko'],
-                        start=dt.strptime(program['broadcast_start_time'], '%Y%m%d%H%M'),
-                        stop=dt.strptime(program['broadcast_end_time'], '%Y%m%d%H%M')
-                        ))
-                    )
-        return programs
