@@ -41,21 +41,22 @@ class Daum(EpgGrabber):
             td_id = int(td.get('id')[-1])
             if td_id in date_index:
                 hour = int(filter(str.isdigit, str(td.getparent().find('th').text.strip())))
-                if td.find('dl/dt') is None: continue
-                minute = int(td.find('dl/dt').text)
-                start = date_index[td_id].replace(hour=hour, minute=minute, second=0)
-                dd = td.find('dl/dd')
-                if dd is None: continue
-                if dd.find('a') is not None:
-                    title_element = dd.find('a')
-                else:
-                    title_element = dd.find('span[@class=""]')
-                title = title_element.text.strip()
-                rerun = dd.xpath('span[contains(@class, "ico_re")]')
-                rating = dd.xpath('span[contains(@class, "ico_rate")]')
-                yield Program(dict(
-                    title=unicode(title),
-                    start=start,
-                    rerun=True if rerun else False,
-                    rating=filter(str.isdigit, str(rating[0].text)) if rating else None
-                    ))
+                for dl in td.findall('dl'):
+                    minute = int(dl.find('dt').text)
+                    start = dt(date_index[td_id].year,
+                               date_index[td_id].month,
+                               date_index[td_id].day,
+                               hour,
+                               minute,
+                               0)
+                    dd = dl.find('dd')
+                    title_element =  dd.find('a') if dd.find('a') is not None else dd.find('span[@class=""]')
+                    title = title_element.text.strip()
+                    rerun = dd.xpath('span[contains(@class, "ico_re")]')
+                    rating = dd.xpath('span[contains(@class, "ico_rate")]')
+                    yield Program(dict(
+                        title=unicode(title),
+                        start=start,
+                        rerun=True if rerun else False,
+                        rating=filter(str.isdigit, str(rating[0].text)) if rating else None
+                        ))
