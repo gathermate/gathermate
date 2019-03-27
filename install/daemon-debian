@@ -8,7 +8,6 @@ DAEMON=gunicorn
 ROOT=/opt/apps/$NAME
 ACTIVATE=$ROOT/venv/bin/activate
 
-APPNAME=$NAME
 APP=app:app
 # 기본 포트 번호를 변경 후 외부 접속을 차단해주세요.
 BIND=0.0.0.0:8181
@@ -17,6 +16,8 @@ LOGLEVEL=ERROR
 PIDFILE=/var/run/$DAEMON.pid
 LOGFILE=/var/log/$DAEMON.log
 SYS_LOG_ADDR=unix:///dev/log#dgram
+SSL_CERT=
+SSL_KEY=
 
 # instance/config.py 에서 사용할 정보를 입력해 주세요.
 export GATHERMATE_AUTH_ID=admin
@@ -30,13 +31,13 @@ export GATHERMATE_CINE_PW=
 
 case "$1" in
   start)
-        log_daemon_msg "Starting gunicorn" "$APPNAME"
+        log_daemon_msg "Starting gunicorn" "$NAME"
         source $ACTIVATE
-        $DAEMON  $APP --daemon --reload --preload --chdir $ROOT -k gevent --bind=$BIND --pid=$PIDFILE --workers=$WORKERS --log-file=$LOGFILE --log-level $LOGLEVEL --log-syslog-to $SYS_LOG_ADDR --log-syslog-prefix $APPNAME
+        $DAEMON  $APP --daemon --preload --chdir $ROOT -k gevent --bind=$BIND --workers=$WORKERS --certfile=$SSL_CERT --keyfile=$SSL_KEY --pid=$PIDFILE --log-file=$LOGFILE --log-level $LOGLEVEL --log-syslog-to $SYS_LOG_ADDR --log-syslog-prefix $NAME
         log_end_msg $?
     ;;
   stop)
-        log_daemon_msg "Stopping gunicorn" "$APPNAME"
+        log_daemon_msg "Stopping gunicorn" "$NAME"
         killproc -p $PIDFILE $DAEMON
         log_end_msg $?
     ;;
@@ -51,6 +52,7 @@ case "$1" in
     source $ACTIVATE
     cd $ROOT
     flask send "$2" "$3"
+    exit $?
     ;;
   *)
     echo "Usage: $0 {start|stop|restart|force-reload|status}"

@@ -12,7 +12,6 @@ ACTIVATE=$ROOT/venv/bin/activate
 PRECMD="source $ACTIVATE"
 PREARGS=
 
-APPNAME=$NAME
 APP=app:app
 # 기본 포트 번호를 변경 후 외부 접속을 차단해주세요.
 BIND=0.0.0.0:8181
@@ -21,8 +20,10 @@ LOGLEVEL=ERROR
 PIDFILE=/opt/var/run/$PROCS.pid
 LOGFILE=/opt/var/log/$PROCS.log
 SYS_LOG_ADDR=unix:///dev/log#dgram
+SSL_CERT=
+SSL_KEY=
 
-ARGS="$APP --daemon --preload --chdir $ROOT -k gevent --bind=$BIND --pid=$PIDFILE --workers=$WORKERS --log-file=$LOGFILE --log-level $LOGLEVEL --log-syslog-to $SYS_LOG_ADDR --log-syslog-prefix $APPNAME"
+ARGS="$APP --daemon --preload --chdir $ROOT -k gevent --bind=$BIND --workers=$WORKERS --certfile=$SSL_CERT --keyfile=$SSL_KEY --pid=$PIDFILE --log-file=$LOGFILE --log-level $LOGLEVEL --log-syslog-to $SYS_LOG_ADDR --log-syslog-prefix $NAME"
 
 export LANG=en_US.UTF-8
 export LC_ALL=en_US.UTF-8

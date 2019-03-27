@@ -66,6 +66,9 @@ class EpgGrabber(object):
         self.search_count = 0
         self.fail_count = 0
 
+    def get_programs(self):
+        raise NotImplementedError
+
     def fetch(self, url, cached=False, **kwargs):
         return self.fetcher.fetch(url, cached=cached, **kwargs)
 
