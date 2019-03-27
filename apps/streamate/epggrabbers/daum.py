@@ -40,7 +40,7 @@ class Daum(EpgGrabber):
         for td in html.xpath('//td[contains(@id, "channelBody")]'):
             td_id = int(td.get('id')[-1])
             if td_id in date_index:
-                hour = int(td.getparent().find('th').text[:2])
+                hour = int(filter(str.isdigit, str(td.getparent().find('th').text.strip())))
                 if td.find('dl/dt') is None: continue
                 minute = int(td.find('dl/dt').text)
                 start = date_index[td_id].replace(hour=hour, minute=minute, second=0)
