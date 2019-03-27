@@ -36,7 +36,7 @@ class Kt(EpgGrabber):
         return self.set_stop(programs, 3)
 
     def parse_program(self, content, cid, proc_date):
-        for e in etree.HTML(content).xpath('//div[@class="tableSchedule"]/ul/li[@class="lists"]'):
+        for e in etree.HTML(content).xpath('//div[@class="tableSchedule"]/ul/li[contains(@class, "lists")]'):
             hour = e.find('div[@class="hour"]').text
             for div in e.find('div[@class="data"]').iterchildren():
                 minute = div.find('div[@class="minute"]').text
