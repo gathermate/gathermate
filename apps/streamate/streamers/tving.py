@@ -169,7 +169,12 @@ class Tving(HlsStreamer):
             mediaCode=cid))
         r = self.fetch(url, referer=self.PLAYER_URL % cid)
         js = json.loads(r.content)
-        stream_url = self.decrypt(key, cid, js['body']['stream']['broadcast']['broad_url'])
+        block = True if js['body']['content']['info']['schedule']['broadcast_url'][0]['block_yn'] == 'Y' else False
+        if js['body']['stream']:
+            stream_url = self.decrypt(key, cid, js['body']['stream']['broadcast']['broad_url'])
+        else:
+            log.debug('is this channel blocked? : %s', block)
+            raise MyFlaskException('Stream URL is not available : %s', cid)
         server_time = self.get_datetime(js['body']['server']['time'])
         start_time = self.get_datetime(js['body']['content']['broadcast_start_date'])
         current_time = (server_time - start_time).total_seconds()
