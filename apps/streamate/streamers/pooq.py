@@ -35,8 +35,16 @@ class Pooq(HlsStreamer):
 
     streaming_instance = None
 
-    def __init__(self, settings, fetcher):
-        HlsStreamer.__init__(self, settings, fetcher)
+    def __init__(self,
+                 fetcher,
+                 mapped_channels=[],
+                 except_channels=[],
+                 qualities=[],
+                 id=None,
+                 pw=None):
+        HlsStreamer.__init__(self, fetcher, mapped_channels, except_channels, qualities)
+        self.user_id = id
+        self.user_pw = pw
         if bool(self.should_login()):
             self.api_login()
 
@@ -46,7 +54,7 @@ class Pooq(HlsStreamer):
         for genres in js.get('list'):
             for channel in genres.get('list'):
                 cid = [channel.get('channelid')]
-                if int(channel.get('price')) is 1 or cid[0] in self.settings['EXCEPT_CHANNELS']:
+                if int(channel.get('price')) is 1 or cid[0] in self.except_channels:
                     continue
                 name = [channel.get('channelname')]
                 mapped_channel = self._get_mapped_channel('pooq', cid[0])
@@ -71,7 +79,7 @@ class Pooq(HlsStreamer):
         If you are authorized for streams, AWS Policy allows you
         to access them while 6 hours. If not, only 10 minutes.
         '''
-        js = self.api_streamlist(cid, self.settings.get('QUALITY')[-1])
+        js = self.api_streamlist(cid, self.qualities[-1])
         url = js.get('playurl')
         aws_cookie = js.get('awscookie')
         if aws_cookie is not None:
@@ -140,8 +148,8 @@ class Pooq(HlsStreamer):
         api.update_query(self.API_QUERY)
         #self.fetch(api, method='OPTIONS', referer=self.LOGIN_REFERER)
         payload = dict(type='general',
-                       id=self.settings.get('ID', ''),
-                       password=self.settings.get('PW', ''),
+                       id=self.user_id,
+                       password=self.user_pw,
                        pushid='none',
                        profile='')
         response = self.fetch(api, method='JSON', payload=payload, referer=self.LOGIN_REFERER)

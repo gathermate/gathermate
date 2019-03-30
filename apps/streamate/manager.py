@@ -49,9 +49,11 @@ class StreamManager(Manager):
             classes = [class_ for class_ in self.__streamer_classes.itervalues()]
         streamers = []
         for class_ in classes:
-            config = self.config['STREAMERS'][class_.__name__]
-            config['CHANNELS'] = self.config['CHANNELS']
-            streamers.append(class_(config, fetchers.hire_fetcher(**{k.lower(): v for k, v in self.config['FETCHER'].iteritems()})))
+            streamers.append(class_(
+                fetchers.hire_fetcher(**{k.lower(): v for k, v in self.config['FETCHER'].iteritems()}),
+                mapped_channels=self.config['CHANNELS'],
+                **{k.lower(): v for k, v in self.config['STREAMERS'][class_.__name__].iteritems()}
+                ))
         return streamers
 
     def _order_resource(self, streamer, query):

@@ -11,7 +11,6 @@ from apps.streamate.epggrabber import EpgGrabber
 log = logging.getLogger(__name__)
 
 class Sk(EpgGrabber):
-    pass
     '''
     접속 지연.....
     var currDate = $("#key_depth3").val();
@@ -26,23 +25,39 @@ class Sk(EpgGrabber):
     key_depth2_name:
     tab_gubun: 1
     menu_id: D03020000
-
-
     '''
+    URL = 'http://m.skbroadband.com/'
+    SEARCH_URL = 'http://m.skbroadband.com/content/realtime/Channel_List.do'
 
-'''
+    def get_programs(self, mapped_channel, proc_date, days):
+        sk_id = mapped_channel.get('sk')
+        key_depth1, key_depth2 = sk_id.split('.')
+        for day in range(days):
+            payload = dict(retUrl='',
+                           pageIndex=1,
+                           pack='',
+                           key_depth1=key_depth1,
+                           key_depth2=key_depth2,
+                           key_depth3=dt.strftime(proc_date, '%Y%m%d'),
+                           key_chno='',
+                           key_depth2_name='',
+                           tab_gubun=1,
+                           menu_id='D03020000'
+                           )
+            r = self.fetch(self.SEARCH_URL, method='POST', referer=self.URL, payload=payload)
+            print r.content.decode('euc-kr')
+
+
 #for testing
 
-from apps.common import fetchers
-import app
-
-TEST_CHANNELS = [
-    dict(cid='ANIBOX-1',name='ANIBOX',chnum=993,kt=993,lg=695,sky=84,pooq='C4401',logo='http://img.pooq.co.kr/BMS/ChannelImg/32_애니박스.png'),
-    dict(cid='ANIMAX-1',name='애니맥스',chnum=155,kt=995,lg=703,sky=725,pooq='A01',logo='http://img.pooq.co.kr/BMS/ChannelImg/31_anymax.png'),
-]
-
 if __name__ == '__main__':
+    from apps.common import fetchers
+    import app
 
-    sk = Sk(fetchers.hire_fetcher())
-    print(sk.get_epg(TEST_CHANNELS[0]), 2)
-'''
+    TEST_CHANNELS = [
+        dict(cid='KBS1',name='KBS 1',chnum=9,sk='5100.11',epgcokr=9,kt=9,lg=501,sky=796,pooq='K01',logo='https://tv.kt.com/relatedmaterial/ch_logo/live/9.png'),
+        dict(cid='KBS2',name='KBS 2',chnum=7,sk='5100.12',epgcokr=7,kt=7,lg=502,sky=795,pooq='K02',logo='https://tv.kt.com/relatedmaterial/ch_logo/live/7.png'),
+    ]
+    fetcher = fetchers.hire_fetcher()
+    sk = Sk(fetcher)
+

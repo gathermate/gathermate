@@ -51,8 +51,18 @@ class Tving(HlsStreamer):
 
     streaming_instance = None
 
-    def __init__(self, settings, fetcher):
-        HlsStreamer.__init__(self, settings, fetcher)
+    def __init__(self,
+                 fetcher,
+                 mapped_channels=[],
+                 except_channels=[],
+                 qualities=[],
+                 id=None,
+                 pw=None,
+                 login_type=20):
+        HlsStreamer.__init__(self, fetcher, mapped_channels, except_channels, qualities)
+        self.user_id = id
+        self.user_pw = pw
+        self.login_type = login_type
         if self.get_cache('pcid') is None:
             self.set_cookie(self.make_pcid_cookie())
         if bool(self.should_login()):
@@ -73,7 +83,7 @@ class Tving(HlsStreamer):
                 #log.debug('%s -  broadcast_type: %s, channel_type: %s, free: %s', channel['name']['ko'], channel['broadcast_type'], channel['type'], free)
                 cookies = self.get_cookie()
                 #USER_PAY_TYPE : free=U, piad=?
-                if cid[0] in self.settings.get('EXCEPT_CHANNELS') \
+                if cid[0] in self.except_channels \
                    or (not free and cookies.get('USER_PAY_TYPE').value == 'U') \
                    or channel['broadcast_type'] == 'CPSE0300':
                     continue
@@ -118,10 +128,10 @@ class Tving(HlsStreamer):
 
     def get_quality(self, index):
         try:
-            return self.settings.get('QUALITY')[int(index)]
+            return self.qualities[int(index)]
         except Exception as e:
             log.error(e.message)
-            return self.settings.get('QUALITY')[-1]
+            return self.qualities[-1]
 
     def make_jsonp_name(self):
         jq_version = self.get_cache('jquery_version', '1.12.3')
@@ -202,9 +212,9 @@ class Tving(HlsStreamer):
         return js['body']['result'], True if js['body']['has_more'] == 'Y' else False
 
     def login(self):
-        payload = dict(userId=self.settings.get('ID', ''),
-                       password=self.settings.get('PW', ''),
-                       loginType=self.settings.get('LOGIN_TYPE', 10),
+        payload = dict(userId=self.user_id,
+                       password=self.user_pw,
+                       loginType=self.login_type,
                        autoLogin='on',
                        pnsToken='',
                        pocType='',
@@ -229,7 +239,7 @@ class Tving(HlsStreamer):
         except MyFlaskException as e:
             log.error(e.message)
             return True
-        match = re.search(self.settings.get('ID', str(random.random())), r.content)
+        match = re.search(self.user_id if self.user_id else str(random.random()), r.content)
         if match:
             return False
         else:

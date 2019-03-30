@@ -52,9 +52,11 @@ class Streamer(object):
 
 class HlsStreamer(Streamer):
 
-    def __init__(self, settings, fetcher):
+    def __init__(self, fetcher, mapped_channels, except_channels, qualities):
         Streamer.__init__(self, fetcher)
-        self.settings = settings
+        self.mapped_channels = mapped_channels
+        self.except_channels = except_channels
+        self.qualities = qualities
         self.playlist = {}
         self.should_stream = True
 
@@ -106,7 +108,7 @@ class HlsStreamer(Streamer):
             safe_counter -= 1
 
     def _get_mapped_channel(self, streamer, cid):
-        return next((ch for ch in self.settings['CHANNELS'] if ch.get(streamer) == cid), None)
+        return next((ch for ch in self.mapped_channels if ch.get(streamer) == cid), None)
 
     def get_playlist_url(self):
         raise NotImplementedError
