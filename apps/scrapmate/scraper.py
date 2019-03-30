@@ -15,18 +15,15 @@ log = logging.getLogger(__name__)
 
 class Scraper(object):
     def __init__(self, fetcher, encoding='utf-8', login_info=None):
-        # type: (Dict[str, object], Type[fetchers.Fetcher]) -> None
         self.encoding = encoding
         self.fetcher = fetcher
         self.set_login(login_info)
 
     def set_login(self, login_info):
-        # type: (Dict[str, object]) -> None
         self.login_info = {}
 
     ESCAPE_REGEXP = re.compile(r'\%..')
     def parse_file(self, url, ticket):
-        # type: (urldealer.Url, Type[Dict[Text, Union[Text, List[Text]]]]) -> Response
         down_response = self.get_file(url, ticket)
         if not down_response or not down_response.headers.get('Content-Disposition'):
             log.error('HEADERS : %s', down_response.headers)
@@ -41,20 +38,16 @@ class Scraper(object):
         return down_response
 
     def etree(self, response, encoding='utf-8'):
-        # type: (Response, Text) -> lxml.etree._Element
         return etree.HTML(response.content.decode(encoding, 'replace'))
 
     def fetch_and_etree(self, url, referer=None, encoding='utf-8'):
-        # type: (Union[Text, urldealer.Url], Text, Text) -> lxml.etree._Element
         return self.etree(self.fetch(url, referer=referer), encoding=encoding)
 
     def _log_result(self, url):
-        # type: (urldealer.Url) -> None
         log.debug('Parsing [%s%s] is done.',
                   '...' + url.path if url.path else url.text, '?%s' % url.query if url.query else '')
 
     def credential(self):
-        # type: () -> None
         url = ud.Url(self.login_info.get('url'))
         self.fetcher.fetch(url,
                            referer=self.login_info.get('referer', self.URL),
@@ -64,11 +57,9 @@ class Scraper(object):
                            forced_update=True)
 
     def check_login(self, r):
-        # type: (Response) -> Optional(re.MatchObject, boolean)
         return self.login_info['denied'].search(r.content) or False
 
     def fetch(self, url, **kwargs):
-        # type: (Union[urldealer.Url, Text], Optional[Dict[Text, object]]) -> Response
         url = ud.Url(url) if not type(url) is ud.Url else url
         r = self.fetcher.fetch(url, **kwargs)
         if self.login_info and self.check_login(r):
@@ -82,7 +73,6 @@ class Scraper(object):
         return r
 
     def safe_loop(self, elements, **kwargs):
-        # type: (lxml.etree.Element, Optional[Dict[Text, object]]) -> Callable
         def handle_element(f):
             @wraps(f)
             def decorate():
@@ -99,7 +89,6 @@ class Scraper(object):
         return handle_element
 
     def get_page(self, response):
-        # type: (Response) -> Iterable
         root = self.etree(response, encoding=self.encoding)
         return etree.tostring(root,
                               pretty_print=True,
@@ -116,7 +105,7 @@ class BoardScraper(Scraper):
                  rss_aggressive=False,
                  rss_async=False,
                  rss_workers=1):
-        super(BoardScraper, self).__init__(fetcher, encoding, login_info)
+        Scraper.__init__(self, fetcher, encoding, login_info)
         self.length = int(rss_length)
         self.want = rss_want
         self.aggressive = rss_aggressive
@@ -133,19 +122,15 @@ class BoardScraper(Scraper):
             self.want_regex = self._get_want_regex([])
 
     def get_list(self, response):
-        # type: (Response) -> Generator
         raise NotImplementedError
 
     def get_item(self, response):
-        # type: (Response) -> Generator
         raise NotImplementedError
 
     def get_file(self, url, ticket):
-        # type: (urldealer.Url, Dict[Text, Union[Text, Dict[Text, Text]]]) -> Response
         raise NotImplementedError
 
     def handle_query(self, url):
-        # type: (urldealer.Url) -> None
         page_num = url.query_dict.pop('page', None)
         search_key = url.query_dict.pop('search', None)
         if search_key:
@@ -154,20 +139,16 @@ class BoardScraper(Scraper):
             self.handle_page(url, page_num)
 
     def handle_search(self, url, keyword):
-        # type: (urldealer.Url, Text) -> None
         url.update_qs(self.SEARCH_QUERY % keyword)
 
     def handle_page(self, url, num):
-        # type: (urldealer.Url, Text) -> None
         url.update_qs(self.PAGE_QUERY % int(num))
 
     def get_id_num(self, text):
-        # type: (Text) -> int
         result = self.ID_REGEXP.search(text)
         return int(result.group(1)) if result else -1
 
     def parse_list(self, url):
-        # type: (urldealer.Url) -> Union[Dict[Text, Dict[Text, Text]], Dict[Text, Union[int, Dict[Text, object]]]]
         self.handle_query(url)
         response = self.fetch(url)
         current_ids = []
@@ -197,7 +178,6 @@ class BoardScraper(Scraper):
         }
 
     def _paginate(self, url, content):
-        # type: (urldealer.Url, str) -> None
         PAGE_REGEXP = re.compile(re.sub('%d', '(\d{1,5})', self.PAGE_QUERY))
         match = PAGE_REGEXP.search(url.text)
         self.current_page = int(match.group(1)) if match else 1
@@ -212,7 +192,6 @@ class BoardScraper(Scraper):
             log.debug('There are no page hints.')
 
     def _check_length(self, url, articles, current_ids):
-        # type: (urldealer.Url, Dict[Text, Dict[Text, Text]], List[Text]) -> None
         total = len(articles)
         if total < 1:
             raise MyFlaskException('There are no articles that could be parsed : {}'.format(url.text),
@@ -237,7 +216,6 @@ class BoardScraper(Scraper):
             self._add_list(url)
 
     def _remove_list(self, articles, current_ids, target):
-        # type: (Dict[Text, Dict[Text, Text]], List[Text], int) -> None
         current_ids.sort()
         del current_ids[target:]
         for key in current_ids:
@@ -245,7 +223,6 @@ class BoardScraper(Scraper):
         log.debug('%d articles were deleted.', len(current_ids))
 
     def _add_list(self, url):
-        # type: (urldealer.Url) -> None
         if not self.max_page > self.next_page:
             log.debug('There is no more pages.')
             return
@@ -254,7 +231,6 @@ class BoardScraper(Scraper):
         self.parse_list(url)
 
     def parse_items(self, articles):
-        # type: (Dict[str, Dict[str, str]]) -> Iterable
         if not self.aggressive:
             for id_num, article in articles.iteritems():
                 item = {}
@@ -275,7 +251,6 @@ class BoardScraper(Scraper):
                     yield self.parse_item(url)
 
     def parse_item(self, article_url):
-        # type: (Union[urldealer.Url, List[urldealer.Url]]) -> List[Optional[Dict[str, str]]]
         items = []
         try:
             r = self.fetch(article_url)
@@ -299,7 +274,6 @@ class BoardScraper(Scraper):
         return items
 
     def _want(self, items):
-        # type: (List[Dict[str, str]]) -> Optional[Dict[str, str]]
         for want in self.want_regex:
             for item in items:
                 match = want.search(item['name'].lower())
@@ -309,7 +283,6 @@ class BoardScraper(Scraper):
         return items[0]
 
     def _get_want_regex(self, want_list):
-        # type: (List[str]) -> List[_sre.SRE_Pattern]
         if not want_list:
             return [re.compile(r'\.torrent$')]
         return [re.compile(keyword, re.I) for keyword in want_list]

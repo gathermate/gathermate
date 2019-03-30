@@ -31,11 +31,11 @@ class StreamManager(Manager):
         for name in grabber_names:
             name = name.capitalize()
             if name in self.__epg_grabber_classes:
-                grabbers.append(self.__epg_grabber_classes[name](fetchers.hire_fetcher(**self.config['FETCHER'])))
+                grabbers.append(self.__epg_grabber_classes[name](fetchers.hire_fetcher(**{k.lower(): v for k, v in self.config['FETCHER'].iteritems()})))
         if grabber_names and len(grabbers) < 1:
             raise KeyError('There is no grabber named : %s' % ', '.join(grabber_names))
         if len(grabbers) < 1:
-            grabbers = [class_(fetchers.hire_fetcher(**self.config['FETCHER'])) for class_ in self.__epg_grabber_classes.itervalues()]
+            grabbers = [class_(fetchers.hire_fetcher(**{k.lower(): v for k, v in self.config['FETCHER'].iteritems()})) for class_ in self.__epg_grabber_classes.itervalues()]
         return grabbers
 
     def hire_streamers(self, *streamer_names):
@@ -51,7 +51,7 @@ class StreamManager(Manager):
         for class_ in classes:
             config = self.config['STREAMERS'][class_.__name__]
             config['CHANNELS'] = self.config['CHANNELS']
-            streamers.append(class_(config, fetchers.hire_fetcher(**self.config['FETCHER'])))
+            streamers.append(class_(config, fetchers.hire_fetcher(**{k.lower(): v for k, v in self.config['FETCHER'].iteritems()})))
         return streamers
 
     def _order_resource(self, streamer, query):

@@ -60,7 +60,7 @@ class ScrapmateManager(Manager):
         }
         if config.get(class_.__name__, None):
             default_config.update(config.get(class_.__name__))
-        return class_(fetchers.hire_fetcher(**self.config['FETCHER']),
+        return class_(fetchers.hire_fetcher(**{k.lower(): v for k, v in self.config['FETCHER'].iteritems()}),
                       default_config['ENCODING'],
                       default_config['LOGIN_INFO'],
                       default_config['RSS_LENGTH'],

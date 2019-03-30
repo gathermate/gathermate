@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import logging
-import datetime
 from datetime import datetime as dt
 
 from lxml import etree

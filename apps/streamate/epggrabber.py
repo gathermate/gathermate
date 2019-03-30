@@ -75,11 +75,11 @@ class EpgGrabber(object):
     def get_epg(self, mapped_channel, days=1):
         if self.id_required:
             id_ = self.check_id(mapped_channel, self.__class__.__name__.lower())
-            if not id_: return []
+            if id_ is False: return []
         self.search_count += 1
         programs = self.get_programs(mapped_channel, dt.today(), days)
         if not programs:
-            log.warning("Couldn't get epg for the channel : %s", mapped_channel.get('name'))
+            log.warning("%s couldn't get EPG for the channel : %s", self.__class__.__name__, mapped_channel.get('name'))
             self.fail_count += 1
         return programs
 
@@ -99,7 +99,7 @@ class EpgGrabber(object):
     def check_id(self, mapped_channel, key):
         ch_id = mapped_channel.get(key)
         if ch_id is None:
-            log.warning("ID is not set : %s", mapped_channel.get('name'))
+            log.warning("%s doesn't have ID for this channel : %s", self.__class__.__name__, mapped_channel.get('name'))
             return False
         return ch_id
 

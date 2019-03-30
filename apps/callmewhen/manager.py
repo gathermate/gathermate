@@ -35,7 +35,7 @@ class Messenser(object):
         self.config = config
 
     def fetch(self, *args, **kwargs):
-        fetcher = fetchers.hire_fetcher(**self.config)
+        fetcher = fetchers.hire_fetcher(**{k.lower(): v for k, v in self.config['FETCHER'].iteritems()})
         return fetcher.fetch(*args, **kwargs)
 
     def send(self):

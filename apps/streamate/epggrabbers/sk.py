@@ -13,6 +13,7 @@ log = logging.getLogger(__name__)
 class Sk(EpgGrabber):
     pass
     '''
+    접속 지연.....
     var currDate = $("#key_depth3").val();
     http://www.skbroadband.com/content/realtime/Channel_List.do
     retUrl:

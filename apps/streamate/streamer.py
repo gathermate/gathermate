@@ -53,7 +53,7 @@ class Streamer(object):
 class HlsStreamer(Streamer):
 
     def __init__(self, settings, fetcher):
-        super(HlsStreamer, self).__init__(fetcher)
+        Streamer.__init__(self, fetcher)
         self.settings = settings
         self.playlist = {}
         self.should_stream = True
