@@ -77,10 +77,6 @@ class StreamManager(Manager):
         grabbers = self.hire_grabbers(*query.getlist('grabber'))
         return packer.pack_epg(epggrabber.get_epg(self.config['CHANNELS'], grabbers, query.get('days', default=1, type=int)))
 
-    def _order_test(self, streamer, query):
-        return streamer.get_internal_epg(query.get('ch'), query.get('days', type=int))
-
-
     def request(self, streamer, order, query):
         # type: (str, Type[Dict[str, Union[List[str], str]]]) -> ?
         try:

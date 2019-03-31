@@ -12,7 +12,7 @@ log = logging.getLogger(__name__)
 
 class Sk(EpgGrabber):
     '''
-    접속 지연.....
+    접속 지연..... 파밍 불가
     var currDate = $("#key_depth3").val();
     http://www.skbroadband.com/content/realtime/Channel_List.do
     retUrl:
@@ -33,18 +33,11 @@ class Sk(EpgGrabber):
         sk_id = mapped_channel.get('sk')
         key_depth1, key_depth2 = sk_id.split('.')
         for day in range(days):
-            payload = dict(retUrl='',
-                           pageIndex=1,
-                           pack='',
-                           key_depth1=key_depth1,
+            payload = dict(key_depth1=key_depth1,
                            key_depth2=key_depth2,
                            key_depth3=dt.strftime(proc_date, '%Y%m%d'),
-                           key_chno='',
-                           key_depth2_name='',
-                           tab_gubun=1,
-                           menu_id='D03020000'
                            )
-            r = self.fetch(self.SEARCH_URL, method='POST', referer=self.URL, payload=payload)
+            r = self.fetch(self.SEARCH_URL, referer=self.URL, payload=payload)
             print r.content.decode('euc-kr')
 
 
@@ -60,4 +53,5 @@ if __name__ == '__main__':
     ]
     fetcher = fetchers.hire_fetcher()
     sk = Sk(fetcher)
-
+    programs = sk.get_programs(TEST_CHANNELS[0], dt.today(), 1)
+    print programs

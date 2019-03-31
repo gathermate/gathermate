@@ -21,9 +21,10 @@ class Streamer(object):
 
     def fetch(self, url, cached=False, **kwargs):
         response = self.fetcher.fetch(url, cached=cached, **kwargs)
-        if str(response.status_code).startswith('2'):
+        if str(response.status_code)[0] in ['2', '3']:
             return response
         else:
+            log.debug(response.headers)
             raise MyFlaskException("Couldn't fetch : %s", url, response=response)
 
     def get_cache(self, key, default=None):
@@ -68,7 +69,7 @@ class HlsStreamer(Streamer):
             self.__class__.streaming_instance.should_stream = False
         self.__class__.streaming_instance = self
         self.playlist_url = self.get_playlist_url(cid, qIndex)
-        duration, play_sequence = self.set_playlist(cid, qIndex, 0)
+        duration, play_sequence = self.set_playlist(cid, 0)
         while self.should_stream:
             if len(self.playlist) > 0:
                 try:
@@ -85,9 +86,9 @@ class HlsStreamer(Streamer):
                         break
                     time.sleep(1)
                 if self.should_stream:
-                    duration = self.set_playlist(cid, qIndex, play_sequence)[0]
+                    duration = self.set_playlist(cid, play_sequence)[0]
 
-    def set_playlist(self, cid, qIndex, play_sequence):
+    def set_playlist(self, cid, play_sequence):
         playlist = m3u8.loads(self.fetch(self.playlist_url, referer=self.PLAYER_URL % cid).content)
         media_sequence = playlist.media_sequence
         for segment in playlist.segments:

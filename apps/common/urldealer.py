@@ -167,7 +167,7 @@ def quote(qs):
     # type: (Text) -> str
     if isinstance(qs, unicode):
         qs = qs.encode('utf-8', 'ignore')
-    return urllib.quote(qs)
+    return urllib.quote_plus(qs)
 
 def join_qs(old, new):
     # type: (str, str) -> str

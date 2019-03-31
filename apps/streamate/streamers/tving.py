@@ -84,8 +84,8 @@ class Tving(HlsStreamer):
                 cookies = self.get_cookie()
                 #USER_PAY_TYPE : free=U, piad=?
                 if cid[0] in self.except_channels \
-                   or (not free and cookies.get('USER_PAY_TYPE').value == 'U') \
-                   or channel['broadcast_type'] == 'CPSE0300':
+                    or (not free and cookies.get('USER_PAY_TYPE').value == 'U') \
+                    or channel['broadcast_type'] == 'CPSE0300':
                     continue
                 name = [channel['name']['ko']]
                 mapped_channel = self._get_mapped_channel('tving', cid[0])
