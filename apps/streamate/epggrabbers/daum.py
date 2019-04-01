@@ -7,6 +7,7 @@ from lxml import etree
 
 from apps.streamate.epggrabber import EpgGrabber
 from apps.streamate.epggrabber import Program
+from apps.common import urldealer as ud
 
 log = logging.getLogger(__name__)
 
@@ -21,7 +22,7 @@ class Daum(EpgGrabber):
 
     def get_programs(self, mapped_channel, proc_date, days):
         ch_name = mapped_channel.get('name')
-        url = self.SEARCH_URL % '{}%20{}%20편성표'.format(proc_date.strftime('%Y년%m월%d일'), ch_name)
+        url = self.SEARCH_URL % ud.quote('{} {} 편성표'.format(proc_date.strftime('%Y년%m월%d일'), ch_name))
         response = self.fetch(url, referer=self.URL, follow_redirects=True)
         programs = self.parse_program(response.content, proc_date)
         return self.set_stop(programs, 3)
