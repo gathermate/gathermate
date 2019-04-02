@@ -20,7 +20,7 @@ class Wal(BoardScraper):
     PAGE_QUERY = 'torrent%d.htm'
 
     def handle_search(self, url, keyword):
-        url.path = 's.php'
+        url.path = 'bbs/s.php'
         url.update_qs('k=%s' % keyword)
         self.PAGE_QUERY = 'page=%d'
 
@@ -40,28 +40,32 @@ class Wal(BoardScraper):
         list_xpath = r'//table[@class="board_list"]/tr'
         for tr in tree.xpath(list_xpath):
             try:
-                a = tr.find('td[@class="subject"]/a')
+                td = tr.find('td[@class="subject"]')
+                a = td.findall('a')[-1]
                 link = a.get('href')
-                title = a.text.strip()
-                if a.getprevious() is not None:
-                    title = a.getprevious().text + ' ' + title
                 id_ = self.get_id_num(link)
+                title = a.text.strip()
                 date = ''.join(tr.find('td[@class="datetime"]').itertext())
-                yield {'id': id_, 'title': title, 'link': link, 'etc': date}
+                vol = ''.join(tr.find('td[@class="hit"]').itertext())
+                td.remove(a)
+                info = ' '.join([child.text for child in td.getchildren()] + [''.join(vol.split(' ')), date])
+                yield {'id': id_, 'title': title, 'link': link, 'etc': re.sub('[\[\]]', '', info)}
             except:
                 MyFlaskException.trace_error()
 
+        category_regexp = re.compile(r'^\[.*?\]\s')
         if ud.Url(r.url).path == '':
             pop_xpath = r'//ol[@id="latest_popular"]/li/a'
             root = tree.xpath(pop_xpath)
             length = len(root)
             for idx, e in enumerate(root):
                 try:
-                    title = e.text.strip()
+                    title = re.sub(category_regexp, '', e.text.strip())
+                    cate = category_regexp.search(e.text.strip()).group(0)
                     link = e.get('href')
                     id_ = length - idx
-                    real_id =  self.get_id_num(link)
-                    yield {'id': id_, 'title': title, 'link': link, 'etc': real_id}
+                    info = '%d %s' % (self.get_id_num(link), cate[1:-2])
+                    yield {'id': id_, 'title': title, 'link': link, 'etc': re.sub('[\[\]]', '', info)}
                 except:
                     MyFlaskException.trace_error()
 

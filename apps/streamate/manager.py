@@ -60,7 +60,35 @@ class StreamManager(Manager):
         return streamer.get_resource(ud.Url(ud.unquote(query.get('url'))))
 
     def _order_channels(self, streamer, query):
-        return streamer.get_channels()
+        channels = {}
+        streamer_name = streamer.__class__.__name__.lower()
+        for ch in self.config['CHANNELS']:
+            if ch.get(streamer_name) is not None:
+                channels[str(ch.get(streamer_name))] = ch
+        info = "dict(cid='{cid}',name='{name}',chnum={chnum},{streamer}='{scid}',{extra}logo='{logo}'),\n"
+        for ch in streamer.get_channels():
+            scid = ch.cid
+            if ch.cid in channels:
+                for k, v in channels[str(ch.cid)].iteritems():
+                    if k == 'name' or k == 'logo' or k == streamer_name:
+                        continue
+                    ch[k] = v
+                yield info.format(cid=ch.pop('cid'),
+                                  name=ch.pop('name'),
+                                  chnum=ch.pop('chnum'),
+                                  streamer=ch.pop('streamer').lower(),
+                                  scid=scid,
+                                  logo=ch.pop('logo'),
+                                  extra=','.join("%s=%s" % (k, v[0] if str(v[0]).isdigit() else "'%s'" % v[0]) for k, v in ch.iteritems()) + ','
+                                  )
+            else:
+                yield info.format(cid='',
+                                  name=ch.name,
+                                  chnum=0,
+                                  streamer=ch.streamer.lower(),
+                                  scid=scid,
+                                  logo=ch.logo,
+                                  extra='')
 
     def _order_streaming(self, streamer, query):
         return streamer.streaming

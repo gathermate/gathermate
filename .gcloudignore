@@ -1,5 +1,6 @@
 #!include:.gitignore
 !instance/
+instance/cookies
 !venv/
 venv/*
 !venv/gae/

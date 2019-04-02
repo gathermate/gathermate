@@ -43,12 +43,7 @@ def streamer_channel_streaming(streamer, cid):
 @streamate.route('/<path:streamer>/channels')
 @auth.requires_auth
 def streamer_channels(streamer):
-    def gen():
-        for ch in _order(streamer, 'channels', request.args):
-            info = "dict(cid='', chnum='', %s='%s', logo='%s', name='%s')," % (
-                streamer, ch.cid, ch.logo, ch.name)
-            yield info + '\n'
-    return Response(stream_with_context(gen()), mimetype='text/plain')
+    return Response(stream_with_context(_order(streamer, 'channels', request.args)), mimetype='text/plain')
 
 @streamate.route('/<path:streamer>/<string:filename>.m3u')
 @auth.requires_auth
