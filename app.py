@@ -64,6 +64,8 @@ def create_app():
     # Register a function for sending messages to telegram bot.
     def send(sender, msg):
         if should_send:
+            if len(sender) + len(msg) > 4096:
+                msg = msg[:4096 - len(sender)]
             result = app.managers['Callmewhen'].request('send',
                                                         {'msg':msg, 'sender': sender})
             if result:
