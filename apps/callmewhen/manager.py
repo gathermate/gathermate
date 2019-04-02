@@ -79,8 +79,17 @@ class Telegram(Messenser):
                 'reply_to_message_id': reply_to_message_id or '',
                 'reply_markup': reply_markup or '',
             }
-            response = self.fetch(url, payload=message, method='JSON', forced_update=True)
-            return self.handle_response(response)
+            limit = 4096
+            for div in range(0, len(message['text'])//limit + 1):
+                if len(message['text']) > limit:
+                    temp = message['text'][limit:]
+                    message['text'] = message['text'][:limit]
+                    response = self.fetch(url, payload=message, method='JSON', forced_update=True)
+                    self.handle_response(response)
+                    message['text'] = temp
+                else:
+                    response = self.fetch(url, payload=message, method='JSON', forced_update=True)
+                    return self.handle_response(response)
         else:
             log.warning('Set your Telegram bot token and chat_id in config.')
 
