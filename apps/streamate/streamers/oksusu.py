@@ -85,6 +85,7 @@ class Oksusu(HlsStreamer):
                     )
                 )
             )
+            log.debug(channels[-1])
         return sorted(channels, key=lambda item: item.name), False, pageNo
 
     def get_playlist_url(self, cid, qIndex):
