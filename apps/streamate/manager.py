@@ -62,10 +62,12 @@ class StreamManager(Manager):
     def _order_channels(self, streamer, query):
         channels = {}
         streamer_name = streamer.__class__.__name__.lower()
-        for ch in self.config['CHANNELS']:
+        for cid, ch in self.config['CHANNELS'].iteritems():
             if ch.get(streamer_name) is not None:
+                ch['cid'] = cid
                 channels[str(ch.get(streamer_name))] = ch
-        info = "dict(cid='{cid}',name='{name}',chnum={chnum},{streamer}='{scid}',{extra}logo='{logo}'),\n"
+        info = "'{cid}':dict(name='{name}',chnum={chnum},{streamer}='{scid}',{extra}logo='{logo}'),\n"
+        yield '{\n'
         for ch in streamer.get_channels():
             scid = ch.cid
             if ch.cid in channels:
@@ -89,6 +91,7 @@ class StreamManager(Manager):
                                   scid=scid,
                                   logo=ch.logo,
                                   extra='')
+        yield '}\n'
 
     def _order_streaming(self, streamer, query):
         return streamer.streaming

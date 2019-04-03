@@ -71,10 +71,10 @@ class Oksusu(HlsStreamer):
                 or ch['hlsUrlPhoneFixSD'] is None:
                 continue
             name = [ch['channelName']]
-            mapped_channel = self._get_mapped_channel('oksusu', cid[0])
+            mapped_cid, mapped_channel = self._get_mapped_channel('oksusu', cid[0])
             if mapped_channel:
-                    cid.append(mapped_channel.get('cid'))
-                    name.append(mapped_channel.get('name'))
+                cid.append(mapped_cid)
+                name.append(mapped_channel.get('name'))
             channels.append(
                 Channel(
                     dict(streamer='Oksusu',

@@ -57,9 +57,9 @@ class Pooq(HlsStreamer):
                 if int(channel.get('price')) is 1 or cid[0] in self.except_channels:
                     continue
                 name = [channel.get('channelname')]
-                mapped_channel = self._get_mapped_channel('pooq', cid[0])
+                mapped_cid, mapped_channel = self._get_mapped_channel('pooq', cid[0])
                 if mapped_channel:
-                    cid.append(mapped_channel.get('cid'))
+                    cid.append(mapped_cid)
                     name.append(mapped_channel.get('name'))
                 channels.append(
                     Channel(

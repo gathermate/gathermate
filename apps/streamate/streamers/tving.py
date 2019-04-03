@@ -88,9 +88,9 @@ class Tving(HlsStreamer):
                     or channel['broadcast_type'] == 'CPSE0300':
                     continue
                 name = [channel['name']['ko']]
-                mapped_channel = self._get_mapped_channel('tving', cid[0])
+                mapped_cid, mapped_channel = self._get_mapped_channel('tving', cid[0])
                 if mapped_channel:
-                    cid.append(mapped_channel.get('cid'))
+                    cid.append(mapped_cid)
                     name.append(mapped_channel.get('name'))
                 channels.append(
                     Channel(
