@@ -109,7 +109,7 @@ class HlsStreamer(Streamer):
             safe_counter -= 1
 
     def _get_mapped_channel(self, streamer, scid):
-        return next(((cid, ch) for cid, ch in self.mapped_channels.iteritems() if str(ch.get(streamer)) == str(scid)), None)
+        return next(((cid, ch) for cid, ch in self.mapped_channels.iteritems() if str(ch.get(streamer)) == str(scid)), (None, None))
 
     def get_playlist_url(self):
         raise NotImplementedError
