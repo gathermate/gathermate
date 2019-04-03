@@ -78,7 +78,7 @@ def pack_epg(channel_generator):
                     program.append(E.desc(LANG, p.description))
                 if p.getlist('category'):
                     for c in p.getlist('category'):
-                        program.append(E.category(LANG, c))
+                        if c is not None: program.append(E.category(LANG, c))
                 if p.rating:
                     program.append(E.rating(str(p.rating)))
                 yield etree.tostring(program,

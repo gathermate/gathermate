@@ -22,7 +22,8 @@ class Daum(EpgGrabber):
 
     def get_programs(self, mapped_channel, proc_date, days):
         ch_name = mapped_channel.get('name')
-        url = self.SEARCH_URL % ud.quote('{} {} 편성표'.format(proc_date.strftime('%Y년%m월%d일'), ch_name))
+        keyword = mapped_channel.get('daum') if mapped_channel.get('daum') else '{} {} 편성표'.format(proc_date.strftime('%Y년%m월%d일'), ch_name)
+        url = self.SEARCH_URL % ud.quote(keyword)
         response = self.fetch(url, referer=self.URL, follow_redirects=True)
         programs = self.parse_program(response.content, proc_date)
         return self.set_stop(programs, 3)

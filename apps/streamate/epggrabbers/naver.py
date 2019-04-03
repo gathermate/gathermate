@@ -25,7 +25,8 @@ class Naver(EpgGrabber):
 
     def get_programs(self, mapped_channel, proc_date, days):
         ch_name = mapped_channel.get('name')
-        url = self.SEARCH_URL % ud.quote(ch_name + ' 편성표')
+        keyword = mapped_channel.get('naver') if mapped_channel.get('naver') else ch_name + ' 편성표'
+        url = self.SEARCH_URL % ud.quote(keyword)
         api_config = self._get_api_config(self.fetch(url, referer=self.URL))
         if 'url' in api_config and 'scheduleParam' in api_config:
             programs = self.parse_program(api_config, proc_date, days)

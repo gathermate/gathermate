@@ -46,12 +46,12 @@ class Sky(EpgGrabber):
     def parse_program(self, content, cid, proc_date):
         for p in content:
             yield Program(dict(cid=cid,
-                                   title=p['program_name'],
-                                   sub_title=p['program_subname'],
-                                   start=dt.strptime(p['starttime'], '%Y%m%d%H%M%S'),
-                                   stop=dt.strptime(p['endtime'], '%Y%m%d%H%M%S'),
-                                   rating=p['grade'],
-                                   description=p['description'],
-                                   category=p['program_category1'].split('/') + p['program_category2'].split('/'),
-                                   rerun=True if p['rebroad'] == 'Y' else False,
-                                   episode=p['episode_id']))
+                               title=p['program_name'],
+                               sub_title=p['program_subname'],
+                               start=dt.strptime(p['starttime'], '%Y%m%d%H%M%S'),
+                               stop=dt.strptime(p['endtime'], '%Y%m%d%H%M%S'),
+                               rating=p['grade'],
+                               description=p['description'],
+                               category=p['program_category1'].split('/') + p['program_category2'].split('/'),
+                               rerun=True if p['rebroad'] == 'Y' else False,
+                               episode=p['episode_id']))
