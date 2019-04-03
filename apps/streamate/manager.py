@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import logging
 from itertools import chain
+import copy
 
 from concurrent import futures
 
@@ -106,7 +107,7 @@ class StreamManager(Manager):
 
     def order_all_epg(self, query):
         grabbers = self.hire_grabbers(*query.getlist('grabber'))
-        return packer.pack_epg(epggrabber.get_epg(self.config['CHANNELS'], grabbers, query.get('days', default=1, type=int)))
+        return packer.pack_epg(epggrabber.get_epg(copy.deepcopy(self.config['CHANNELS']), grabbers, query.get('days', default=1, type=int)))
 
     def request(self, streamer, order, query):
         # type: (str, Type[Dict[str, Union[List[str], str]]]) -> ?
