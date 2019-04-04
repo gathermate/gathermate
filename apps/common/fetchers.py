@@ -97,8 +97,9 @@ class Fetcher(object):
     def _get_headers(self, url, referer, headers):
         # type: (urldealer.Url, str, Dict[str, str]) -> Dict[str, str]
         new_headers = { k: v for k, v in self.HEADERS.iteritems() }
-        new_headers['referer'] = referer if referer else ''
-        if headers is not None:
+        if referer:
+            new_headers['referer'] = referer
+        if headers:
             new_headers.update(headers)
             new_cookie = new_headers.pop('cookie', None)
             if new_cookie is not None:

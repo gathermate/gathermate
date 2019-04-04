@@ -67,7 +67,7 @@ class StreamManager(Manager):
             if ch.get(streamer_name) is not None:
                 ch['cid'] = cid
                 channels[str(ch.get(streamer_name))] = ch
-        info = "'{cid}':dict(name='{name}',chnum={chnum},{streamer}='{scid}',{extra}logo='{logo}'),\n"
+        info = "'{cid}':dict(name='{name}',chnum={chnum},{streamer}={scid},{extra}logo='{logo}'),\n"
         yield '{\n'
         for ch in streamer.get_channels():
             scid = ch.cid
@@ -80,7 +80,7 @@ class StreamManager(Manager):
                                   name=ch.pop('name'),
                                   chnum=ch.pop('chnum'),
                                   streamer=ch.pop('streamer').lower(),
-                                  scid=scid,
+                                  scid=scid if str(scid).isdigit() else "'%s'" % scid,
                                   logo=ch.pop('logo'),
                                   extra=','.join("%s=%s" % (k, v[0] if str(v[0]).isdigit() else "'%s'" % v[0]) for k, v in ch.iteritems()) + ','
                                   )
