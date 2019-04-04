@@ -44,6 +44,7 @@ class Oksusu(HlsStreamer):
         if self.should_login():
             self.login()
 
+    '''
     @property
     def playlist_url(self):
         return self._playlist_url + '?%s' % self._get_epoch_time()
@@ -51,6 +52,7 @@ class Oksusu(HlsStreamer):
     @playlist_url.setter
     def playlist_url(self, v):
         self._playlist_url = v
+    '''
 
     def _get_epoch_time(self):
         return int(time.time()*1000)
@@ -92,10 +94,17 @@ class Oksusu(HlsStreamer):
         match = re.search(r'contentsInfo:\s(.+)\s\|', r.content)
         if match:
             js = json.loads(match.group(1))
-            response = self.fetch(js['streamUrl']['urlAUTO'], referer=self.PLAYER_URL % cid)
-            variant = m3u8.loads(response.content)
-            variant.playlists = sorted(variant.playlists, key=lambda x: x.stream_info[0])
-            return variant.playlists[-1 if qIndex >= len(variant.playlists) else qIndex].uri
+            if js['streamUrl']['urlAUTO']:
+                stream_url = js['streamUrl']['urlAUTO']
+                play_seconds = 0
+                response = self.fetch(stream_url, referer=self.PLAYER_URL % cid)
+                variant = m3u8.loads(response.content)
+                variant.playlists = sorted(variant.playlists, key=lambda x: x.stream_info[0])
+                return variant.playlists[-1 if qIndex >= len(variant.playlists) else qIndex].uri, play_seconds
+            else:
+                stream_url = js['streamUrl']['nvodUrlList'][0]['nvod_token']
+                play_seconds = (int(js['timestamp']) - int(js['channel']['programs'][0]['startTime'])) / 1000
+                return stream_url, play_seconds
 
     LOGIN_OKSUSU_URL = 'https://www.oksusu.com/user/login'
     def login(self):

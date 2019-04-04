@@ -86,7 +86,7 @@ class Pooq(HlsStreamer):
             self.set_cookie(aws_cookie)
         response = self.fetch(url, referer=self.PLAYER_URL % cid)
         variant = m3u8.loads(response.content)
-        return ud.join(url, variant.playlists[-1 if qIndex >= len(variant.playlists) else qIndex].uri)
+        return ud.join(url, variant.playlists[-1 if qIndex >= len(variant.playlists) else qIndex].uri), 0
 
     def api_ip(self):
         api = ud.Url(ud.join(self.API_URL, '/ip'))

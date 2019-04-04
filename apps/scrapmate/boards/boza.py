@@ -59,6 +59,6 @@ class Boza(BoardScraper):
 
     def get_file(self, url, ticket):
         # type: (urldealer.Url, Type[Dict[Text, Union[Text, List[Text]]]]) -> fetchers.Response
-        if self.config.get('RSS_AGGRESSIVE'):
+        if self.aggressive:
             self.fetch(ud.Url(ticket['referer']), referer=self.URL)
         return self.fetch(url, referer=ticket['referer'])

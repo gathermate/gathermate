@@ -108,7 +108,7 @@ class Tving(HlsStreamer):
 
     def get_playlist_url(self, cid, qIndex):
         quality = self.get_quality(qIndex)
-        broad_url, current_time = self.api_streaminfo(cid, quality)
+        broad_url, play_seconds, broadcast_type = self.api_streaminfo(cid, quality)
         url = ud.Url(broad_url)
         cf_key = url.query_dict.get('Key-Pair-Id')
         if cf_key is not None:
@@ -119,12 +119,12 @@ class Tving(HlsStreamer):
                                 policy=url.query_dict.get('Policy'),
                                 sign=url.query_dict.get('Signature'))
             self.set_cookie(cf_cookie)
-        response = self.fetch(url, referer=self.PLAYER_URL % cid)
-        variant = m3u8.loads(response.content)
-        if len(variant.playlists) is 0:
-            log.warning('M3U8 playlist is empty.')
-            log.warning('Response content : %s', response.content)
-        return ud.join(url.text, variant.playlists[0].uri)
+        if broadcast_type == 'CPSE0300':
+            return broad_url, play_seconds
+        else:
+            response = self.fetch(url, referer=self.PLAYER_URL % cid)
+            variant = m3u8.loads(response.content)
+            return ud.join(url.text, variant.playlists[0].uri), play_seconds
 
     def get_quality(self, index):
         try:
@@ -168,7 +168,7 @@ class Tving(HlsStreamer):
         url = ud.Url(self.API_URL + '/media/stream/info')
         key = int(time.time()*1000)
         url.update_query(dict(
-            apiKey=self.API_KEY.get('mobile'),
+            apiKey=self.API_KEY.get('pc'),
             noCache=key,
             teleCode=self.CS.get('teleCode'),
             screenCode=self.CS.get('screenCode'),
@@ -185,10 +185,14 @@ class Tving(HlsStreamer):
         else:
             log.debug('is this channel blocked? : %s', block)
             raise MyFlaskException('Stream URL is not available : %s', cid)
-        server_time = self.get_datetime(js['body']['server']['time'])
-        start_time = self.get_datetime(js['body']['content']['broadcast_start_date'])
-        current_time = (server_time - start_time).total_seconds()
-        return stream_url, current_time
+        broadcast_type = js['body']['content']['info']['schedule']['channel']['broadcast_type']
+        if broadcast_type == 'CPSE0300':
+            server_time = self.get_datetime(js['body']['server']['time'])
+            start_time = self.get_datetime(js['body']['content']['broadcast_start_date'])
+            play_seconds = (server_time - start_time).total_seconds()
+        else:
+            play_seconds = 0
+        return stream_url, play_seconds, broadcast_type
 
     def decrypt(self, key, media_code, value):
         key = base64.b64decode('Y2podip0dmluZyoqZ29vZC8=') + media_code[3:] + '/' + str(key)
@@ -202,7 +206,7 @@ class Tving(HlsStreamer):
     def api_channels(self, pageNo):
         url = ud.Url(self.API_URL + '/media/lives')
         url.update_query(dict(
-            free='all', adult='all', order='rating', apiKey=self.API_KEY.get('mobile'),
+            free='all', adult='all', order='rating', apiKey=self.API_KEY.get('pc'),
             pageNo=pageNo, pageSize=30, screenCode=self.CS.get('screenCode'),
             channelType='CPCS0100', networkCode=self.CS.get('networkCode'), osCode=self.CS.get('osCode'),
             teleCode=self.CS.get('teleCode'), totalCountYn='Y'

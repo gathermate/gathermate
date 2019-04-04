@@ -3,6 +3,9 @@
 import logging
 import json
 import time
+import datetime
+from datetime import datetime as dt
+from collections import deque
 
 import m3u8
 
@@ -58,44 +61,70 @@ class HlsStreamer(Streamer):
         self.mapped_channels = mapped_channels
         self.except_channels = except_channels
         self.qualities = qualities
-        self.playlist = {}
+        self.playlist = deque()
         self.should_stream = True
 
     def streaming(self, cid, qIndex):
         '''
         Allows only one request.
+        Spoof HLS Player.
         '''
         if self.__class__.streaming_instance is not None:
             self.__class__.streaming_instance.should_stream = False
         self.__class__.streaming_instance = self
-        self.playlist_url = self.get_playlist_url(cid, qIndex)
-        duration, play_sequence = self.set_playlist(cid, 0)
-        while self.should_stream:
+        self.playlist_url, play_seconds = self.get_playlist_url(cid, qIndex)
+        self.set_playlist(cid, 0, play_seconds)
+        buffering_time = dt.now()
+        error_count = 0
+        is_endlist = False
+        last_segment_duration = 0
+        while self.should_stream and error_count < 3:
             if len(self.playlist) > 0:
-                try:
-                    url = self.playlist.pop(play_sequence)
-                except KeyError:
-                    play_sequence = sorted(self.playlist.iteritems(), key=lambda tuple_:tuple_[0])[0][0]
-                    url = self.playlist.pop(play_sequence)
-                if self.should_stream:
-                    yield self.fetch(url, referer=self.PLAYER_URL % cid).content
-                    play_sequence += 1
-            else:
-                for _ in range(int(duration)):
+                error_count = 0
+                segment = self.playlist.popleft()
+                if segment != 'ENDLIST':
+                    if self.should_stream:
+                        yield self.fetch(segment.uri, referer=self.PLAYER_URL % cid).content
+                        play_sequence = segment.sequence
+                        last_segment_duration = segment.duration
+                        buffering_time += datetime.timedelta(seconds=segment.duration)
+                    buffered = buffering_time - dt.now()
+                    if buffered > datetime.timedelta(seconds=int(segment.duration*3)):
+                        sleep_time = int(segment.duration)
+                    else:
+                        sleep_time = 0
+                else:
+                    sleep_time = int((buffering_time - dt.now()).total_seconds()) - last_segment_duration
+                    is_endlist = True
+                for count in range(sleep_time, 0, -1):
                     if not self.should_stream:
                         break
                     time.sleep(1)
+            else:
+                if is_endlist:
+                    self.playlist_url, play_seconds = self.get_playlist_url(cid, qIndex)
+                    play_sequence = 0
+                else:
+                    play_sequence += 1
+                    play_seconds = 0
                 if self.should_stream:
-                    duration = self.set_playlist(cid, play_sequence)[0]
+                    self.set_playlist(cid, play_sequence, play_seconds)
+                    if len(self.playlist) is 0:
+                        error_count += 1
 
-    def set_playlist(self, cid, play_sequence):
+    def set_playlist(self, cid, play_sequence, play_seconds):
         playlist = m3u8.loads(self.fetch(self.playlist_url, referer=self.PLAYER_URL % cid).content)
-        media_sequence = playlist.media_sequence
-        for segment in playlist.segments:
-            if media_sequence >= play_sequence and media_sequence not in self.playlist:
-                self.playlist[media_sequence] = ud.join(self.playlist_url, segment.uri)
-            media_sequence += 1
-        return playlist.target_duration, playlist.media_sequence
+        cumulative_time = 0
+        for sequence, segment in enumerate(playlist.segments, playlist.media_sequence):
+            cumulative_time += segment.duration
+            if play_seconds > cumulative_time:
+                continue
+            if sequence >= play_sequence:
+                segment.uri = ud.join(self.playlist_url, segment.uri)
+                segment.sequence = sequence
+                self.playlist.append(segment)
+        if playlist.is_endlist and len(self.playlist) > 0:
+            self.playlist.append('ENDLIST')
 
     def get_channels(self):
         page = 1
