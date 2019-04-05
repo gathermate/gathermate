@@ -119,11 +119,11 @@ class Fetcher(object):
         self.url = url.text
         status_code = str(r.status_code)
         if status_code[0] in ['4', '5']:
-            raise MyFlaskException('Destination URL not working.\n' +
-                                   'URL: %s,\n' % url.text +
-                                   'Content size: %d,\n' % len(r.content) +
-                                   'Status Code: %d,\n' % r.status_code +
-                                   'Headers: %s,\n' % r.headers, response=r)
+            log.error('Destination URL not working.\n' +
+                      'URL: %s,\n' % url.text +
+                      'Content size: %d,\n' % len(r.content) +
+                      'Status Code: %d,\n' % r.status_code +
+                      'Headers: %s,\n' % r.headers)
         set_cookie = r.headers.get('set-cookie')
         if set_cookie:
             self.set_cookie(set_cookie, url,

@@ -23,12 +23,7 @@ class Streamer(object):
         self.fetcher = fetcher
 
     def fetch(self, url, cached=False, **kwargs):
-        response = self.fetcher.fetch(url, cached=cached, **kwargs)
-        if str(response.status_code)[0] in ['2', '3']:
-            return response
-        else:
-            log.debug(response.headers)
-            raise MyFlaskException("Couldn't fetch : %s", url, response=response)
+        return self.fetcher.fetch(url, cached=cached, **kwargs)
 
     def get_cache(self, key, default=None):
         cached = self.get_caches()
@@ -78,12 +73,18 @@ class HlsStreamer(Streamer):
         error_count = 0
         is_endlist = False
         last_segment_duration = 0
-        while self.should_stream and error_count < 10:
+        play_sequence = 0
+        while self.should_stream and error_count < 5:
             if len(self.playlist) > 0:
                 segment = self.playlist.popleft()
                 if segment != 'ENDLIST':
                     if self.should_stream:
-                        yield self.fetch(segment.uri, referer=self.PLAYER_URL % cid).content
+                        r = self.fetch(segment.uri, referer=self.PLAYER_URL % cid)
+                        if str(r.status_code).startswith('2'):
+                            yield r.content
+                        else:
+                            error_count += 1
+                            continue
                         play_sequence = segment.sequence
                         last_segment_duration = segment.duration
                         buffering_time += datetime.timedelta(seconds=segment.duration)
