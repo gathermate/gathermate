@@ -84,6 +84,7 @@ class HlsStreamer(Streamer):
                             yield r.content
                         else:
                             error_count += 1
+                            yield ''
                             continue
                         play_sequence = segment.sequence
                         last_segment_duration = segment.duration
@@ -110,7 +111,7 @@ class HlsStreamer(Streamer):
                 if self.should_stream:
                     self.set_playlist(cid, play_sequence, play_seconds)
                     if len(self.playlist) is 0:
-                        error_count += 1
+                        self.should_stream = False
 
     def set_playlist(self, cid, play_sequence, play_seconds):
         playlist = m3u8.loads(self.fetch(self.playlist_url, referer=self.PLAYER_URL % cid).content)
