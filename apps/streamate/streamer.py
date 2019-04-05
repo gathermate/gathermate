@@ -78,9 +78,8 @@ class HlsStreamer(Streamer):
         error_count = 0
         is_endlist = False
         last_segment_duration = 0
-        while self.should_stream and error_count < 3:
+        while self.should_stream and error_count < 10:
             if len(self.playlist) > 0:
-                error_count = 0
                 segment = self.playlist.popleft()
                 if segment != 'ENDLIST':
                     if self.should_stream:

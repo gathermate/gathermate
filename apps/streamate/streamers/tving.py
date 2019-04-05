@@ -80,11 +80,14 @@ class Tving(HlsStreamer):
                 cid = [item.get('live_code')]
                 channel = item['schedule']['channel']
                 free = True if channel['free_yn'] == 'Y' else False
-                #log.debug('%s -  broadcast_type: %s, channel_type: %s, free: %s', channel['name']['ko'], channel['broadcast_type'], channel['type'], free)
+                # log.debug('%s -  broadcast_type: %s, channel_type: %s, free: %s', channel['name']['ko'], channel['broadcast_type'], channel['type'], free)
                 cookies = self.get_cookie()
-                #USER_PAY_TYPE : free=U, piad=?
+                # USER_PAY_TYPE : free=U, piad=?
+                # CPSE0300 and CPCS0100 : OCN, CGV, SUPER ACTION, TOONIVERSE
+                # CPCS0100 : TV 채널, CPCS0300 : 티빙 채널,
                 if cid[0] in self.except_channels \
-                    or (not free and cookies.get('USER_PAY_TYPE').value == 'U'):
+                    or (not free and cookies.get('USER_PAY_TYPE').value == 'U') \
+                    or (channel['broadcast_type'] == 'CPSE0300' and channel['type'] == 'CPCS0100'):
                     continue
                 name = [channel['name']['ko']]
                 logo = 'http://image.tving.com%s' % channel['image'][-1]['url'] if channel['image'] else ''
@@ -108,23 +111,24 @@ class Tving(HlsStreamer):
 
     def get_playlist_url(self, cid, qIndex):
         quality = self.get_quality(qIndex)
-        broad_url, play_seconds, broadcast_type = self.api_streaminfo(cid, quality)
-        url = ud.Url(broad_url)
-        cf_key = url.query_dict.get('Key-Pair-Id')
+        broad_url, play_seconds, channel_type = self.api_streaminfo(cid, quality)
+        broad_url = ud.Url(broad_url)
+        cf_key = broad_url.query_dict.get('Key-Pair-Id')
         if cf_key is not None:
             cf_cookie = 'CloudFront-Key-Pair-Id={key}; ' \
                         'CloudFront-Policy={policy}; ' \
                         'CloudFront-Signature={sign};' \
                         .format(key=cf_key,
-                                policy=url.query_dict.get('Policy'),
-                                sign=url.query_dict.get('Signature'))
+                                policy=broad_url.query_dict.get('Policy'),
+                                sign=broad_url.query_dict.get('Signature'))
             self.set_cookie(cf_cookie)
-        if broadcast_type == 'CPSE0300':
-            return broad_url, play_seconds
+        if channel_type == 'CPCS0300':
+            return broad_url.text, play_seconds
         else:
-            response = self.fetch(url, referer=self.PLAYER_URL % cid)
+            response = self.fetch(broad_url, referer=self.PLAYER_URL % cid)
             variant = m3u8.loads(response.content)
-            return ud.join(url.text, variant.playlists[0].uri), play_seconds
+            return ud.join(broad_url.text, variant.playlists[0].uri), play_seconds
+
 
     def get_quality(self, index):
         try:
@@ -185,14 +189,14 @@ class Tving(HlsStreamer):
         else:
             log.debug('Is this channel blocked? : %s', block)
             raise MyFlaskException('Stream URL is not available : %s', cid)
-        broadcast_type = js['body']['content']['info']['schedule']['channel']['broadcast_type']
-        if broadcast_type == 'CPSE0300':
+        channel_type = js['body']['content']['info']['schedule']['channel']['type']
+        if channel_type == 'CPCS0300':
             server_time = self.get_datetime(js['body']['server']['time'])
             start_time = self.get_datetime(js['body']['content']['broadcast_start_date'])
             play_seconds = (server_time - start_time).total_seconds()
         else:
             play_seconds = 0
-        return stream_url, play_seconds, broadcast_type
+        return stream_url, play_seconds, channel_type
 
     def decrypt(self, key, media_code, value):
         key = base64.b64decode('Y2podip0dmluZyoqZ29vZC8=') + media_code[3:] + '/' + str(key)

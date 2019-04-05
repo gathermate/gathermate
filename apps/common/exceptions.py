@@ -11,12 +11,15 @@ class MyFlaskException(Exception):
 
     def __init__(self, *args, **kwargs):
         # type: (*str, Optional[fetcher.Response]) -> None
+        self.response = kwargs.pop('response', None)
         if args:
             if len(args) > 1:
                 self.message = args[0] % args[1:]
             else:
                 self.message = args[0]
-        self.response = kwargs.pop('response', None)
+        for key, value in kwargs.iteritems():
+            self.message += '\n{}: {}'.format(key, value)
+        super(MyFlaskException, self).__init__(self.message)
         if self.response:
             if self.response.content:
                 self.content = toolbox.decode(self.response.content)
@@ -24,9 +27,7 @@ class MyFlaskException(Exception):
                 self.content = 'The response has no content.'
             if self.response.key is not None:
                 caching.cache.delete(self.response.key)
-        for key, value in kwargs.iteritems():
-            self.message += '\n{}: {}'.format(key, value)
-        super(MyFlaskException, self).__init__(self.message)
+            log.error('Status Code : %d, URL : %s', self.response.status_code, self.response.url)
 
     @staticmethod
     def trace_error():

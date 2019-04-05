@@ -75,3 +75,7 @@ def _get_epg_response(generator, filename):
     response = Response(stream_with_context(generator), mimetype='application/xml')
     response.headers['Content-Disposition'] = 'attachment; filename={}.xml'.format(filename)
     return response
+
+@streamate.errorhandler(Exception)
+def unhandled_exception(e):
+    return app.unhandled_exception(e)
