@@ -119,6 +119,7 @@ class Fetcher(object):
         self.url = url.text
         status_code = str(r.status_code)
         if status_code[0] in ['4', '5']:
+            r.content = tb.decode(r.content)
             raise MyFlaskException('Destination URL not working.\n' +
                                    'URL: %s,\n' % url.text +
                                    'Content size: %d,\n' % len(r.content) +

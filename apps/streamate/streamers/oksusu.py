@@ -69,8 +69,7 @@ class Oksusu(HlsStreamer):
             if cid[0] in self.except_channels \
                 or ch['stopByCopyrightYn'] == 'Y' \
                 or ch['stop_broadcast_yn'] == 'Y' \
-                or int(ch['channelProd']) >= 20 \
-                or ch['hlsUrlPhoneFixSD'] is None:
+                or int(ch['channelProd']) >= 20:
                 continue
             name = [ch['channelName']]
             mapped_cid, mapped_channel = self._get_mapped_channel('oksusu', cid[0])
@@ -100,7 +99,7 @@ class Oksusu(HlsStreamer):
                 response = self.fetch(stream_url, referer=self.PLAYER_URL % cid)
                 variant = m3u8.loads(response.content)
                 variant.playlists = sorted(variant.playlists, key=lambda x: x.stream_info[0])
-                return variant.playlists[-1 if qIndex >= len(variant.playlists) else qIndex].uri, play_seconds
+                return variant.playlists[-1 if qIndex >= len(variant.playlists) else qIndex].uri + '?%s' % self._get_epoch_time(), play_seconds
             else:
                 stream_url = js['streamUrl']['nvodUrlList'][0]['nvod_token']
                 play_seconds = (int(js['timestamp']) - int(js['channel']['programs'][0]['startTime'])) / 1000

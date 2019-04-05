@@ -85,13 +85,13 @@ class StreamManager(Manager):
                                   extra=','.join("%s=%s" % (k, v[0] if str(v[0]).isdigit() else "'%s'" % v[0]) for k, v in ch.iteritems()) + ','
                                   )
             else:
-                yield info.format(cid='',
+                yield info.format(cid='%s.%s' % (scid, streamer_name),
                                   name=ch.name,
-                                  chnum=0,
+                                  chnum=int(filter(str.isdigit, str(scid))),
                                   streamer=ch.streamer.lower(),
-                                  scid=scid,
+                                  scid=scid if str(scid).isdigit() else "'%s'" % scid,
                                   logo=ch.logo,
-                                  extra='')
+                                  extra="only='%s'," % streamer_name)
         yield '}\n'
 
     def _order_streaming(self, streamer, query):
