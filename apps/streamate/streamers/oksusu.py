@@ -69,7 +69,8 @@ class Oksusu(HlsStreamer):
             if cid[0] in self.except_channels \
                 or ch['stopByCopyrightYn'] == 'Y' \
                 or ch['stop_broadcast_yn'] == 'Y' \
-                or int(ch['channelProd']) >= 20:
+                or int(ch['channelProd']) >= 20 \
+                or ch['blackout_yn'] == 'Y':
                 continue
             name = [ch['channelName']]
             mapped_cid, mapped_channel = self._get_mapped_channel('oksusu', cid[0])
@@ -80,7 +81,7 @@ class Oksusu(HlsStreamer):
                 Channel(
                     dict(streamer='Oksusu',
                          cid=cid,
-                         chnum=mapped_channel.get('chnum') if mapped_channel else 0,
+                         chnum=mapped_channel.get('chnum') if mapped_channel else int(filter(str.isdigit, str(cid[0]))),
                          name=name,
                          logo=mapped_channel.get('logo') if mapped_channel else 'http://image.oksusu.com:8080/thumbnails/image/0_0_F20/live/logo/387/%s' % ch['channelImageName'],
                     )
@@ -93,17 +94,23 @@ class Oksusu(HlsStreamer):
         match = re.search(r'contentsInfo:\s(.+)\s\|', r.content)
         if match:
             js = json.loads(match.group(1))
-            if js['streamUrl']['urlAUTO']:
-                stream_url = js['streamUrl']['urlAUTO']
-                play_seconds = 0
-                response = self.fetch(stream_url, referer=self.PLAYER_URL % cid)
+            if js is None: raise MyFlaskException("JSON is None.")
+            log.debug(match.group(1))
+            urlAUTO = js['streamUrl']['urlAUTO']
+            nvodUrlList = js['streamUrl']['nvodUrlList']
+            if urlAUTO:
+                response = self.fetch(urlAUTO, referer=self.PLAYER_URL % cid)
                 variant = m3u8.loads(response.content)
                 variant.playlists = sorted(variant.playlists, key=lambda x: x.stream_info[0])
-                return variant.playlists[-1 if qIndex >= len(variant.playlists) else qIndex].uri + '?%s' % self._get_epoch_time(), play_seconds
+                return variant.playlists[-1 if qIndex >= len(variant.playlists) else qIndex].uri + '?%s' % self._get_epoch_time(), 0
+            elif nvodUrlList:
+                nvod_token = nvodUrlList[0]['nvod_token']
+                timestamp = float(js['timestamp'])/1000
+                starttime = float(js['channel']['programs'][0]['startTime'])/1000
+                return nvod_token, int(timestamp - starttime)
             else:
-                stream_url = js['streamUrl']['nvodUrlList'][0]['nvod_token']
-                play_seconds = (int(js['timestamp']) - int(js['channel']['programs'][0]['startTime'])) / 1000
-                return stream_url, play_seconds
+                raise MyFlaskException("No available stream URL.")
+
 
     LOGIN_OKSUSU_URL = 'https://www.oksusu.com/user/login'
     def login(self):
