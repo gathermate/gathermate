@@ -87,7 +87,8 @@ class Tving(HlsStreamer):
                 # CPCS0100 : TV 채널, CPCS0300 : 티빙 채널,
                 if cid[0] in self.except_channels \
                     or (not free and cookies.get('USER_PAY_TYPE').value == 'U') \
-                    or (channel['broadcast_type'] == 'CPSE0300' and channel['type'] == 'CPCS0100'):
+                    or (channel['broadcast_type'] == 'CPSE0300' and channel['type'] == 'CPCS0100') \
+                    or channel['type'] == 'CPCS0300':
                     continue
                 name = [channel['name']['ko']]
                 logo = 'http://image.tving.com%s' % channel['image'][-1]['url'] if channel['image'] else ''
@@ -211,7 +212,7 @@ class Tving(HlsStreamer):
         url = ud.Url(self.API_URL + '/media/lives')
         url.update_query(dict(
             free='all', adult='all', guest='all', scope='all', order='rating', apiKey=self.API_KEY.get('pc'),
-            pageNo=pageNo, pageSize=20, screenCode=self.CS.get('screenCode'),
+            pageNo=pageNo, pageSize=20, screenCode=self.CS.get('screenCode'), channelType='CPCS0100',
             networkCode=self.CS.get('networkCode'), osCode=self.CS.get('osCode'),
             teleCode=self.CS.get('teleCode')
         ))
