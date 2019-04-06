@@ -147,7 +147,7 @@ class Url(object):
         return self.url.get(key, None)
 
 def unquote(qs):
-    return urllib.unquote(qs)
+    return urllib.unquote_plus(qs)
 
 def quote(qs):
     if isinstance(qs, unicode):

@@ -48,6 +48,7 @@ class Oksusu(HlsStreamer):
         return int(time.time()*1000)
 
     def _get_channels(self, pageNo):
+        raise Exception('This is test exception.')
         url = 'http://www.oksusu.com/api/live/organization/list?genreCode=99&orgaPropCode=ALL'
         r = self.fetch(url, referer='http://www.oksusu.com/live?mid=9000000399', headers=self.HEADERS)
         js = json.loads(r.content)
@@ -111,7 +112,7 @@ class Oksusu(HlsStreamer):
             self.fetch(self.LOGIN_OKSUSU_URL, method='POST', payload=payload, referer=self.LOGIN_OKSUSU_URL + '?rw=%2F')
 
     def should_login(self):
-        r = self.fetch(self.LOGIN_CHECK_URL, referer=self.BASE_URL)
+        r = self.fetch(self.LOGIN_CHECK_URL, referer=self.BASE_URL, cached=True)
         match = re.search(r'isLogin:\s(.+),', r.content)
         if match:
             isLogin = match.group(1)

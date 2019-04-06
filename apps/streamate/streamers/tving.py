@@ -243,11 +243,7 @@ class Tving(HlsStreamer):
 
     def should_login(self):
         my = 'http://www.tving.com/my/main'
-        try:
-            r = self.fetch(my, cached=True)
-        except MyFlaskException as e:
-            log.error(e.message)
-            return True
+        r = self.fetch(my, cached=True)
         match = re.search(self.user_id if self.user_id else str(random.random()), r.content)
         if match:
             return False

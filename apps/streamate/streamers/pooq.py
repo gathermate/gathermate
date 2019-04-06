@@ -133,14 +133,11 @@ class Pooq(HlsStreamer):
 
     def should_login(self):
         cookies = self.get_cookie()
-        if cookies.get('cs') is None:
-            return True
-        self.API_QUERY['credential'] = json.loads(ud.unquote(cookies.get('cs').value)).get('credential')
-        try:
-            self.api_user()
-        except MyFlaskException as e:
-            log.debug(e.message)
-            return True
+        if cookies.get('cs') is None: return True
+        credential = json.loads(ud.unquote(cookies.get('cs').value)).get('credential')
+        if credential is None: return True
+        self.API_QUERY['credential'] = credential
+        if json.loads(self.api_user()).get('uno') is None: return True
         return False
 
     def api_login(self):
@@ -161,7 +158,7 @@ class Pooq(HlsStreamer):
     def api_user(self):
         api = ud.Url(ud.join(self.API_URL, '/user'))
         api.update_query(self.API_QUERY)
-        self.fetch(api, referer=self.BASE_URL, cached=True)
+        return self.fetch(api, referer=self.BASE_URL, cached=True).content
 
     def request_api(self, url, query=None, referer=None, cached=False):
         url.update_query(self.API_QUERY)
