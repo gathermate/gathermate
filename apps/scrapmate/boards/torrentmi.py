@@ -21,7 +21,6 @@ class Torrentmi(BoardScraper):
     ID_REGEXP = re.compile(r'id=(\d{2,8})')
 
     def get_list(self, r):
-        # type: (fetchers.Response) -> Generator
         root = self.etree(r, encoding=self.encoding)
 
         list_xpath = r'//div[@class="sub_list"]/div/table/tbody/tr/td[2]/a'
@@ -38,7 +37,6 @@ class Torrentmi(BoardScraper):
                 MyFlaskException.trace_error()
 
     def get_item(self, r):
-        # type: (fetchers.Response) -> Generator
         root = self.etree(r, encoding=self.encoding)
 
         item_xpath = r'//div[@class="downLoad"]/a[1]'
@@ -49,24 +47,8 @@ class Torrentmi(BoardScraper):
                 yield {'name': name, 'link': link, 'type': 'file'}
             except:
                 MyFlaskException.trace_error()
-        '''
-        iframe_xpath = r'//iframe[contains(@src, "info.php")]/@src'
-        magnet_xpath = r'//div[contains(@class, "torrent_file")]'
-        iframe_url = self.etree(r, encoding=self.encoding).xpath(iframe_xpath)[0]
-        root = self.fetch_and_etree(iframe_url,
-                                    referer=r.url,
-                                    encoding=self.encoding).xpath(magnet_xpath)
-        for e in root:
-            try:
-                name = e.text.strip()
-                link = e.getnext()[0].get('href').strip()
-                yield {'name': name, 'link': link, 'type': 'magnet'}
-            except:
-                MyFlaskException.trace_error()
-        '''
 
     def get_file(self, url, ticket):
-        # type: (urldealer.Url, Type[Dict[Text, Union[Text, List[Text]]]]) -> fetchers.Response
         root = self.fetch_and_etree(url,
                                     referer=ticket['referer'],
                                     encoding='utf-8')

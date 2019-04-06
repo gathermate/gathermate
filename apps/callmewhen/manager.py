@@ -12,18 +12,15 @@ from apps.common import caching
 log = logging.getLogger(__name__)
 
 def hire_manager(config):
-    # type: (flask.config.Config, Text) -> Manager
     return CallMeWhenManager(config)
 
 
 class CallMeWhenManager(Manager):
 
     def __init__(self, config):
-        # type: (flask.config.Config) -> None
         super(CallMeWhenManager, self).__init__(config)
 
     def request(self, order, query):
-        # type: (str, Type[Dict[str, Union[List[str], str]]]) -> ?
         if order == 'send':
             messenser = Telegram(self.config)
             return messenser.send(query.get('sender', None), query.get('msg', ''))
@@ -31,7 +28,6 @@ class CallMeWhenManager(Manager):
 class Messenser(object):
 
     def __init__(self, config):
-        # type: (flask.config.Config) -> None
         self.config = config
 
     def fetch(self, *args, **kwargs):
@@ -43,7 +39,6 @@ class Messenser(object):
 
 class Telegram(Messenser):
     def __init__(self, config):
-        # type: (flask.config.Config) -> None
         super(Telegram, self).__init__(config)
         self.__TOKEN = self.config['TELEGRAM_BOT_TOKEN']
         self.__CHAT_ID = self.config['TELEGRAM_CHAT_ID']

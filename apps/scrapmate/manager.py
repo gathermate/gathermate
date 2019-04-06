@@ -12,7 +12,6 @@ from apps.common.manager import Manager
 log = logging.getLogger(__name__)
 
 def hire_manager(config):
-    # type: (flask.config.Config) -> ScrapmateManager
     packer.ACCEPTED_EXT = config['ACCEPTED_EXT']
     return ScrapmateManager(config)
 
@@ -20,13 +19,11 @@ def hire_manager(config):
 class ScrapmateManager(Manager):
 
     def __init__(self, config):
-        # type: (flask.config.Config) -> None
         super(ScrapmateManager, self).__init__(config)
         scrapers = self._register_modules('apps.scrapmate.boards', 'Scraper')
         self.__scraper_classes = {ud.Url(class_.URL).domain: class_ for name, class_ in scrapers.iteritems()}
 
     def _hire_board(self, target):
-        # type: (urldealer.Url) -> Type[scraper.Scraper]
         domain = target.domain if target.domain else target.hostname
         if not domain:
             raise MyFlaskException('Target URL is wrong : %s' % target.text)
@@ -39,7 +36,6 @@ class ScrapmateManager(Manager):
         return self._train_baord(class_, self.config.get('SCRAPERS'))
 
     def _find_scraper(self, alias):
-        # type: (str) -> Type[scraper.Scraper]
         for domain, class_ in self.__scraper_classes.iteritems():
             if alias in domain:
                 log.debug("%s class matches with [%s].", class_.__name__, alias)
@@ -47,8 +43,6 @@ class ScrapmateManager(Manager):
         raise MyFlaskException('There is no class associate with : {}'.format(alias))
 
     def _train_baord(self, class_, config):
-        # type: (Type[scraper.Scraper], Dict[str, Dict[str, Optional[bool, str, int, List[str]]]])
-        # -> Type[scraper.Scraper]
         default_config = {
             'ENCODING': 'utf-8',
             'RSS_WANT': self.config.get('RSS_WANT', []),
@@ -70,7 +64,6 @@ class ScrapmateManager(Manager):
                       default_config['RSS_WORKERS'])
 
     def _order_rss(self, target, query):
-        # type: (urldealer.Url, apps.common.datastructures.MultiDict[unicode, List[unicode]]) -> str
         board = self._hire_board(target)
         board.isRSS = True
         length = query.get('length', None, type=int)
@@ -80,21 +73,16 @@ class ScrapmateManager(Manager):
         return packer.pack_rss(board.parse_items(listing))
 
     def _order_item(self, target, query):
-        # type: (urldealer.Url, apps.common.datastructures.MultiDict[unicode, List[unicode]])
-        # -> List[Dict[str, Union[str, unicode]]]
         board = self._hire_board(target)
         items = board.parse_item(target)
         return packer.pack_item(items)
 
     def _order_list(self, target, query):
-        # type: (urldealer.Url, apps.common.datastructures.MultiDict[unicode, List[unicode]])
-        # -> Dict[str, Union[int, List[Tuple[int, Dict[str, Union[int, str, unicode]]]]]]
         board = self._hire_board(target)
         listing = board.parse_list(target)
         return packer.pack_list(listing)
 
     def _order_down(self, target, query):
-        # type: (urldealer.Url, apps.common.datastructures.MultiDict[unicode, List[unicode]]) -> fetchers.Response
         ticket = query.get('ticket')
         if ticket:
             ticket = ud.split_qs(ud.unquote(ticket))
@@ -111,19 +99,15 @@ class ScrapmateManager(Manager):
         return board.parse_file(ud.Url(items[0]['link']), items[0]['ticket'])
 
     def _order_page(self, target, query):
-        # type: (urldealer.Url, apps.common.datastructures.MultiDict[unicode, List[unicode]]) -> Iterable
         board = self._hire_board(target)
         return board.get_page(board.fetch(target))
 
     @tb.timeit
     def _get_data(self, order, target, query):
-        # type: (Text, urldealer.Url, apps.common.datastructures.MultiDict[unicode, List[unicode]])
-        # -> Union[str, fetchers.Response, Iterable]
         data = getattr(self, '_order_{}'.format(order))(target, query)
         return data
 
     def request_board(self, order, query):
-        # type: (str, apps.common.datastructures.MultiDict[unicode, List[unicode]]) -> Union[str, fetchers.Response, Iterable]
         if query.get('url'):
             target = ud.Url(ud.unquote(query['url']))
         elif query.get('site'):
@@ -132,7 +116,6 @@ class ScrapmateManager(Manager):
             target = ud.Url(class_.LIST_URL % query.get('board'))
         else:
             raise MyFlaskException('There is no target page.')
-        # query handling...
         search_key = query.get('search')
         if search_key:
             target.update_qs('search={}'.format(search_key))

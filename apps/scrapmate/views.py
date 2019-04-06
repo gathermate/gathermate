@@ -28,19 +28,16 @@ scrapmate = Blueprint(
 @scrapmate.route('/', strict_slashes=False)
 @auth.requires_auth
 def index():
-    # type: () -> str
     return render_template('index.html')
 
 @scrapmate.route('/encode', methods=['GET'])
 @auth.requires_auth
 def quote():
-    # type: () -> str
     return render_template('encode.html')
 
 @scrapmate.route('/<path:site>/<path:board>/rss', methods=['GET'])
 @auth.requires_auth
 def rss_by_alias(site, board):
-    # type: (Text, Text) -> Text
     request.args['site'] = site
     request.args['board'] = board
     data = app.managers[name].request_board('rss', request.args)
@@ -49,7 +46,6 @@ def rss_by_alias(site, board):
 @scrapmate.route('/<path:site>/<path:board>', methods=['GET'])
 @auth.requires_auth
 def list_by_alias(site, board):
-    # type: (Text, Text) -> Text
     request.args['site'] = site
     request.args['board'] = board
     data = app.managers[name].request_board('list', request.args)
@@ -58,28 +54,23 @@ def list_by_alias(site, board):
 @scrapmate.route('/<path:order>', methods=['GET'])
 @auth.requires_auth
 def order(order):
-    # type: (Text) -> Union[unicode, flask.wrappers.Response]
     ''' Do not name order()'s args with query names ex) path, netloc, scheme etc... '''
     data = app.managers[name].request_board(order, request.args)
     return globals()['order_{}'.format(order)](data)
 
 def order_rss(generator):
-    # type: (Text) -> flask.wrappers.Response
     return Response(stream_with_context(generator), mimetype='text/xml')
 
 def order_down(data):
-    # type: (Union[Text, Response]) -> flask.wrappers.Response
     try:
         return send_file(BytesIO(data.content),
                          as_attachment=True,
                          mimetype=data.headers['content-type'],
                          attachment_filename=data.filename)
-        #return data.content, data.status_code, data.headers.items()
     except AttributeError:
         return redirect(data)
 
 def order_list(data):
-    # type: (Dict[Text, object]) -> Text
     pagination = Pagination(data['current_page'], data['max_page'])
     return render_template('list.html',
                            index=request.args.get('index'),
@@ -89,17 +80,14 @@ def order_list(data):
                            articles=data['articles'])
 
 def order_item(data):
-    # type: (List[Dict[Text, object]]) -> Text
     return render_template('view.html', items=data)
 
 def order_page(data):
-    # type: (Iterable) -> Text
     return data
 
 @scrapmate.errorhandler(Exception)
 @auth.requires_auth
 def unhandled_exception(e):
-    # type: (Type[Exception]) -> Text
     MyFlaskException.trace_error()
     flash(e.message)
     app.send('{}#{}'.format(name, request.host), e.message)
@@ -119,28 +107,23 @@ def unhandled_exception(e):
 class Pagination(object):
 
     def __init__(self, page, max_page):
-        # type: (int, int) -> None
         self.page = page
         self.max_page = max_page
 
     @property
     def pages(self):
-        # type: () -> int
         return self.max_page
 
     @property
     def has_prev(self):
-        # type: () -> bool
         return self.page > 1
 
     @property
     def has_next(self):
-        # type: () -> bool
         return self.page < self.pages
 
     def iter_pages(self, left_edge=1, left_current=2,
                    right_current=3, right_edge=1):
-        # type: (Optional[int, int, int, int]) -> Union[int, None]
         last = 0
         for num in xrange(1, self.pages + 1):
             if num <= left_edge or \

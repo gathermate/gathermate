@@ -31,9 +31,7 @@ class Cineaste(BoardScraper):
         }
 
     def get_list(self, r):
-        # type: (fetchers.Response) -> Generator
         list_xpath = r'//td[@class="list-subject"]/a'
-        #댓글17개
         cmt_regexp = re.compile(ur'댓글(\d{1,10})개')
         for e in self.etree(r, encoding=self.encoding).xpath(list_xpath):
             try:
@@ -48,7 +46,6 @@ class Cineaste(BoardScraper):
                 MyFlaskException.trace_error()
 
     def get_item(self, r):
-        # type: (fetchers.Response) -> Generator
         root = self.etree(r, encoding=self.encoding)
 
         title_regexp = re.compile(r'\s\(\d+.*\)')
@@ -62,7 +59,6 @@ class Cineaste(BoardScraper):
                 MyFlaskException.trace_error()
 
     def get_file(self, url, ticket):
-        # type: (urldealer.Url, Type[Dict[Text, Union[Text, List[Text]]]]) -> fetchers.Response
         self.fetch(url, referer=ticket['referer'])
         old_url = url.text
         url.update_qs('ds=1&js=on')

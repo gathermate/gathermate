@@ -22,7 +22,6 @@ def hire_fetcher(module='requests', deadline=30, cache_timeout=60, cookie_timeou
 class Response(object):
 
     def __init__(self, url, response):
-        # type: (str, Union[requests.models.Response, google.appengine.api.urlfetch._URLFetchResult]) -> None
         self.url = url
         self.headers = response.headers
         self.content = response.content
@@ -38,7 +37,6 @@ class Fetcher(object):
 
     def __init__(self, module, deadline=30, cache_timeout=60,
                  cookie_timeout=0, cookie_path=None):
-        # type : (Callable, int, int, int, Optional[str]) -> None
         self.set_config(module, deadline, cache_timeout, cookie_timeout, cookie_path)
         self.current_response = None
 
@@ -57,7 +55,6 @@ class Fetcher(object):
         self.cookie_path = cookie_path
 
     def fetch(self, url, payload=None, forced_update=False, cached=True, **kwargs):
-        # type: (Union[urldealer.Url, str], str, str, Dict[str, str], Dict[str, str], boolean, boolean, boolean) -> Response
         url = ud.Url(url) if type(url) is not ud.Url else url
         if cached:
             key = caching.create_key(ud.Url(url.text).update_query(payload).text if payload else url.text)
@@ -70,7 +67,6 @@ class Fetcher(object):
         return func(url, payload=payload, key=key, **kwargs)
 
     def cacheable_fetch(self, url, referer=None, headers=None, key=None, **kwargs):
-        # type: () -> Response
         r = None
         for _ in range(2):
             try:
@@ -95,7 +91,6 @@ class Fetcher(object):
         return r
 
     def _get_headers(self, url, referer, headers):
-        # type: (urldealer.Url, str, Dict[str, str]) -> Dict[str, str]
         new_headers = { k: v for k, v in self.HEADERS.iteritems() }
         if referer:
             new_headers['referer'] = referer
@@ -114,7 +109,6 @@ class Fetcher(object):
         return new_headers
 
     def _handle_response(self, url, r):
-        # type: (urldealer.Url, Response) -> None
         self.current_response = r
         self.url = url.text
         status_code = str(r.status_code)
@@ -139,7 +133,6 @@ class Fetcher(object):
 
     @classmethod
     def get_cookie(cls, url, tostring=False, path=None):
-        # type: (Union[str, urldealer.Url]) -> str
         url = ud.Url(url) if type(url) is str else url
         cookie = ''
         try:
@@ -151,7 +144,6 @@ class Fetcher(object):
             else:
                 cookie = caching.cache.get(cls.get_cookie_key(url))
         except Exception as e:
-            # http://116.122.159.146/
             log.warning('%s : %s', e, e.message)
         if tostring:
             return cookie
@@ -160,7 +152,6 @@ class Fetcher(object):
 
     @classmethod
     def set_cookie(cls, cookie, url, path=None):
-        # type: (Union[str, urldealer.Url], Union[str, http.cookies.Morsel]) -> None
         if type(url) is not ud.Url:
             url = ud.Url(url)
         if type(cookie) is not Cookie.SimpleCookie:
@@ -177,13 +168,10 @@ class Fetcher(object):
             else:
                 caching.cache.set(cls.get_cookie_key(url), cookies, timeout=0)
         except Exception as e:
-            # http://116.122.159.146/
             log.warning(e.message)
-            raise e
 
     @classmethod
     def reset_cookie(cls, url, path=None):
-        # type: (Union[str, urldealer.Url]) -> None
         url = ud.Url(url) if type(url) is str else url
         if path is not None:
             os.remove(cls.get_cookie_file(url, path))
@@ -192,18 +180,15 @@ class Fetcher(object):
             caching.cache.delete(key)
 
     def _fetch(self, url, method='GET', payload=None, deadline=30, headers=None, follow_redirects=False):
-        # type: (urldealer.Url, str, Dict[str, str], int, Dict[str, str], bool) -> Response
         raise NotImplementedError
 
     def _get_retry_exceptions(self):
-        # type: () -> list[Exception]
         raise NotImplementedError
 
 class Requests(Fetcher):
 
-    # Override
     def _fetch(self, url, deadline=30, method='GET', payload=None, headers=None, follow_redirects=False):
-        # type: (urldealer.Url, int, str, Dict[str, str], Dict[str, str], bool) -> Response
+        # Override
         r = self.module.request(
             'POST' if method.upper() == 'JSON' else method.upper(),
             url.text,
@@ -215,16 +200,14 @@ class Requests(Fetcher):
             allow_redirects=follow_redirects)
         return Response(url.text, r)
 
-    # Override
     def _get_retry_exceptions(self):
-        # type: () -> list[Exception]
+        # Override
         return [self.module.exceptions.ConnectionError, self.module.exceptions.ChunkedEncodingError]
 
 class Urlfetch(Fetcher):
 
-    # Override
     def _fetch(self, url, deadline=30, method='GET', payload=None, headers=None, follow_redirects=False):
-        # type: (urldealer.Url, int, str, Dict[str, str], Dict[str, str], bool) -> Response
+        # Override
         if method.upper() == 'JSON':
             payload = json.dumps(payload)
             headers['Content-Type'] = 'application/json'
@@ -241,7 +224,6 @@ class Urlfetch(Fetcher):
         r.url = r.final_url if r.final_url else url.text
         return Response(url.text, r)
 
-    # Override
     def _get_retry_exceptions(self):
-        # type: () -> list[Exception]
+        # Override
         return []

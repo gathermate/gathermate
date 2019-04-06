@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import re
+
 import json
 import logging
 
@@ -65,7 +65,7 @@ class Pooq(HlsStreamer):
                     Channel(
                         dict(streamer='Pooq',
                              cid=cid,
-                             chnum=mapped_channel.get('chnum') if mapped_channel else int(filter(str.isdigit, str(cid[0]))),
+                             chnum=mapped_channel.get('chnum') if mapped_channel else int(filter(str.isdigit, str(cid[0]))) + 10000,
                              name=name,
                              logo=mapped_channel.get('logo') if mapped_channel else channel.get('tvimage'),
                         )
@@ -161,7 +161,6 @@ class Pooq(HlsStreamer):
     def api_user(self):
         api = ud.Url(ud.join(self.API_URL, '/user'))
         api.update_query(self.API_QUERY)
-        api = re.sub('/user', '//user', api.text)
         self.fetch(api, referer=self.BASE_URL, cached=True)
 
     def request_api(self, url, query=None, referer=None, cached=False):

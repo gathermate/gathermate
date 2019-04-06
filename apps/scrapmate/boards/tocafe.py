@@ -23,7 +23,6 @@ class Tocafe(BoardScraper):
     PAGE_QUERY = 'page=%d'
 
     def get_list(self, r):
-        # type: (fetchers.Response) -> Generator
         tree = self.etree(r, self.encoding)
 
         list_xpath = r'//div[@class="bo_tit"]/a'
@@ -56,7 +55,6 @@ class Tocafe(BoardScraper):
                 MyFlaskException.trace_error()
 
     def get_item(self, r):
-        # type: (fetchers.Response) -> Generator
         tree = self.etree(r, self.encoding)
 
         item_xpath = r'//section[@id="bo_v_file"]/h2/a'
@@ -80,5 +78,4 @@ class Tocafe(BoardScraper):
                 MyFlaskException.trace_error()
 
     def get_file(self, url, ticket):
-        # type: (urldealer.Url, Type[Dict[Text, Union[Text, List[Text]]]]) -> fetchers.Response
         return self.fetch(url, referer=ticket['referer'])

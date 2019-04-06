@@ -10,7 +10,6 @@ log = logging.getLogger()
 class MyFlaskException(Exception):
 
     def __init__(self, *args, **kwargs):
-        # type: (*str, Optional[fetcher.Response]) -> None
         self.response = kwargs.pop('response', None)
         if args:
             if len(args) > 1:
@@ -31,7 +30,6 @@ class MyFlaskException(Exception):
 
     @staticmethod
     def trace_error():
-        # type: () -> None
         log.error('\n{}'.format(traceback.format_exc()))
 
     VIEW_ERROR_TEMPLATE = '''

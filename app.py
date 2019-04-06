@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 import os
 import sys
 import importlib
@@ -19,7 +20,6 @@ reload(sys)
 sys.setdefaultencoding('utf-8')
 
 def create_app():
-    # type: () -> flask.app.Flask
     # Make flask instance
     app = Flask(__name__,
                 instance_relative_config=True,
@@ -81,18 +81,15 @@ if __name__ == '__main__':
 
 @app.route('/robots.txt')
 def to_robots():
-    # type: () -> flask.wrappers.Response
     return send_from_directory(app.static_folder, request.path[1:])
 
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def index(path):
-    # type: (str) -> Text
     return render_template('default.html')
 
 @app.before_request
 def before_request_to_do():
-    # type: () -> None
     request.args = MultiDict(request.args.iteritems(multi=True))
     app.logger.debug('%(line)s Start %(request)s', {'line': '-'*30, 'request': request})
     client = '{} requested {} from {}'.format(request.remote_addr, request.full_path, request.referrer)
@@ -100,19 +97,16 @@ def before_request_to_do():
 
 @app.after_request
 def after_request_to_do(response):
-    # type: (flask.wrappers.Response) -> flask.wrappers.Response
     return response
 
 @app.teardown_request
 def teardown_requst_to_do(exception):
-    # type: () -> None
     if exception is not None:
         app.logger.error("Teardown request : {0!r}".format(exception))
     app.logger.debug('%(line)s End %(request)s', {'line': '-'*30, 'request': request})
 
 @app.errorhandler(Exception)
 def unhandled_exception(e):
-    # type: (Type[Exception]) -> Text
     MyFlaskException.trace_error()
     app.send('{}#{}'.format(__name__, request.host), e.message)
     try:

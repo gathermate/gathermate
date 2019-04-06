@@ -30,7 +30,6 @@ class Torrentzoa(BoardScraper):
         url.path = '-'.join(path_split)
 
     def get_list(self, r):
-        # type: (fetchers.Response) -> Generator
         root = self.etree(r, encoding=self.encoding)
 
         list_xpath = r'//table/tbody/tr//a[2]'
@@ -47,7 +46,6 @@ class Torrentzoa(BoardScraper):
                 MyFlaskException.trace_error()
 
     def get_item(self, r):
-        # type: (fetchers.Response) -> Generator
         root = self.etree(r, encoding=self.encoding)
 
         item_xpath = r'//a[contains(@href, "filetender")]'
@@ -60,7 +58,6 @@ class Torrentzoa(BoardScraper):
                 MyFlaskException.trace_error()
 
     def get_file(self, url, ticket):
-        # type: (urldealer.Url, Type[Dict[Text, Union[Text, List[Text]]]]) -> fetchers.Response
         root = self.fetch_and_etree(url,
                                     referer=ticket['referer'],
                                     encoding='utf-8')

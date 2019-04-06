@@ -100,7 +100,7 @@ class Tving(HlsStreamer):
                     Channel(
                         dict(streamer='Tving',
                              cid=cid,
-                             chnum=mapped_channel.get('chnum') if mapped_channel else int(filter(str.isdigit, str(cid[0]))),
+                             chnum=mapped_channel.get('chnum') if mapped_channel else int(filter(str.isdigit, str(cid[0]))) + 10000,
                              name=name,
                              logo=mapped_channel.get('logo') if mapped_channel else logo,
                         )

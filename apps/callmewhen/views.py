@@ -19,5 +19,4 @@ cmw = Blueprint(
 @cmw.route('/<string:order>', methods=['GET'])
 @auth.requires_auth
 def send(order):
-    # type: () -> Text
     return app.managers[name].request(order, request.args)

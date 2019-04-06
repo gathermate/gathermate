@@ -37,7 +37,6 @@ class Etoland(BoardScraper):
         url.update_qs(self.SEARCH_QUERY % keyword.encode(self.encoding))
 
     def get_list(self, r):
-        # type: (fetchers.Response) -> Generator
         list_xpath = r'//td[contains(@class, "mw_basic_list_subject")]/a/span[not(@class)]/..'
         for e in self.etree(r, encoding=self.encoding).xpath(list_xpath):
             try:
@@ -55,7 +54,6 @@ class Etoland(BoardScraper):
                 MyFlaskException.trace_error()
 
     def get_item(self, r):
-        # type: (fetchers.Response) -> Generator
         root = self.etree(r, encoding=self.encoding)
 
         item_xpath = r'//td[@class="mw_basic_view_file"]/a[contains(@onclick, "file_download")]'
@@ -102,5 +100,4 @@ class Etoland(BoardScraper):
                     MyFlaskException.trace_error()
 
     def get_file(self, url, ticket):
-        # type: (urldealer.Url, Type[Dict[Text, Union[Text, List[Text]]]]) -> fetchers.Response
         return self.fetch(url, referer=ticket['referer'])

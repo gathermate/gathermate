@@ -19,7 +19,6 @@ class Boza(BoardScraper):
     ID_REGEXP = re.compile(r'wr_id=(\d{2,8})')
 
     def get_list(self, r):
-        # type: (fetchers.Response) -> Generator
         root = self.etree(r, encoding=self.encoding)
 
         list_xpath = r'//ul[@class="list-body"]/li/div/a'
@@ -34,7 +33,6 @@ class Boza(BoardScraper):
                 MyFlaskException.trace_error()
 
     def get_item(self, r):
-        # type: (fetchers.Response) -> Generator
         root = self.etree(r, encoding=self.encoding)
 
         title_regexp = re.compile(r'\s\(\d+.*\)$')
@@ -58,7 +56,6 @@ class Boza(BoardScraper):
                 MyFlaskException.trace_error()
 
     def get_file(self, url, ticket):
-        # type: (urldealer.Url, Type[Dict[Text, Union[Text, List[Text]]]]) -> fetchers.Response
         if self.aggressive:
             self.fetch(ud.Url(ticket['referer']), referer=self.URL)
         return self.fetch(url, referer=ticket['referer'])

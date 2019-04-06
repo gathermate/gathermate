@@ -13,14 +13,12 @@ log = logging.getLogger(__name__)
 class Manager(object):
 
     def __init__(self, config):
-        # type: (flask.config.Config) -> None
         if not config:
             raise MyFlaskException('Config is not set.')
         self.__config = config
 
     @property
     def config(self):
-        # type: () -> flask.config.Config
         return self.__config
 
     @config.setter
@@ -28,7 +26,6 @@ class Manager(object):
         raise MyFlaskException('Not allowed.')
 
     def _register_modules(self, package, module_type, parent_class=None):
-        # type: (str, str, Optional[type]) -> Dict[str, Union[type, module]]
         modules = {}
         modules_path = '{}/'.format(os.path.join(self.config['ROOT_DIR'], package.replace('.', '/')))
         for file in glob.iglob("{}[!_]*.py".format(modules_path)):
@@ -45,7 +42,6 @@ class Manager(object):
         return modules
 
     def _get_class_of(self, module, class_):
-        # type: (module, type) -> Generator[Tuple[str, type]]
         for tuple_ in inspect.getmembers(module, inspect.isclass):
             for base in tuple_[1].__bases__:
                 if base is class_:

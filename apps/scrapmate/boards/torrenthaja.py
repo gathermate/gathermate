@@ -24,7 +24,6 @@ class Torrenthaja(BoardScraper):
 
 
     def get_list(self, r):
-        # type: (fetchers.Response) -> Generator
         root = self.etree(r, encoding=self.encoding)
 
         list_xpath = r'//div[contains(@class, "td-subject")]/a'
@@ -43,7 +42,6 @@ class Torrenthaja(BoardScraper):
                 MyFlaskException.trace_error()
 
     def get_item(self, r):
-        # type: (fetchers.Response) -> Generator
         root = self.etree(r, encoding=self.encoding)
 
         form_xpath = r'//form[contains(@action, "download.php")]'
@@ -94,7 +92,6 @@ class Torrenthaja(BoardScraper):
                 MyFlaskException.trace_error()
 
     def get_file(self, url, ticket):
-        # type: (urldealer.Url, Type[Dict[Text, Union[Text, List[Text]]]]) -> fetchers.Response
         payload = ticket.get('payload', None)
         method = ticket.get('method', 'GET')
         if payload:

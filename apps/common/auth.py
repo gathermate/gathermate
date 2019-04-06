@@ -13,7 +13,6 @@ log = logging.getLogger(__name__)
 class Auth(object):
 
     def requires_auth(self, f):
-        # type: (Callable) -> Callable
         def check_auth(username, password):
             return username == caching.config['AUTH_ID'] \
                         and password == caching.config['AUTH_PW']

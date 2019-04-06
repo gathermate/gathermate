@@ -18,10 +18,8 @@ import inspect
 log = logging.getLogger(__name__)
 
 def timeit(method):
-    # type: (Callable[..., ...]) -> Callable[List[object], Dict[object, object], object]
     @wraps(method)
     def timed(*args, **kw):
-        #print '%r starts on %s' % (method.__name__, threading.current_thread())
         ts = time.time()
         result = method(*args, **kw)
         te = time.time()
@@ -35,7 +33,6 @@ def timeit(method):
 
 @timeit
 def decode(content):
-    # type: (str) -> unicode
     if content is None:
         log.warning('There is no string to decode.')
         return content
@@ -57,7 +54,6 @@ MIME = {
         '.srt': 'application/x-subrip',
 }
 def get_mime(filename):
-    # type: (str) -> str
     if is_magnet(filename):
         return 'x-scheme-handler/magnet'
     ext = get_ext(filename)[1]
@@ -68,12 +64,10 @@ def get_mime(filename):
         return 'application/octet-stream'
 
 def get_ext(filename):
-    # type: (str) -> Tuple(str, str)
     name, ext = os.path.splitext(filename.lower())
     return name, ext
 
 def tell_type(obj):
-    # type: (Type[object]) -> None
     string = '##### type of {} is {} #####'.format(obj, type(obj))
     print(string)
     log.debug(string)
@@ -86,7 +80,6 @@ def cf_decode(encodedString):
 
 REGEXP_FILENAME = re.compile(r'filename[^;\n=]*=([\'\"])*(.*)(?(1)\1|)')
 def filename_from_headers(headers):
-    # type: (Dict[str, str]) -> unicode
     target = headers.get('Content-Disposition')
     target = decode(target)
     filename = REGEXP_FILENAME.search(target, re.I).group(2)
@@ -94,15 +87,12 @@ def filename_from_headers(headers):
 
 MAGNET_REGEXP = re.compile(r'^magnet:\?xt=urn:btih:')
 def is_magnet(link):
-    # type: (Text) -> boolean
     return bool(MAGNET_REGEXP.search(link))
 
 def compare(a, b):
-    # Type: (Text, Text) -> float
     return SequenceMatcher(None, a, b).ratio()
 
 def dict_from_json_file(self, file):
-    # type: (str) -> Union[Dict[object, object], None]
     try:
         with open(file, "r") as f:
             return json.load(f)
@@ -110,7 +100,6 @@ def dict_from_json_file(self, file):
         log.error(e)
 
 def dict_to_json_file(self, _dict, file):
-    # type: (Dict[object, object], str) -> None
     with open(file, 'w') as f:
         f.write(json.dumps(_dict))
 
@@ -121,13 +110,11 @@ UNITS = {
     'GB': 1024.0 ** 3,
 }
 def size_text(byte):
-    #type: (int) -> Text
     unit = 'KB'
     size = byte / UNITS.get(unit)
     return u'{0:,.2f} {1:s}'.format(size, unit)
 
 def read_M3U(m3u_file):
-    # type: (str) -> List[Dict[str, Union[str, int]]]
     _list = []
     with io.open(m3u_file, 'r', encoding='utf-8') as f:
         lines = f.readlines()
@@ -156,7 +143,6 @@ def read_M3U(m3u_file):
     return _list
 
 def read_CSV(csv_file):
-    # type: (str) -> List[Dict[str, str]]
     _list = []
     with open(csv_file, 'r') as f:
         ur = UnicodeReader(f, encoding='utf-8')
@@ -169,7 +155,6 @@ def read_CSV(csv_file):
     return _list
 
 def write_M3U(m3u, file):
-    # type: (str, str) -> None
     with io.open(file, 'w', encoding='utf-8') as f:
         f.write(u'#EXTM3U\n')
         for mux in m3u:

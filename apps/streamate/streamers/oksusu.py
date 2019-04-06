@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 import re
 import json
 import logging
@@ -7,7 +8,6 @@ import time
 import m3u8
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_v1_5
-from Crypto.Hash import SHA
 from lxml import etree
 
 from apps.common import urldealer as ud
@@ -44,16 +44,6 @@ class Oksusu(HlsStreamer):
         if self.should_login():
             self.login()
 
-    '''
-    @property
-    def playlist_url(self):
-        return self._playlist_url + '?%s' % self._get_epoch_time()
-
-    @playlist_url.setter
-    def playlist_url(self, v):
-        self._playlist_url = v
-    '''
-
     def _get_epoch_time(self):
         return int(time.time()*1000)
 
@@ -81,7 +71,7 @@ class Oksusu(HlsStreamer):
                 Channel(
                     dict(streamer='Oksusu',
                          cid=cid,
-                         chnum=mapped_channel.get('chnum') if mapped_channel else int(filter(str.isdigit, str(cid[0]))),
+                         chnum=mapped_channel.get('chnum') if mapped_channel else int(filter(str.isdigit, str(cid[0]))) + 10000,
                          name=name,
                          logo=mapped_channel.get('logo') if mapped_channel else 'http://image.oksusu.com:8080/thumbnails/image/0_0_F20/live/logo/387/%s' % ch['channelImageName'],
                     )

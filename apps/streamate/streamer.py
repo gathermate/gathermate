@@ -12,7 +12,6 @@ import m3u8
 from apps.common import caching
 from apps.common.datastructures import MultiDict
 from apps.common import urldealer as ud
-from apps.common.exceptions import MyFlaskException
 
 log = logging.getLogger(__name__)
 
@@ -71,35 +70,28 @@ class HlsStreamer(Streamer):
         playlist = self.get_playlist(playlist_url, referer, 0, play_seconds)
         buffering_time = dt.now()
         error_count = 0
-        is_endlist = False
-        last_segment_duration = 0
-        play_sequence = 0
         while self.should_stream and error_count < 5:
             if len(playlist) > 0:
                 segment = playlist.popleft()
-                if segment != 'ENDLIST':
-                    if self.should_stream:
-                        r = self.fetch(segment.uri, referer=referer)
-                        yield r.content
-                        if not str(r.status_code).startswith('2'):
-                            error_count += 1
-                        play_sequence = segment.sequence
-                        last_segment_duration = segment.duration
-                        buffering_time += datetime.timedelta(seconds=segment.duration)
-                    buffered = buffering_time - dt.now()
-                    if buffered > datetime.timedelta(seconds=int(segment.duration*3)):
-                        sleep_time = int(segment.duration)
-                    else:
-                        sleep_time = 0
+                if self.should_stream:
+                    r = self.fetch(segment.uri, referer=referer)
+                    yield r.content
+                    if not str(r.status_code).startswith('2'):
+                        error_count += 1
+                    buffering_time += datetime.timedelta(seconds=segment.duration)
+                    play_sequence = segment.sequence
+                if len(playlist) is 0 and playlist.is_endlist:
+                    sleep_time = int((buffering_time - dt.now()).total_seconds()) - segment.duration
+                elif buffering_time - dt.now() > datetime.timedelta(seconds=int(segment.duration*3)):
+                    sleep_time = int(segment.duration)
                 else:
-                    sleep_time = int((buffering_time - dt.now()).total_seconds()) - last_segment_duration
-                    is_endlist = True
+                    sleep_time = 0
                 for count in range(sleep_time, 0, -1):
                     if not self.should_stream:
                         break
                     time.sleep(1)
             else:
-                if is_endlist:
+                if playlist.is_endlist:
                     playlist_url, play_seconds = self.get_playlist_url(cid, qIndex)
                     play_sequence = 0
                 else:
@@ -108,11 +100,12 @@ class HlsStreamer(Streamer):
                 if self.should_stream:
                     playlist = self.get_playlist(playlist_url, referer, play_sequence, play_seconds)
                     if len(playlist) is 0:
+                        log.error('Refetched playlist but no items were set.')
                         self.should_stream = False
 
     def get_playlist(self, playlist_url, referer, play_sequence, play_seconds):
         m3u = m3u8.loads(self.fetch(playlist_url, referer=referer).content)
-        playlist = deque()
+        playlist = Playlist(is_endlist=m3u.is_endlist)
         cumulative_time = 0
         for sequence, segment in enumerate(m3u.segments, m3u.media_sequence):
             cumulative_time += segment.duration
@@ -122,8 +115,6 @@ class HlsStreamer(Streamer):
                 segment.uri = ud.join(playlist_url, segment.uri)
                 segment.sequence = sequence
                 playlist.append(segment)
-        if m3u.is_endlist and len(playlist) > 0:
-            playlist.append('ENDLIST')
         return playlist
 
     def get_channels(self):
@@ -168,3 +159,17 @@ class Channel(MultiDict):
     @property
     def chnum(self):
         return self.get('chnum')
+
+
+class Playlist(deque):
+    def __init__(self, is_endlist=False):
+        deque.__init__(self)
+        self._is_endlist = is_endlist
+
+    @property
+    def is_endlist(self):
+        return self._is_endlist
+
+    @is_endlist.setter
+    def is_endlist(self, v):
+        self._is_endlist = bool(v)

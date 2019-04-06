@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 import logging
 from itertools import chain
 import copy
@@ -15,14 +16,12 @@ from apps.common import fetchers
 log = logging.getLogger(__name__)
 
 def hire_manager(config):
-    # type: (flask.config.Config, Text) -> Manager
     return StreamManager(config)
 
 
 class StreamManager(Manager):
 
     def __init__(self, config):
-        # type: (flask.config.Config) -> None
         super(StreamManager, self).__init__(config)
         self.__streamer_classes = self._register_modules('apps.streamate.streamers', 'Streamer')
         self.__epg_grabber_classes = self._register_modules('apps.streamate.epggrabbers', 'EpgGrabber')
@@ -87,7 +86,7 @@ class StreamManager(Manager):
             else:
                 yield info.format(cid='%s.%s' % (scid, streamer_name),
                                   name=ch.name,
-                                  chnum=int(filter(str.isdigit, str(scid))),
+                                  chnum=ch.pop('chnum'),
                                   streamer=ch.streamer.lower(),
                                   scid=scid if str(scid).isdigit() else "'%s'" % scid,
                                   logo=ch.logo,
@@ -110,7 +109,6 @@ class StreamManager(Manager):
         return packer.pack_epg(epggrabber.get_epg(copy.deepcopy(self.config['CHANNELS']), grabbers, query.get('days', default=1, type=int)))
 
     def request(self, streamer, order, query):
-        # type: (str, Type[Dict[str, Union[List[str], str]]]) -> ?
         try:
             self.__streamer_classes[streamer.capitalize()]
         except KeyError:

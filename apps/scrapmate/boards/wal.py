@@ -34,7 +34,6 @@ class Wal(BoardScraper):
             url.path = '/{}/{}'.format(path[1], self.PAGE_QUERY % int(num))
 
     def get_list(self, r):
-        # type: (fetchers.Response) -> Generator
         tree = self.etree(r, encoding=self.encoding)
 
         list_xpath = r'//table[@class="board_list"]/tr'
@@ -70,7 +69,6 @@ class Wal(BoardScraper):
                     MyFlaskException.trace_error()
 
     def get_item(self, r):
-        # type: (fetchers.Response) -> Generator
         root = self.etree(r, encoding=self.encoding)
 
         item_xpath = r'//table[@id="file_table"]/tr/td/a'
@@ -101,5 +99,4 @@ class Wal(BoardScraper):
                 MyFlaskException.trace_error()
 
     def get_file(self, url, ticket):
-        # type: (urldealer.Url, Type[Dict[Text, Union[Text, List[Text]]]]) -> fetchers.Response
         return self.fetch(url, referer=ticket['referer'])

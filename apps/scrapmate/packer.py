@@ -15,7 +15,6 @@ log = logging.getLogger(__name__)
 ACCEPTED_EXT = []
 
 def pack_rss(generator):
-    # type (Union[List[object], Generator], Text) -> Text
     yield '''<rss version="2.0">
 <channel>
   <title>My Torrent RSS</title>
@@ -60,12 +59,10 @@ def pack_rss(generator):
 
 
 def pack_list(data_dict):
-    # type (Dict[Text, object]) -> Dict[Text, object]
     data_dict['articles'] = sorted(data_dict['articles'].items(), reverse=True)
     return data_dict
 
 def pack_item(items):
-    # type (List[Dict[Text, object]]) -> List[Dict[Text, object]]
     denied = []
     for idx, item in enumerate(items):
         if item['type'] in ['magnet', 'link']:
