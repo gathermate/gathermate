@@ -70,6 +70,7 @@ class HlsStreamer(Streamer):
         playlist = self.get_playlist(playlist_url, referer, 0, play_seconds)
         buffering_time = dt.now()
         error_count = 0
+        play_sequence = 0
         while self.should_stream and error_count < 5:
             if len(playlist) > 0:
                 segment = playlist.popleft()
