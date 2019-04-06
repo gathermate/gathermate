@@ -114,7 +114,7 @@ git clone https://github.com/gathermate/gathermate.git /opt/apps/gathermate
 `python 2.7`, `python-pip`을 설치합니다. Entware는 추가로 `python-lxml`을 설치합니다. `lxml`을 [Entware][entware] 패키지에서 설치하는 이유는 `pip`으로 설치할 경우 컴파일 오류가 발생하기 때문입니다. `lxml`을 컴파일하려면 헤더 파일이 필요한데 [Entware][entware]에는 기본 탑재되어 있지 않습니다. 그래도 정말 컴파일 하기를 원한다면 [Using gcc](https://github.com/Entware/Entware-ng/wiki/Using-gcc-(native-compilation))를 참조하세요.
 
 [entware]: https://github.com/Entware/Entware
-    
+
 ```shell
 # Entware on ASUS RT-AC68U aka T-mobile AC1900
 opkg install python-light python-pip python-lxml python-crypto ffmpeg
@@ -134,12 +134,12 @@ source /opt/apps/gathermate/venv/bin/activate
 
 #### 4. 파이썬 패키지 설치
 가상환경 내에서 `python` 추가 패키지를 설치합니다. Entware는 `opkg`로 설치한 `lxml`, `rypto` 패키지도 가상환경 폴더에 복사해 주세요.
-   
-```shell 
+
+```shell
 # Entware on ASUS RT-AC68U aka T-mobile AC1900
 pip install -r /opt/apps/gathermate/install/requirements-entware.txt
-cp -r /opt/lib/python2.7/site-packages/lxml* /opt/apps/gathermate/venv/lib/python2.7/site-packages/ 
-cp -r /opt/lib/python2.7/site-packages/Crypto /opt/apps/gathermate/venv/lib/python2.7/site-packages/ 
+cp -r /opt/lib/python2.7/site-packages/lxml* /opt/apps/gathermate/venv/lib/python2.7/site-packages/
+cp -r /opt/lib/python2.7/site-packages/Crypto /opt/apps/gathermate/venv/lib/python2.7/site-packages/
 ```
 ```shell
 # Debian/Ubuntu on WSL
@@ -188,8 +188,8 @@ chmod +x /etc/init.d/gathermate
 ```shell
 BIND=0.0.0.0:8181
 ```
-   
-##### 실행하기 
+
+##### 실행하기
 
 ```shell
 # Entware on ASUS RT-AC68U aka T-mobile AC1900
@@ -285,7 +285,7 @@ AUTH_ID = 'admin' # instance/config.py
             <td>scrap/<code>사이트</code>/<code>게시판</code>/rss?search=<code>검색어</code>&page=<code>3</code>&length=<code>5</code><br/><code>scrap/tfreeca/tent/rss</code></td>
         </tr>
         <tr>
-            <td>scrap/rss?url=<code>encoded-url</code>&search=<code>검색어</code>&page=<code>1</code>&length=<code>5</code><br/><code>scrap/rss?url=https%3A%2F%2Fwww.google.com%2F%3Fsearch%3Drss</code></td>            
+            <td>scrap/rss?url=<code>encoded-url</code>&search=<code>검색어</code>&page=<code>1</code>&length=<code>5</code><br/><code>scrap/rss?url=https%3A%2F%2Fwww.google.com%2F%3Fsearch%3Drss</code></td>
         </tr>
         <tr>
             <td><b>글</b></td>
@@ -312,12 +312,12 @@ AUTH_ID = 'admin' # instance/config.py
 
 `RSS_AGGRESSIVE` 설정이 `True`인 상태에서 RSS 요청시 `리스트 페이지 접속 및 수집` -> `각 게시물에 접속 및 수집`의 과정을 거칩니다. 한번에 여러 페이지를 접속하기 때문에 되도록이면 `length`값을 5 이하로 사용하시길 바랍니다. 만약 `length` 값이 5라면 리스트 페이지 1, 게시물 5, 총 6 개의 페이지를 한번에 접속하게 됩니다.
 
-`RSS_AGGRESSIVE`가 `False`인 상태에서 RSS 요청시 리스트 페이지에서 게시물만 수집합니다. 이후 다운로드 과정에서 해당 게시물에 접속해 첨부된 링크 혹은 파일 중 조건에 맞는 아이템을 다운로드 합니다. RSS에 다운 가능한 파일을 명시할 수 없기 때문에 다운로드에 실패할 가능성이 높습니다. 
+`RSS_AGGRESSIVE`가 `False`인 상태에서 RSS 요청시 리스트 페이지에서 게시물만 수집합니다. 이후 다운로드 과정에서 해당 게시물에 접속해 첨부된 링크 혹은 파일 중 조건에 맞는 아이템을 다운로드 합니다. RSS에 다운 가능한 파일을 명시할 수 없기 때문에 다운로드에 실패할 가능성이 높습니다.
 
 #### Flexget 설정
 ```yaml
 inputs:
-  - rss:          
+  - rss:
       url: 'http://127.0.0.1:8181/scrap/google/drama/rss?search=-NEXT'
       username: 'MY_ID'
       password: 'MY_PATH'

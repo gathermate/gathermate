@@ -56,7 +56,6 @@ class HlsStreamer(Streamer):
         self.mapped_channels = mapped_channels
         self.except_channels = except_channels
         self.qualities = qualities
-        self.playlist = deque()
         self.should_stream = True
 
     def streaming(self, cid, qIndex):
@@ -67,25 +66,23 @@ class HlsStreamer(Streamer):
         if self.__class__.streaming_instance is not None:
             self.__class__.streaming_instance.should_stream = False
         self.__class__.streaming_instance = self
-        self.playlist_url, play_seconds = self.get_playlist_url(cid, qIndex)
-        self.set_playlist(cid, 0, play_seconds)
+        referer = self.PLAYER_URL % cid
+        playlist_url, play_seconds = self.get_playlist_url(cid, qIndex)
+        playlist = self.get_playlist(playlist_url, referer, 0, play_seconds)
         buffering_time = dt.now()
         error_count = 0
         is_endlist = False
         last_segment_duration = 0
         play_sequence = 0
         while self.should_stream and error_count < 5:
-            if len(self.playlist) > 0:
-                segment = self.playlist.popleft()
+            if len(playlist) > 0:
+                segment = playlist.popleft()
                 if segment != 'ENDLIST':
                     if self.should_stream:
-                        r = self.fetch(segment.uri, referer=self.PLAYER_URL % cid)
-                        if str(r.status_code).startswith('2'):
-                            yield r.content
-                        else:
+                        r = self.fetch(segment.uri, referer=referer)
+                        yield r.content
+                        if not str(r.status_code).startswith('2'):
                             error_count += 1
-                            yield ''
-                            continue
                         play_sequence = segment.sequence
                         last_segment_duration = segment.duration
                         buffering_time += datetime.timedelta(seconds=segment.duration)
@@ -103,29 +100,31 @@ class HlsStreamer(Streamer):
                     time.sleep(1)
             else:
                 if is_endlist:
-                    self.playlist_url, play_seconds = self.get_playlist_url(cid, qIndex)
+                    playlist_url, play_seconds = self.get_playlist_url(cid, qIndex)
                     play_sequence = 0
                 else:
                     play_sequence += 1
                     play_seconds = 0
                 if self.should_stream:
-                    self.set_playlist(cid, play_sequence, play_seconds)
-                    if len(self.playlist) is 0:
+                    playlist = self.get_playlist(playlist_url, referer, play_sequence, play_seconds)
+                    if len(playlist) is 0:
                         self.should_stream = False
 
-    def set_playlist(self, cid, play_sequence, play_seconds):
-        playlist = m3u8.loads(self.fetch(self.playlist_url, referer=self.PLAYER_URL % cid).content)
+    def get_playlist(self, playlist_url, referer, play_sequence, play_seconds):
+        m3u = m3u8.loads(self.fetch(playlist_url, referer=referer).content)
+        playlist = deque()
         cumulative_time = 0
-        for sequence, segment in enumerate(playlist.segments, playlist.media_sequence):
+        for sequence, segment in enumerate(m3u.segments, m3u.media_sequence):
             cumulative_time += segment.duration
             if play_seconds > cumulative_time:
                 continue
             if sequence >= play_sequence:
-                segment.uri = ud.join(self.playlist_url, segment.uri)
+                segment.uri = ud.join(playlist_url, segment.uri)
                 segment.sequence = sequence
-                self.playlist.append(segment)
-        if playlist.is_endlist and len(self.playlist) > 0:
-            self.playlist.append('ENDLIST')
+                playlist.append(segment)
+        if m3u.is_endlist and len(playlist) > 0:
+            playlist.append('ENDLIST')
+        return playlist
 
     def get_channels(self):
         page = 1
