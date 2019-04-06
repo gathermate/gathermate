@@ -93,7 +93,7 @@ class Oksusu(HlsStreamer):
                 response = self.fetch(urlAUTO, referer=self.PLAYER_URL % cid)
                 variant = m3u8.loads(response.content)
                 variant.playlists = sorted(variant.playlists, key=lambda x: x.stream_info[0])
-                return variant.playlists[-1 if qIndex >= len(variant.playlists) else qIndex].uri + '?%s' % self._get_epoch_time(), 0
+                return ud.join(urlAUTO, variant.playlists[-1 if qIndex >= len(variant.playlists) else qIndex].uri + '?%s' % self._get_epoch_time()), 0
             elif nvodUrlList:
                 nvod_token = nvodUrlList[0]['nvod_token']
                 timestamp = float(js['timestamp'])/1000
