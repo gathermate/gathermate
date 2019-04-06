@@ -86,7 +86,6 @@ class Oksusu(HlsStreamer):
         if match:
             js = json.loads(match.group(1))
             if js is None: raise MyFlaskException("JSON is None.")
-            log.debug(match.group(1))
             urlAUTO = js['streamUrl']['urlAUTO']
             nvodUrlList = js['streamUrl']['nvodUrlList']
             if urlAUTO:
