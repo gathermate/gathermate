@@ -23,7 +23,7 @@ def pack_rss(generator):
     for article in generator:
         for item in article:
             try:
-                e_item = E.item(E.title(item['name']))
+                e_item = E.item(E.title(unicode(item['name'])))
                 e_enclosure = E.enclosure()
                 link = None
                 enclosure = None

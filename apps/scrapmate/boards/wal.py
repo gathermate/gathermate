@@ -5,7 +5,6 @@ import logging
 from apps.scrapmate.scraper import BoardScraper
 from apps.common.exceptions import MyFlaskException
 from apps.common import urldealer as ud
-from apps.common import toolbox as tb
 
 log = logging.getLogger(__name__)
 
