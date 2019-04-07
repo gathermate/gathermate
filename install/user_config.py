@@ -144,9 +144,11 @@ class Localhost(Flask):
                 'QUALITY': ['100p', '270p', '360p', '480p'],
                 # 제외 채널 (채널 이름은 옵션)
                 'EXCEPT_CHANNELS': {
-                    'C4102': '현대홈쇼핑+샵 (제외 채널)',
-                    'C4901': '쇼핑엔T (제외 채널)',
+                    'C4102': '현대홈쇼핑+샵 (예시 제외 채널)',
+                    'C4901': '쇼핑엔T (예시 제외 채널)',
                 },
+                # 채널 번호가 지정되지 않은 채널의 시작 채널 번호
+                'CHANNEL_NUMBERS_FROM': 10000,
             },
             'Tving': {
                 'ID': '',
@@ -157,6 +159,7 @@ class Localhost(Flask):
                 'EXCEPT_CHANNELS': {
                     'C05661': '디즈니채널 (DRM 필요)',
                 },
+                'CHANNEL_NUMBERS_FROM': 10000,
             },
             'Oksusu': {
                 'ID': '',
@@ -166,6 +169,7 @@ class Localhost(Flask):
                 'QUALITIES': [],
                 'EXCEPT_CHANNELS': {
                 },
+                'CHANNEL_NUMBERS_FROM': 10000,
             }
         }
     )

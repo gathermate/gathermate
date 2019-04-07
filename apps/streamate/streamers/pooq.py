@@ -41,10 +41,12 @@ class Pooq(HlsStreamer):
                  except_channels=[],
                  qualities=[],
                  id=None,
-                 pw=None):
+                 pw=None,
+                 channel_numbers_from=1000):
         HlsStreamer.__init__(self, fetcher, mapped_channels, except_channels, qualities)
         self.user_id = id
         self.user_pw = pw
+        self.channel_numbers_from = channel_numbers_from
         if bool(self.should_login()):
             self.api_login()
 
@@ -65,7 +67,7 @@ class Pooq(HlsStreamer):
                     Channel(
                         dict(streamer='Pooq',
                              cid=cid,
-                             chnum=mapped_channel.get('chnum') if mapped_channel else int(filter(str.isdigit, str(cid[0]))) + 10000,
+                             chnum=mapped_channel.get('chnum') if mapped_channel else int(filter(str.isdigit, str(cid[0]))) + self.channel_numbers_from,
                              name=name,
                              logo=mapped_channel.get('logo') if mapped_channel else channel.get('tvimage'),
                         )

@@ -58,10 +58,12 @@ class Tving(HlsStreamer):
                  qualities=[],
                  id=None,
                  pw=None,
+                 channel_numbers_from=1000,
                  login_type=20):
         HlsStreamer.__init__(self, fetcher, mapped_channels, except_channels, qualities)
         self.user_id = id
         self.user_pw = pw
+        self.channel_numbers_from = channel_numbers_from
         self.login_type = login_type
         if self.get_cache('pcid') is None:
             self.set_cookie(self.make_pcid_cookie())
@@ -100,7 +102,7 @@ class Tving(HlsStreamer):
                     Channel(
                         dict(streamer='Tving',
                              cid=cid,
-                             chnum=mapped_channel.get('chnum') if mapped_channel else int(filter(str.isdigit, str(cid[0]))) + 10000,
+                             chnum=mapped_channel.get('chnum') if mapped_channel else int(filter(str.isdigit, str(cid[0]))) + self.channel_numbers_from,
                              name=name,
                              logo=mapped_channel.get('logo') if mapped_channel else logo,
                         )

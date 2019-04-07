@@ -45,8 +45,8 @@ class Kt(EpgGrabber):
                 rating = info.find('span[@class="icon"]/img[1]').get('alt')
                 category = div.find('div[@class="type"]').text.split('/')
                 yield Program(dict(cid=cid,
-                                       title=unicode(title.strip()),
-                                       start=dt.combine(proc_date, self.parse_time('%s:%s' % (hour, minute))),
-                                       stop='',
-                                       rating=rating,
-                                       category=category))
+                                   title=unicode(title.strip()),
+                                   start=dt.combine(proc_date, self.parse_time('%s:%s' % (hour, minute))),
+                                   stop='',
+                                   rating=rating,
+                                   category=category))

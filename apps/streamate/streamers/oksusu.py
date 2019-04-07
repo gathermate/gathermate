@@ -36,10 +36,12 @@ class Oksusu(HlsStreamer):
                  qualities=[],
                  id=None,
                  pw=None,
+                 channel_numbers_from=1000,
                  login_type=None):
         HlsStreamer.__init__(self, fetcher, mapped_channels, except_channels, qualities)
         self.user_id = id
         self.user_pw = pw
+        self.channel_numbers_from = channel_numbers_from
         self.login_type = login_type
         if self.should_login():
             self.login()
@@ -48,7 +50,6 @@ class Oksusu(HlsStreamer):
         return int(time.time()*1000)
 
     def _get_channels(self, pageNo):
-        raise Exception('This is test exception.')
         url = 'http://www.oksusu.com/api/live/organization/list?genreCode=99&orgaPropCode=ALL'
         r = self.fetch(url, referer='http://www.oksusu.com/live?mid=9000000399', headers=self.HEADERS)
         js = json.loads(r.content)
@@ -72,7 +73,7 @@ class Oksusu(HlsStreamer):
                 Channel(
                     dict(streamer='Oksusu',
                          cid=cid,
-                         chnum=mapped_channel.get('chnum') if mapped_channel else int(filter(str.isdigit, str(cid[0]))) + 10000,
+                         chnum=mapped_channel.get('chnum') if mapped_channel else int(filter(str.isdigit, str(cid[0]))) + self.channel_numbers_from,
                          name=name,
                          logo=mapped_channel.get('logo') if mapped_channel else 'http://image.oksusu.com:8080/thumbnails/image/0_0_F20/live/logo/387/%s' % ch['channelImageName'],
                     )
