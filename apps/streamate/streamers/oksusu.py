@@ -26,6 +26,7 @@ class Oksusu(HlsStreamer):
     LOGIN_CHECK_URL = 'http://www.oksusu.com/my'
     PLAYER_URL = 'http://www.oksusu.com/v/%s'
     HEADERS = {'X-Requested-With': 'XMLHttpRequest'}
+    CACHE_KEY = 'oksusu-data'
 
     streaming_instance = None
 
@@ -54,6 +55,10 @@ class Oksusu(HlsStreamer):
         r = self.fetch(url, referer='http://www.oksusu.com/live?mid=9000000399', headers=self.HEADERS)
         js = json.loads(r.content)
         channels = []
+        ticket_info = self.get_cache('user-ticket-info')
+        point_info = self.get_cache('user-point-info')
+        coupon_info = self.get_cache('user-coupon-info')
+        log.debug('Bill INFO: %s / %s / %s', ticket_info, point_info ,coupon_info)
         for ch in js['channels']:
             cid = [ch['serviceId']]
             #channelProd : {free: "0", loginFree: "5", basicFree: "20", paid: "99"}
@@ -107,9 +112,13 @@ class Oksusu(HlsStreamer):
     def login(self):
         if self.login_type == 'tid':
             self.login_by_tid(self.user_id, self.user_pw)
-        if self.login_type == 'oksusu':
+        elif self.login_type == 'oksusu':
             payload = dict(loginMode=1, rw='/', cw='', serviceProvider='', accessToken='', userId=self.user_id, password=self.user_pw, captcha='')
             self.fetch(self.LOGIN_OKSUSU_URL, method='POST', payload=payload, referer=self.LOGIN_OKSUSU_URL + '?rw=%2F')
+        else:
+            pass
+        if self.should_login():
+            self._login_failed("should_login() still returns True")
 
     def should_login(self):
         r = self.fetch(self.LOGIN_CHECK_URL, referer=self.BASE_URL, cached=True)
@@ -118,8 +127,13 @@ class Oksusu(HlsStreamer):
             isLogin = match.group(1)
             log.debug('Is user logged in? : %s', isLogin)
             if  isLogin == 'true':
+                self.set_bill_info(r.content)
                 return False
         return True
+
+    def set_bill_info(self, content):
+        for dd in etree.HTML(content).xpath('//dd[contains(@id, "user-")]'):
+            self.set_cache(dd.get('id'), dd.text)
 
     def get_login_ciphertext(self, user_id, user_pw, nonce, modulus, exponent):
         message = '%s|%s|%s' % (user_id, user_pw, nonce)

@@ -38,6 +38,7 @@ class Oksusu(EpgGrabber):
 
     def parse_program(self, content, cid, proc_date):
         for p in content:
+            rerun = True if p['pgmRebroadYn'] == '1' else False
             yield Program(dict(cid=cid,
                                title=p['programName'],
                                sub_title='',
@@ -46,4 +47,4 @@ class Oksusu(EpgGrabber):
                                rating=p['ratingCd'],
                                description=p['synopsis'],
                                category=p['mainGenreName'].split('/') if p['mainGenreName'] else '',
-                               rerun=True if p['pgmRebroadYn'] == '1' else False))
+                               ))

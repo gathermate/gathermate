@@ -203,6 +203,7 @@ GOOGLEAPPENGINE_INSTANCE = GoogleAppEngine()
 '''
 형식 : '채널ID':dict(name='채널이름',chnum=채널번호,그래버='그래버채널ID',그래버='그래버검색어',skip='그래버|그래버',only='그래버|그래버',logo='아이콘주소'),
 채널ID : 채널 매핑에 사용할 채널 ID (e.g. tvg-id)
+그래버 : ID 기반 그래버(e.g kt, lg, sky ...)의 채널ID, 혹은 검색어 기반 그래버(e.g. naver, daum)의 채널 검색어
 only : EPG 검색시 필요한 그래버(화이트리스트). 복수 입력시 '|'로 구분
 skip : EPG 검색시 제외할 그래버(블랙리스트). 복수 입력시 '|'로 구분
 '''
@@ -267,22 +268,7 @@ CHANNELS = {
 'DIATV':dict(name='다이아 TV',chnum=124,kt=72,lg=690,sky=912,tving='C15152',logo='http://image.tving.com/upload/cms/caic/CAIC0400/C15152.png'),
 'ZHTV':dict(name='중화TV',chnum=125,epgcokr=664,kt=110,lg=725,sky=664,tving='C00544',logo='http://image.tving.com/upload/cms/caic/CAIC0400/C00544.png'),
 'MNET':dict(name='Mnet',chnum=126,epgcokr=27,kt=27,lg=687,sky=273,tving='C00579',logo='http://image.tving.com/upload/cms/caic/CAIC0300/C00579.png'),
-'JTBC-KNOWINGBROS':dict(name='JTBC 아는형님',chnum=127,pooq='C2306',only='pooq',logo='http://img.pooq.co.kr/BMS/Channelimage30/image/brother-2.png'),
-'JTBC-PLEASETAKECAREOFMYREFRIGERATOR':dict(name='JTBC 냉장고를 부탁해',chnum=128,pooq='C2307',only='pooq',logo='http://img.pooq.co.kr/BMS/Channelimage30/image/refrigerator-2.png'),
 'KBSN-PLUS':dict(name='KBSN PLUS',chnum=129,pooq='K23',skip='naver',logo='http://img.pooq.co.kr/BMS/Channelimage30/image/KBSN-2.png'),
-'KBS-1NIGHT2DAYS':dict(name='KBS 1박 2일',chnum=130,pooq='K15',only='pooq',logo='http://img.pooq.co.kr/BMS/ChannelImg/25_kbs1%EB%B0%952%EC%9D%BC.png'),
-'KBS-MANSQUALIFICATION':dict(name='KBS 남자의 자격',chnum=131,pooq='K18',only='pooq',logo='http://img.pooq.co.kr/BMS/ChannelImg/K18.png'),
-'KBS-THERETURNOFSUPERMAN':dict(name='KBS 슈퍼맨이 돌아왔다',chnum=132,pooq='K24',only='pooq',logo='http://img.pooq.co.kr/BMS/Channelimage30/image/superman-2.png'),
-'MBC-INFINITECHALLENGE':dict(name='MBC 무한도전',chnum=133,pooq='PM1',only='pooq',logo='http://img.pooq.co.kr/BMS/ChannelImg/23_MBC%20%EB%AC%B4%ED%95%9C%EB%8F%84%EC%A0%84.png'),
-'MBC-ILIVEALONE':dict(name='MBC 나 혼자 산다',chnum=134,pooq='PM2',only='pooq',logo='http://img.pooq.co.kr/BMS/ChannelImg/alone_tv.png'),
-'MBC-RADIOSTAR':dict(name='MBC 라디오스타',chnum=135,pooq='M12',only='pooq',logo='http://img.pooq.co.kr/BMS/ChannelImg/radiostar.png'),
-'MBC-SURPRISE':dict(name='MBC 서프라이즈',chnum=136,pooq='M13',only='pooq',logo='http://img.pooq.co.kr/BMS/ChannelImg/surprise_2.png'),
-'SBS-MOBIDIC':dict(name='SBS Mobidic',chnum=137,pooq='S13',only='pooq',logo='http://img.pooq.co.kr/BMS/ChannelImg/mobidic.png'),
-'SBS-THEKPOP':dict(name='SBS THE K-POP',chnum=138,pooq='S14',only='pooq',logo='http://img.pooq.co.kr/BMS/Channelimage30/image/THE_K-POP-2.png'),
-'SBS-ANIMALFARM':dict(name='SBS TV동물농장',chnum=139,pooq='S15',only='pooq',logo='http://img.pooq.co.kr/BMS/Channelimage30/image/S15-2.png'),
-'SBS-RUNNINGMAN':dict(name='SBS 런닝맨',chnum=140,pooq='S16',only='pooq',logo='http://img.pooq.co.kr/BMS/Channelimage30/image/S16-2.png'),
-'VLENDING-MUSICVIDEO':dict(name='블렌딩 뮤직 비디오',chnum=141,pooq='C7801',only='pooq',logo='http://img.pooq.co.kr/BMS/Channelimage30/image/vlending-2.png'),
-'ALLTHEKPOP':dict(name='ALL THE K-POP',chnum=142,pooq='M10',only='pooq',logo='http://img.pooq.co.kr/BMS/ChannelImg/19_all%20the%20KPOP.png'),
 # 스포츠/레저: 200-
 'SBS-SPORTS':dict(name='SBS Sports',chnum=200,kt=58,lg=613,sky=977,pooq='S02',logo='https://tv.kt.com/relatedmaterial/ch_logo/live/58.png'),
 'SBS-GOLF':dict(name='SBS 골프',chnum=201,kt=57,lg=614,sky=769,epgcokr=44,oksusu=350,logo='http://image.oksusu.com:8080/thumbnails/image/0_0_F20/live/logo/387/nsepg_350.png'),
@@ -302,12 +288,6 @@ CHANNELS = {
 'STARSPORTS':dict(name='Star Sports',chnum=215,kt=63,sky=122,epgcokr=122,oksusu=781,logo='http://image.oksusu.com:8080/thumbnails/image/0_0_F20/live/logo/387/nsepg_781.png'),
 'BRAINTV':dict(name='브레인TV',chnum=216,kt=122,lg=707,sky=488,epgcokr=488,oksusu=279,logo='http://image.oksusu.com:8080/thumbnails/image/0_0_F20/live/logo/387/nsepg_279.png'),
 'POLARIS':dict(name='폴라리스TV',chnum=217,kt=253,lg=726,pooq='C6901',skip='daum',logo='http://img.pooq.co.kr/BMS/Channelimage30/image/Polaris-2.png'),
-'OKSUSU-ESPORTS':dict(name='oksusu e-sports',chnum=218,oksusu=352,only='oksusu',logo='http://image.oksusu.com:8080/thumbnails/image/0_0_F20/live/logo/387/nsepg_352.png'),
-'OKSUSU-BASEBALL1':dict(name='2019 프로야구 CH.1',chnum=219,oksusu=168,only='oksusu',logo='http://image.oksusu.com:8080/thumbnails/image/0_0_F20/live/logo/387/nsepg_168.png'),
-'OKSUSU-BASEBALL2':dict(name='2019 프로야구 CH.2',chnum=220,oksusu=169,only='oksusu',logo='http://image.oksusu.com:8080/thumbnails/image/0_0_F20/live/logo/387/nsepg_169.png'),
-'OKSUSU-BASEBALL3':dict(name='2019 프로야구 CH.3',chnum=221,oksusu=161,only='oksusu',logo='http://image.oksusu.com:8080/thumbnails/image/0_0_F20/live/logo/387/nsepg_161.png'),
-'OKSUSU-BASEBALL4':dict(name='2019 프로야구 CH.4',chnum=222,oksusu=162,only='oksusu',logo='http://image.oksusu.com:8080/thumbnails/image/0_0_F20/live/logo/387/nsepg_162.png'),
-'OKSUSU-BASEBALL5':dict(name='2019 프로야구 CH.5',chnum=223,oksusu=160,only='oksusu',logo='http://image.oksusu.com:8080/thumbnails/image/0_0_F20/live/logo/387/nsepg_160.png'),
 # 애니/유아/교육: 300-
 'ANIBOX':dict(name='ANIBOX',chnum=300,epgcokr=740,kt=993,lg=695,sky=84,pooq='C4401',logo='https://tv.kt.com/relatedmaterial/ch_logo/live/135.png'),
 'ANIMAX':dict(name='애니맥스',chnum=301,kt=995,lg=703,sky=725,pooq='A01',oksusu=371,logo='http://img.pooq.co.kr/BMS/ChannelImg/31_anymax.png'),
@@ -322,14 +302,11 @@ CHANNELS = {
 'JEITV':dict(name='JEI 재능TV',chnum=310,kt=986,lg=776,sky=23,epgcokr=23,oksusu=378,logo='http://image.oksusu.com:8080/thumbnails/image/0_0_F20/live/logo/387/nsepg_378.png',),
 'DAEKYO-KIDSTV':dict(name='대교 어린이TV',chnum=311,kt=987,lg=761,sky=17,epgcokr=17,oksusu=374,logo='http://image.oksusu.com:8080/thumbnails/image/0_0_F20/live/logo/387/nsepg_374.png'),
 'PLAYLEARNTV':dict(name='플레이런TV',chnum=312,kt=974,lg=772,oksusu=824,logo='http://image.oksusu.com:8080/thumbnails/image/0_0_F20/live/logo/387/nsepg_824.png'),
-'BRAVOKIDS':dict(name='bravo kids',chnum=313,oksusu=370,only='oksusu',logo='http://image.oksusu.com:8080/thumbnails/image/0_0_F20/live/logo/387/nsepg_370.png'),
-'OKSUSU-JUNIOR':dict(name='oksusu 주니어',chnum=314,oksusu=329,only='oksusu',logo='http://image.oksusu.com:8080/thumbnails/image/0_0_F20/live/logo/387/nsepg_329.png'),
 # 해외: 400-449
 'CNN-INTERNATIONAL':dict(name='CNN Int’l',chnum=400,kt=191,lg=729,sky=117,epgcokr=117,oksusu=774,logo='http://image.oksusu.com:8080/thumbnails/image/0_0_F20/live/logo/387/nsepg_774.png'),
 'CCTV4':dict(name='CCTV4',chnum=401,kt=280,lg=178,sky=159,pooq='K12',skip='daum',logo='http://img.pooq.co.kr/BMS/ChannelImg/10_CCTV.png'),
 # 공공/공익/정보: 450-499
 'NATV':dict(name='국회방송',chnum=450,kt=65,lg=717,sky=427,epgcokr=427,oksusu=221,logo='http://image.oksusu.com:8080/thumbnails/image/0_0_F20/live/logo/387/nsepg_221.png'),
-'OKSUSU-HEALING':dict(name='oksusu healing',chnum=451, oksusu=351,only='oksusu',logo='http://image.oksusu.com:8080/thumbnails/image/0_0_F20/live/logo/387/nsepg_351.png'),
 # 홈쇼핑/기타: 500-549
 'GS-SHOP':dict(name='GS SHOP',chnum=500,epgcokr=45,kt=8,lg=676,sky=497,pooq='C4201',oksusu=320,logo='http://img.pooq.co.kr/BMS/ChannelImg/59_GSshop.png'),
 'GS-MYSHOP':dict(name='GS MY SHOP',chnum=501,kt=38,lg=740,sky=634,pooq='C4202',skip='naver|daum',logo='http://img.pooq.co.kr/BMS/ChannelImg/60_GSmyshop.png'),
@@ -352,13 +329,4 @@ CHANNELS = {
 'SBS-POWERFM':dict(name='SBS 파워FM',chnum=1004,pooq='S07',logo='http://img.pooq.co.kr/BMS/ChannelImg/48_sbs%20%ED%8C%8C%EC%9B%8Cfm.png'),
 'SBS-LOVEFM':dict(name='SBS 러브FM',chnum=1005,pooq='S08',logo='http://img.pooq.co.kr/BMS/ChannelImg/49_sbs%20%EB%9F%AC%EB%B8%8Cfm.png'),
 'EBS-FM':dict(name='라디오 EBS 교육방송',chnum=1006,pooq='E06',logo='http://img.pooq.co.kr/BMS/ChannelImg/50_EBS%20fm.png'),
-'KISS-HOT':dict(name='KISS - 최신인기가요',chnum=1007,pooq='C2701',only='pooq',logo='http://img.pooq.co.kr/BMS/ChannelImg/51_Kiss%20%EC%B5%9C%EC%8B%A0%EC%9D%B8%EA%B8%B0%EA%B0%80%EC%9A%94.png'),
-'KISS-BALLAD':dict(name='KISS - 발라드',chnum=1008,pooq='C2702',only='pooq',logo='http://img.pooq.co.kr/BMS/ChannelImg/52_Kiss%20%EB%B0%9C%EB%9D%BC%EB%93%9C.png'),
-'KISS-8090':dict(name='KISS - 8090인기가요',chnum=1009,pooq='C2703',oksusu=75,only='pooq|oksusu',logo='http://img.pooq.co.kr/BMS/ChannelImg/unnamed.png'),
-'KISS-IDOL':dict(name='KISS - K-POP 아이돌',chnum=1010,pooq='C2704',oksusu=71,only='pooq|oksusu',logo='http://img.pooq.co.kr/BMS/ChannelImg/C2704.png'),
-'KISS-2000':dict(name='KISS - 2000년대 인기가요',chnum=1011,pooq='C2705',only='pooq',logo='http://img.pooq.co.kr/BMS/ChannelImg/55_Kiss%202000%EB%85%84%EB%8C%80%EC%9D%B8%EA%B8%B0%EA%B0%80%EC%9A%94.png'),
-'KISS-JAZZ':dict(name='KISS - 재즈 라운지',chnum=1012,pooq='C2706',only='pooq',logo='http://img.pooq.co.kr/BMS/ChannelImg/56_Kiss%20all%20that%20jazz.png'),
-'KISS-CATHOLIC':dict(name='KISS - 가톨릭 음악',chnum=1013,oksusu=80,only='oksusu',logo='http://image.oksusu.com:8080/thumbnails/image/0_0_F20/live/logo/387/nsepg_80.png'),
-'KISS-NEWAGE':dict(name='KISS - 뉴에이지',chnum=1014,oksusu=78,only='oksusu',logo='http://image.oksusu.com:8080/thumbnails/image/0_0_F20/live/logo/387/nsepg_78.png'),
-'KISS-DOGANDMOM':dict(name='KISS - 도그 앤 맘',chnum=1015,oksusu=82,only='oksusu',logo='http://image.oksusu.com:8080/thumbnails/image/0_0_F20/live/logo/387/nsepg_82.png'),
 }
