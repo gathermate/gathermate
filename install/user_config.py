@@ -136,6 +136,7 @@ class Localhost(Flask):
     )
 
     STREAMATE.update(
+        FFMPEG_COMMAND = 'pipe://{ffmpeg} -i {url} -c copy -f mpegts pipe:1',
         STREAMERS = {
             'Pooq': {
                 'ID': '',
