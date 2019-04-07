@@ -33,13 +33,13 @@ class Oksusu(HlsStreamer):
     def __init__(self,
                  fetcher,
                  mapped_channels=[],
-                 except_channels=[],
+                 excepted_channels=[],
                  qualities=[],
                  id=None,
                  pw=None,
                  channel_numbers_from=1000,
                  login_type=None):
-        HlsStreamer.__init__(self, fetcher, mapped_channels, except_channels, qualities)
+        HlsStreamer.__init__(self, fetcher, mapped_channels, excepted_channels, qualities)
         self.user_id = id
         self.user_pw = pw
         self.channel_numbers_from = channel_numbers_from
@@ -63,7 +63,7 @@ class Oksusu(HlsStreamer):
             cid = [ch['serviceId']]
             #channelProd : {free: "0", loginFree: "5", basicFree: "20", paid: "99"}
             #log.debug('%s : %s', ch['channelName'], ch['hlsUrlPhoneFixSD'])
-            if cid[0] in self.except_channels \
+            if cid[0] in self.excepted_channels \
                 or ch['stopByCopyrightYn'] == 'Y' \
                 or ch['stop_broadcast_yn'] == 'Y' \
                 or int(ch['channelProd']) >= 20 \

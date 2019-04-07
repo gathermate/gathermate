@@ -38,12 +38,12 @@ class Pooq(HlsStreamer):
     def __init__(self,
                  fetcher,
                  mapped_channels=[],
-                 except_channels=[],
+                 excepted_channels=[],
                  qualities=[],
                  id=None,
                  pw=None,
                  channel_numbers_from=1000):
-        HlsStreamer.__init__(self, fetcher, mapped_channels, except_channels, qualities)
+        HlsStreamer.__init__(self, fetcher, mapped_channels, excepted_channels, qualities)
         self.user_id = id
         self.user_pw = pw
         self.channel_numbers_from = channel_numbers_from
@@ -56,7 +56,7 @@ class Pooq(HlsStreamer):
         for genres in js.get('list'):
             for channel in genres.get('list'):
                 cid = [channel.get('channelid')]
-                if int(channel.get('price')) is 1 or cid[0] in self.except_channels:
+                if int(channel.get('price')) is 1 or cid[0] in self.excepted_channels:
                     continue
                 name = [channel.get('channelname')]
                 mapped_cid, mapped_channel = self._get_mapped_channel('pooq', cid[0])

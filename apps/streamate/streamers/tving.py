@@ -54,13 +54,13 @@ class Tving(HlsStreamer):
     def __init__(self,
                  fetcher,
                  mapped_channels=[],
-                 except_channels=[],
+                 excepted_channels=[],
                  qualities=[],
                  id=None,
                  pw=None,
                  channel_numbers_from=1000,
                  login_type=20):
-        HlsStreamer.__init__(self, fetcher, mapped_channels, except_channels, qualities)
+        HlsStreamer.__init__(self, fetcher, mapped_channels, excepted_channels, qualities)
         self.user_id = id
         self.user_pw = pw
         self.channel_numbers_from = channel_numbers_from
@@ -87,7 +87,7 @@ class Tving(HlsStreamer):
                 # USER_PAY_TYPE : free=U, piad=?
                 # CPSE0300 and CPCS0100 : OCN, CGV, SUPER ACTION, TOONIVERSE
                 # CPCS0100 : TV 채널, CPCS0300 : 티빙 채널,
-                if cid[0] in self.except_channels \
+                if cid[0] in self.excepted_channels \
                     or (not free and cookies.get('USER_PAY_TYPE').value == 'U') \
                     or (channel['broadcast_type'] == 'CPSE0300' and channel['type'] == 'CPCS0100') \
                     or channel['type'] == 'CPCS0300':

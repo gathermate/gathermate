@@ -50,10 +50,10 @@ class Streamer(object):
 
 class HlsStreamer(Streamer):
 
-    def __init__(self, fetcher, mapped_channels, except_channels, qualities):
+    def __init__(self, fetcher, mapped_channels, excepted_channels, qualities):
         Streamer.__init__(self, fetcher)
         self.mapped_channels = mapped_channels
-        self.except_channels = except_channels
+        self.excepted_channels = excepted_channels
         self.qualities = qualities
         self.should_stream = True
 
@@ -66,8 +66,8 @@ class HlsStreamer(Streamer):
             self.__class__.streaming_instance.should_stream = False
         self.__class__.streaming_instance = self
         referer = self.PLAYER_URL % cid
-        playlist_url, play_seconds = self.get_playlist_url(cid, qIndex)
-        playlist = self.get_playlist(playlist_url, referer, 0, play_seconds)
+        playlist_url, played_seconds = self.get_playlist_url(cid, qIndex)
+        playlist = self.get_playlist(playlist_url, referer, 0, played_seconds)
         buffering_time = dt.now()
         error_count = 0
         play_sequence = 0
@@ -93,29 +93,28 @@ class HlsStreamer(Streamer):
                     time.sleep(1)
             else:
                 if playlist.is_endlist:
-                    playlist_url, play_seconds = self.get_playlist_url(cid, qIndex)
+                    playlist_url, played_seconds = self.get_playlist_url(cid, qIndex)
                     play_sequence = 0
                 else:
                     play_sequence += 1
-                    play_seconds = 0
+                    played_seconds = 0
                 if self.should_stream:
-                    playlist = self.get_playlist(playlist_url, referer, play_sequence, play_seconds)
-                    if len(playlist) is 0:
-                        log.error('Refetched playlist but no items were set.')
-                        self.should_stream = False
+                    playlist = self.get_playlist(playlist_url, referer, play_sequence, played_seconds)
 
-    def get_playlist(self, playlist_url, referer, play_sequence, play_seconds):
+    def get_playlist(self, playlist_url, referer, play_sequence, played_seconds):
         m3u = m3u8.loads(self.fetch(playlist_url, referer=referer).content)
         playlist = Playlist(is_endlist=m3u.is_endlist)
         cumulative_time = 0
         for sequence, segment in enumerate(m3u.segments, m3u.media_sequence):
             cumulative_time += segment.duration
-            if play_seconds > cumulative_time:
+            if played_seconds > cumulative_time:
                 continue
             if sequence >= play_sequence:
                 segment.uri = ud.join(playlist_url, segment.uri)
                 segment.sequence = sequence
                 playlist.append(segment)
+        if len(playlist) is 0:
+            log.error("This playlist doesn't start with %s, but %s", play_sequence, m3u.media_sequence)
         return playlist
 
     def get_channels(self):
@@ -163,6 +162,7 @@ class Channel(MultiDict):
 
 
 class Playlist(deque):
+
     def __init__(self, is_endlist=False):
         deque.__init__(self)
         self._is_endlist = is_endlist
