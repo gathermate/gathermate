@@ -89,7 +89,7 @@ class Oksusu(HlsStreamer):
     def get_playlist_url(self, cid, qIndex):
         key_if_error = 'get_playlist_url-%s-%s-error' % (cid, qIndex)
         self.was_error_before(self.get_cache(key_if_error))
-        r = self.fetch(self.PLAYER_URL % cid, referer=self.PLAYER_URL % cid, key_if_error=key_if_error)
+        r = self.fetch(self.PLAYER_URL % cid, referer=self.PLAYER_URL % cid)
         match = re.search(r'contentsInfo:\s(.+)\s\|', r.content)
         if match:
             js = json.loads(match.group(1))
