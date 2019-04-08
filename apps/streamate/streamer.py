@@ -23,6 +23,7 @@ class Streamer(object):
 
     def fetch(self, url, cached=False, key_if_error=None, callback=None, **kwargs):
         if key_if_error is not None and self.get_cache(key_if_error):
+            self.should_stream = False
             raise MyFlaskException('This fetching raised error before. Try later.')
         r = self.fetcher.fetch(url, cached=cached, **kwargs)
         if callback:
@@ -73,16 +74,12 @@ class HlsStreamer(Streamer):
         playlist_url, played_seconds = self.get_playlist_url(cid, qIndex)
         playlist = self.get_playlist(playlist_url, referer, 0, played_seconds)
         buffering_time = dt.now()
-        error_count = 0
         play_sequence = 0
-        while self.should_stream and error_count < 5:
+        while self.should_stream:
             if len(playlist) > 0:
                 segment = playlist.popleft()
                 if self.should_stream:
-                    r = self.fetch(segment.uri, referer=referer)
-                    yield r.content
-                    if not str(r.status_code).startswith('2'):
-                        error_count += 1
+                    yield self.fetch(segment.uri, referer=referer)
                     buffering_time += datetime.timedelta(seconds=segment.duration)
                     play_sequence = segment.sequence
                 if len(playlist) is 0 and playlist.is_endlist:
@@ -106,10 +103,14 @@ class HlsStreamer(Streamer):
                     playlist = self.get_playlist(playlist_url, referer, play_sequence, played_seconds)
 
     def get_playlist(self, playlist_url, referer, play_sequence, played_seconds):
-        m3u = m3u8.loads(self.fetch(playlist_url, referer=referer).content)
+        key_if_error = 'get_playlist-{}'.format(playlist_url)
+        r = self.fetch(playlist_url, referer=referer, key_if_error=key_if_error)
+        m3u = m3u8.loads(r.content)
         playlist = Playlist(is_endlist=m3u.is_endlist)
         if len(m3u.segments) is 0:
-            log.error("The .m3u8 is empty.")
+            log.error("The fetched playlist is empty.")
+            self.should_stream = False
+            self.set_cache(key_if_error, True, timeout=60)
             return playlist
         cumulative_time = 0
         for sequence, segment in enumerate(m3u.segments, m3u.media_sequence):
