@@ -79,7 +79,7 @@ class HlsStreamer(Streamer):
             if len(playlist) > 0:
                 segment = playlist.popleft()
                 if self.should_stream:
-                    yield self.fetch(segment.uri, referer=referer)
+                    yield self.fetch(segment.uri, referer=referer).content
                     buffering_time += datetime.timedelta(seconds=segment.duration)
                     play_sequence = segment.sequence
                 if len(playlist) is 0 and playlist.is_endlist:
