@@ -2,10 +2,11 @@
 
 import logging
 import os
-from functools import wraps
 
 from flask_caching import Cache
 from flask import request
+
+from apps.common import urldealer as ud
 
 log = logging.getLogger(__name__)
 
@@ -14,6 +15,10 @@ config = {}
 
 def create_key(key):
     return '{}-{}'.format(config.get('SECRET_KEY', os.urandom(8).encode('hex')), key)
+
+def make_view_key():
+    key = ud.Url(request.url).update_query(request.form).text if request.form else request.url
+    return create_key(key)
 
 def init(app, app_config, cache_type):
     global config

@@ -9,7 +9,6 @@ from flask import stream_with_context
 from flask import Response
 
 from apps.common.auth import auth
-from apps.common import caching
 
 log = logging.getLogger(__name__)
 name = 'Streamate'
