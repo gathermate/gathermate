@@ -81,8 +81,13 @@ class Pooq(HlsStreamer):
         If you are authorized for streams, AWS Policy allows you
         to access them while 6 hours. If not, only 10 minutes.
         '''
+        key_if_error = 'get_playlist_url-%s-%s-error' % (cid, qIndex)
+        self.was_error_before(self.get_cache(key_if_error))
         js = self.api_streamlist(cid, self.qualities[-1])
         url = js.get('playurl')
+        if url is None:
+            self.set_cache(key_if_error, True, timeout=60)
+            raise MyFlaskException('Stream URL is not available : %s', cid)
         aws_cookie = js.get('awscookie')
         if aws_cookie is not None:
             self.set_cookie(aws_cookie)
@@ -119,12 +124,7 @@ class Pooq(HlsStreamer):
                      authtype='cookie',
                      isabr='y',
                      ishevc='n')
-        key_if_error = 'api_streamlist-{}-{}-error'.format(cid, quality)
-        js = self.request_api(api, referer=self.PLAYER_URL % cid, query=query)
-        if js.get('playurl') is None:
-            self.set_cache(key_if_error, True, timeout=60)
-            raise MyFlaskException('Stream URL is not available : %s', cid)
-        return js
+        return self.request_api(api, referer=self.PLAYER_URL % cid, query=query)
 
     def api_channels(self, page):
         '''

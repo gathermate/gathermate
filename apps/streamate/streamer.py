@@ -21,10 +21,7 @@ class Streamer(object):
     def __init__(self, fetcher):
         self.fetcher = fetcher
 
-    def fetch(self, url, cached=False, key_if_error=None, callback=None, **kwargs):
-        if key_if_error is not None and self.get_cache(key_if_error):
-            self.should_stream = False
-            raise MyFlaskException('This fetching raised error before. Try later.')
+    def fetch(self, url, cached=False, callback=None, **kwargs):
         r = self.fetcher.fetch(url, cached=cached, **kwargs)
         if callback:
             return callback(r)
@@ -51,6 +48,10 @@ class Streamer(object):
     def get_resource(self, url):
         r = self.fetch(url, referer=self.BASE_URL)
         return r.content, r.status_code, dict(r.headers)
+
+    def was_error_before(self, was_error):
+        if was_error:
+            raise MyFlaskException('This request raised error before, try later.')
 
 
 class HlsStreamer(Streamer):
@@ -104,7 +105,8 @@ class HlsStreamer(Streamer):
 
     def get_playlist(self, playlist_url, referer, play_sequence, played_seconds):
         key_if_error = 'get_playlist-{}'.format(playlist_url)
-        r = self.fetch(playlist_url, referer=referer, key_if_error=key_if_error)
+        self.was_error_before(self.get_cache(key_if_error))
+        r = self.fetch(playlist_url, referer=referer)
         m3u = m3u8.loads(r.content)
         playlist = Playlist(is_endlist=m3u.is_endlist)
         if len(m3u.segments) is 0:

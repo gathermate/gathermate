@@ -114,24 +114,40 @@ class Tving(HlsStreamer):
 
     def get_playlist_url(self, cid, qIndex):
         quality = self.get_quality(qIndex)
-        broad_url, play_seconds, channel_type = self.api_streaminfo(cid, quality)
-        broad_url = ud.Url(broad_url)
-        cf_key = broad_url.query_dict.get('Key-Pair-Id')
+        key_if_error = 'get_playlist_url-%s-%s-error' % (cid, qIndex)
+        self.was_error_before(self.get_cache(key_if_error))
+        key = int(time.time()*1000)
+        js = self.api_streaminfo(cid, quality, key)
+        stream = js.get('body', {}).get('stream')
+        content = js.get('body', {}).get('content')
+        if stream:
+            stream_url = self.decrypt(key, cid, stream['broadcast']['broad_url'])
+        else:
+            self.set_cache(key_if_error, True, timeout=60)
+            raise MyFlaskException('Stream URL is not available : %s', cid)
+        channel_type = content['info']['schedule']['channel']['type']
+        if channel_type == 'CPCS0300':
+            server_time = self.get_datetime(js['body']['server']['time'])
+            start_time = self.get_datetime(content['broadcast_start_date'])
+            play_seconds = (server_time - start_time).total_seconds()
+        else:
+            play_seconds = 0
+        stream_url = ud.Url(stream_url)
+        cf_key = stream_url.query_dict.get('Key-Pair-Id')
         if cf_key is not None:
             cf_cookie = 'CloudFront-Key-Pair-Id={key}; ' \
                         'CloudFront-Policy={policy}; ' \
                         'CloudFront-Signature={sign};' \
                         .format(key=cf_key,
-                                policy=broad_url.query_dict.get('Policy'),
-                                sign=broad_url.query_dict.get('Signature'))
+                                policy=stream_url.query_dict.get('Policy'),
+                                sign=stream_url.query_dict.get('Signature'))
             self.set_cookie(cf_cookie)
         if channel_type == 'CPCS0300':
-            return broad_url.text, play_seconds
+            return stream_url.text, play_seconds
         else:
-            response = self.fetch(broad_url, referer=self.PLAYER_URL % cid)
+            response = self.fetch(stream_url, referer=self.PLAYER_URL % cid)
             variant = m3u8.loads(response.content)
-            return ud.join(broad_url.text, variant.playlists[0].uri), play_seconds
-
+            return ud.join(stream_url.text, variant.playlists[0].uri), play_seconds
 
     def get_quality(self, index):
         try:
@@ -171,12 +187,11 @@ class Tving(HlsStreamer):
         return json.loads(r.content)['stream']['broadcast']['broad_url']
     '''
 
-    def api_streaminfo(self, cid, stream_code):
+    def api_streaminfo(self, cid, stream_code, noCache):
         url = ud.Url(self.API_URL + '/media/stream/info')
-        key = int(time.time()*1000)
         url.update_query(dict(
             apiKey=self.API_KEY.get('pc'),
-            noCache=key,
+            noCache=noCache,
             teleCode=self.CS.get('teleCode'),
             screenCode=self.CS.get('screenCode'),
             streamCode=stream_code,
@@ -184,26 +199,7 @@ class Tving(HlsStreamer):
             networkCode=self.CS.get('networkCode'), osCode=self.CS.get('osCode'),
             info='y',
             mediaCode=cid))
-        key_if_error = 'api_streaminfo-%s-%s-error' % (cid, stream_code)
-        r = self.fetch(url, referer=self.PLAYER_URL % cid, key_if_error=key_if_error)
-        js = json.loads(r.content)
-        stream = js.get('body', {}).get('stream')
-        content = js.get('body', {}).get('content')
-        if stream:
-            stream_url = self.decrypt(key, cid, stream['broadcast']['broad_url'])
-        else:
-            # block = True if content['info']['schedule']['broadcast_url'][0]['block_yn'] == 'Y' else False
-            # log.debug('Is this channel blocked? : %s', block)
-            self.set_cache(key_if_error, True, timeout=60)
-            raise MyFlaskException('Stream URL is not available : %s', cid)
-        channel_type = content['info']['schedule']['channel']['type']
-        if channel_type == 'CPCS0300':
-            server_time = self.get_datetime(js['body']['server']['time'])
-            start_time = self.get_datetime(content['broadcast_start_date'])
-            play_seconds = (server_time - start_time).total_seconds()
-        else:
-            play_seconds = 0
-        return stream_url, play_seconds, channel_type
+        return json.loads(self.fetch(url, referer=self.PLAYER_URL % cid).content)
 
     def decrypt(self, key, media_code, value):
         key = base64.b64decode('Y2podip0dmluZyoqZ29vZC8=') + media_code[3:] + '/' + str(key)
