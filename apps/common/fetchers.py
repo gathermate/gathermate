@@ -56,13 +56,15 @@ class Fetcher(object):
 
     def fetch(self, url, payload=None, forced_update=False, cached=True, **kwargs):
         url = ud.Url(url) if type(url) is not ud.Url else url
+        key = caching.create_key(ud.Url(url.text).update_query(payload).text if payload else url.text)
         if cached:
-            key = caching.create_key(ud.Url(url.text).update_query(payload).text if payload else url.text)
             func = caching.cache.cached(timeout=self.timeout,
                                         key_prefix=key,
                                         forced_update=lambda:forced_update)(self.cacheable_fetch)
         else:
-            key = None
+            if caching.cache.get(key):
+                log.warning("This URL was cached before, returns the cached response.")
+                return caching.cache.get(key)
             func = self.cacheable_fetch
         return func(url, payload=payload, key=key, **kwargs)
 
@@ -118,6 +120,8 @@ class Fetcher(object):
                       'Content size: %d,\n' % len(r.content) +
                       'Status Code: %d,\n' % r.status_code +
                       'Headers: %s,\n' % r.headers)
+            if caching.cache.get(r.key) is None:
+                caching.cache.set(r.key, r, timeout=self.timeout)
         set_cookie = r.headers.get('set-cookie')
         if set_cookie:
             self.set_cookie(set_cookie, url,

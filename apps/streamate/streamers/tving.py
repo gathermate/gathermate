@@ -184,18 +184,22 @@ class Tving(HlsStreamer):
             networkCode=self.CS.get('networkCode'), osCode=self.CS.get('osCode'),
             info='y',
             mediaCode=cid))
-        r = self.fetch(url, referer=self.PLAYER_URL % cid)
+        key_if_error = 'api_streaminfo-%s-%s-error' % (cid, stream_code)
+        r = self.fetch(url, referer=self.PLAYER_URL % cid, key_if_error=key_if_error)
         js = json.loads(r.content)
-        block = True if js['body']['content']['info']['schedule']['broadcast_url'][0]['block_yn'] == 'Y' else False
-        if js['body']['stream']:
-            stream_url = self.decrypt(key, cid, js['body']['stream']['broadcast']['broad_url'])
+        stream = js.get('body', {}).get('stream')
+        content = js.get('body', {}).get('content')
+        if stream:
+            stream_url = self.decrypt(key, cid, stream['broadcast']['broad_url'])
         else:
-            log.debug('Is this channel blocked? : %s', block)
+            # block = True if content['info']['schedule']['broadcast_url'][0]['block_yn'] == 'Y' else False
+            # log.debug('Is this channel blocked? : %s', block)
+            self.set_cache(key_if_error, True, timeout=60)
             raise MyFlaskException('Stream URL is not available : %s', cid)
-        channel_type = js['body']['content']['info']['schedule']['channel']['type']
+        channel_type = content['info']['schedule']['channel']['type']
         if channel_type == 'CPCS0300':
             server_time = self.get_datetime(js['body']['server']['time'])
-            start_time = self.get_datetime(js['body']['content']['broadcast_start_date'])
+            start_time = self.get_datetime(content['broadcast_start_date'])
             play_seconds = (server_time - start_time).total_seconds()
         else:
             play_seconds = 0

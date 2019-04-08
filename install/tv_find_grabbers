@@ -1,0 +1,4 @@
+#!/bin/sh
+
+DIR="/당신의/gathermate-grabber.sh/경로/"
+echo ${DIR}"gathermate-grabber.sh|Gathermate Grabber"

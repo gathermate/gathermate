@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import logging
-import json
 import time
 import datetime
 from datetime import datetime as dt
@@ -12,6 +11,7 @@ import m3u8
 from apps.common import caching
 from apps.common.datastructures import MultiDict
 from apps.common import urldealer as ud
+from apps.common.exceptions import MyFlaskException
 
 log = logging.getLogger(__name__)
 
@@ -21,21 +21,25 @@ class Streamer(object):
     def __init__(self, fetcher):
         self.fetcher = fetcher
 
-    def fetch(self, url, cached=False, **kwargs):
-        return self.fetcher.fetch(url, cached=cached, **kwargs)
+    def fetch(self, url, cached=False, key_if_error=None, callback=None, **kwargs):
+        if key_if_error is not None and self.get_cache(key_if_error):
+            raise MyFlaskException('This fetching raised error before. Try later.')
+        r = self.fetcher.fetch(url, cached=cached, **kwargs)
+        if callback:
+            return callback(r)
+        return r
 
     def get_cache(self, key, default=None):
         cached = self.get_caches()
         return cached.get(key, default)
 
     def get_caches(self):
-        cached = caching.cache.get(caching.create_key(self.CACHE_KEY))
-        return json.loads(str(cached)) if cached is not None else {}
+        return caching.cache.get(caching.create_key(self.CACHE_KEY)) or {}
 
     def set_cache(self, key, value, timeout=0):
         cached = self.get_caches()
         cached[key] = value
-        caching.cache.set(caching.create_key(self.CACHE_KEY), json.dumps(cached), timeout=timeout)
+        caching.cache.set(caching.create_key(self.CACHE_KEY), cached, timeout=timeout)
 
     def set_cookie(self, value, url=None):
         self.fetcher.set_cookie(value, url or self.BASE_URL, path=self.fetcher.cookie_path)
@@ -104,6 +108,9 @@ class HlsStreamer(Streamer):
     def get_playlist(self, playlist_url, referer, play_sequence, played_seconds):
         m3u = m3u8.loads(self.fetch(playlist_url, referer=referer).content)
         playlist = Playlist(is_endlist=m3u.is_endlist)
+        if len(m3u.segments) is 0:
+            log.error("The .m3u8 is empty.")
+            return playlist
         cumulative_time = 0
         for sequence, segment in enumerate(m3u.segments, m3u.media_sequence):
             cumulative_time += segment.duration
