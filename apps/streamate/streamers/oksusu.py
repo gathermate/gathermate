@@ -87,11 +87,14 @@ class Oksusu(HlsStreamer):
         return sorted(channels, key=lambda item: item.name), False, pageNo
 
     def get_playlist_url(self, cid, qIndex):
-        r = self.fetch(self.PLAYER_URL % cid, referer=self.PLAYER_URL % cid)
+        key_if_error = 'get_playlist_url-%s-%s-error' % (cid, qIndex)
+        r = self.fetch(self.PLAYER_URL % cid, referer=self.PLAYER_URL % cid, key_if_error=key_if_error)
         match = re.search(r'contentsInfo:\s(.+)\s\|', r.content)
         if match:
             js = json.loads(match.group(1))
-            if js is None: raise MyFlaskException("JSON is None.")
+            if js is None:
+                self.set_cache(key_if_error, True, timeout=60)
+                raise MyFlaskException("JSON is None.")
             urlAUTO = js['streamUrl']['urlAUTO']
             nvodUrlList = js['streamUrl']['nvodUrlList']
             if urlAUTO:

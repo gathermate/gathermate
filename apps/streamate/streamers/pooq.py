@@ -119,7 +119,12 @@ class Pooq(HlsStreamer):
                      authtype='cookie',
                      isabr='y',
                      ishevc='n')
-        return self.request_api(api, referer=self.PLAYER_URL % cid, query=query)
+        key_if_error = 'api_streamlist-{}-{}-error'.format(cid, quality)
+        js = self.request_api(api, referer=self.PLAYER_URL % cid, query=query)
+        if js.get('playurl') is None:
+            self.set_cache(key_if_error, True, timeout=60)
+            raise MyFlaskException('Stream URL is not available : %s', cid)
+        return js
 
     def api_channels(self, page):
         '''
