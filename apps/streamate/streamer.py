@@ -103,9 +103,10 @@ class HlsStreamer(Streamer):
                     played_seconds = 0
                 if self.should_stream:
                     playlist = self.get_playlist(playlist_url, referer, play_sequence, played_seconds)
-            if len(playlist) is 0:
-                safe_counter += 1
-                play_sequence -= 1
+                if len(playlist) is 0:
+                    log.error('Next sequence not found')
+                    safe_counter += 1
+                    play_sequence -= 1
 
     def get_playlist(self, playlist_url, referer, play_sequence, played_seconds):
         key_if_error = 'get_playlist-{}'.format(playlist_url)
@@ -129,7 +130,6 @@ class HlsStreamer(Streamer):
                 playlist.append(segment)
         if len(playlist) is 0:
             log.error("This playlist doesn't start with %s, but %s", play_sequence, m3u.media_sequence)
-            playlist.extend(m3u.segments)
         return playlist
 
     def get_channels(self):
