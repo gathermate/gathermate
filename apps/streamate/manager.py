@@ -60,44 +60,13 @@ class StreamManager(Manager):
         return streamer.get_resource(ud.Url(ud.unquote(query.get('url'))))
 
     def _order_channels(self, streamer, query):
-        channels = {}
-        streamer_name = streamer.__class__.__name__.lower()
-        for cid, ch in self.config['CHANNELS'].iteritems():
-            if ch.get(streamer_name) is not None:
-                ch['cid'] = cid
-                channels[str(ch.get(streamer_name))] = ch
-        info = "'{cid}':dict(name='{name}',chnum={chnum},{streamer}={scid},{extra}logo='{logo}'),\n"
-        yield '{\n'
-        for ch in streamer.get_channels():
-            scid = ch.cid
-            if ch.cid in channels:
-                for k, v in channels[str(ch.cid)].iteritems():
-                    if k == 'name' or k == 'logo' or k == streamer_name:
-                        continue
-                    ch[k] = v
-                yield info.format(cid=ch.pop('cid'),
-                                  name=ch.pop('name'),
-                                  chnum=ch.pop('chnum'),
-                                  streamer=ch.pop('streamer').lower(),
-                                  scid=scid if str(scid).isdigit() else "'%s'" % scid,
-                                  logo=ch.pop('logo'),
-                                  extra=','.join("%s=%s" % (k, v[0] if str(v[0]).isdigit() else "'%s'" % v[0]) for k, v in ch.iteritems()) + ','
-                                  )
-            else:
-                yield info.format(cid='%s.%s' % (scid, streamer_name),
-                                  name=ch.name,
-                                  chnum=ch.pop('chnum'),
-                                  streamer=ch.streamer.lower(),
-                                  scid=scid if str(scid).isdigit() else "'%s'" % scid,
-                                  logo=ch.logo,
-                                  extra="only='%s'," % streamer_name)
-        yield '}\n'
+        return packer.pack_channels(streamer, self.config['CHANNELS'])
 
     def _order_streaming(self, streamer, query):
         return streamer.streaming
 
     def _order_m3u(self, streamer, query):
-        return packer.pack_m3u(streamer.get_channels(), query.get('ffmpeg'))
+        return packer.pack_m3u(streamer, self.config['CHANNELS'], query.get('ffmpeg'))
 
     def order_all_m3u(self, query):
         with futures.ThreadPoolExecutor() as exe:

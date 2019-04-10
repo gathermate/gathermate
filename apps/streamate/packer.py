@@ -11,7 +11,15 @@ from apps.common import urldealer as ud
 
 log = logging.getLogger(__name__)
 
-def pack_m3u(channels, ffmpeg):
+def extract_by_streamer(streamer_name, mapped_channels):
+    channels = {}
+    for cid, ch in mapped_channels.iteritems():
+        if ch.get(streamer_name) is not None:
+            ch['cid'] = cid
+            channels[str(ch.get(streamer_name))] = ch
+    return channels
+
+def pack_m3u(streamer, mapped_channels, ffmpeg):
     '''
     - tvg-id is value of '<channel id="">' in EPG xml file. If the tag is absent then addon will use tvg-name for map channel to EPG;
     - tvg-name is value of display-name in EPG there all space chars replaced to _ (underscore char) if this value is not found in xml then addon will use the channel name to find correct EPG.
@@ -20,10 +28,11 @@ def pack_m3u(channels, ffmpeg):
     - group-name is channels group name. If the tag is absent then addon will use group name from the previous channel.
     '''
     yield '#EXTM3U\n'
-    for channel in channels:
+    streamer_name = streamer.__class__.__name__.lower()
+    for channel in streamer.get_channels():
         yield '#EXTINF:-1 tvg-id="{cid}" tvg-logo="{logo}" tvh-chnum="{chnum}" tvh-network="{streamer}",{name}\n' \
             .format(streamer=channel.streamer.lower(),
-                    cid=channel.getlist('cid')[-1],
+                    cid=channel.getlist('cid')[-1] if len(channel.getlist('cid')) > 1 else '%s.%s' % (channel.cid, streamer_name),
                     logo=channel.logo,
                     name=channel.name,
                     chnum=channel.chnum)
@@ -39,6 +48,38 @@ def pack_m3u(channels, ffmpeg):
             yield cmd.format(ffmpeg=ffmpeg, url=url.text) + '\n'
         else:
             yield url.text + '\n'
+
+def pack_channels(streamer, mapped_channels):
+    streamer_name = streamer.__class__.__name__.lower()
+    registered_channels = extract_by_streamer(streamer_name, mapped_channels)
+    info = "'{cid}':dict(name='{name}',chnum={chnum},{streamer}={scid},{extra}logo='{logo}'),\n"
+    yield '{\n'
+    for ch in streamer.get_channels():
+        scid = ch.cid
+        if ch.cid in registered_channels:
+            for k, v in registered_channels[str(ch.cid)].iteritems():
+                if k == 'name' or k == 'logo' or k == streamer_name:
+                    continue
+                ch[k] = v
+            yield info.format(cid=ch.pop('cid'),
+                              name=ch.pop('name'),
+                              chnum=ch.pop('chnum'),
+                              streamer=ch.pop('streamer').lower(),
+                              scid=scid if str(scid).isdigit() else "'%s'" % scid,
+                              logo=ch.pop('logo'),
+                              extra=','.join("%s=%s" % (k, v[0] if str(v[0]).isdigit() else "'%s'" % v[0]) for k, v in ch.iteritems()) + ','
+                              )
+        else:
+            yield info.format(cid='%s.%s' % (scid, streamer_name),
+                              name=ch.name,
+                              chnum=ch.pop('chnum'),
+                              streamer=ch.streamer.lower(),
+                              scid=scid if str(scid).isdigit() else "'%s'" % scid,
+                              logo=ch.logo,
+                              extra="only='%s'," % streamer_name)
+    yield '}\n'
+
+
 
 LANG = {'lang':'kr'}
 def pack_epg(channel_generator):
