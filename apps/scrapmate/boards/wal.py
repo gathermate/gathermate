@@ -46,7 +46,7 @@ class Wal(BoardScraper):
                 date = ''.join(tr.find('td[@class="datetime"]').itertext())
                 vol = ''.join(tr.find('td[@class="hit"]').itertext())
                 td.remove(a)
-                info = ' '.join([child.text for child in td.getchildren() if child] + [''.join(vol.split(' ')), date])
+                info = ' '.join([child.text for child in td.getchildren() if child.text is not None] + [''.join(vol.split(' ')), date])
                 yield {'id': id_, 'title': title, 'link': link, 'etc': re.sub('[\[\]]', '', info)}
             except:
                 MyFlaskException.trace_error()

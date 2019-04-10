@@ -31,6 +31,8 @@ def config(software, level):
     # chardet decode() logs TMI on DEBUG level.
     chardet_logger = logging.getLogger('chardet.charsetprober')
     chardet_logger.setLevel('INFO')
+    urllib3_logger = logging.getLogger('urllib3.connectionpool')
+    urllib3_logger.setLevel('INFO')
     werkzeug = logging.getLogger('werkzeug')
     werkzeug.setLevel('WARNING')
     if software.startswith('gunicorn/'):

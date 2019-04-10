@@ -85,7 +85,7 @@ class Fetcher(object):
         if not r:
             raise MyFlaskException('Failed to fetch [%s]', url.text)
         r.key = key
-        log.debug('Fetched %s', tb.size_text(len(r.content)))
+        log.debug('%s%s %d %s', url.netloc, url.path if len(url.path) < 20 else url.path[:5] + '...' + url.path[-12:], r.status_code, tb.size_text(len(r.content)))
         self._handle_response(url, r)
         return r
 
