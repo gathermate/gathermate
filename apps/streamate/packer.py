@@ -30,7 +30,7 @@ def pack_m3u(streamer, mapped_channels, ffmpeg):
     yield '#EXTM3U\n'
     streamer_name = streamer.__class__.__name__.lower()
     for channel in streamer.get_channels():
-        yield '#EXTINF:-1 tvg-id="{cid}" tvg-logo="{logo}" tvh-chnum="{chnum}" tvh-network="{streamer}",{name}\n' \
+        yield '#EXTINF:-1 tvg-id="{cid}" tvg-logo="{logo}" tvh-chnum="{chnum}" group-name="{streamer}",{name}\n' \
             .format(streamer=channel.streamer.lower(),
                     cid=channel.getlist('cid')[-1] if len(channel.getlist('cid')) > 1 else '%s.%s' % (channel.cid, streamer_name),
                     logo=channel.logo,
