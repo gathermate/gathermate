@@ -115,13 +115,18 @@ class Tving(HlsStreamer):
         quality = self.get_quality(qIndex)
         key = int(time.time()*1000)
         js = self.api_streaminfo(cid, quality, key)
+        result = js.get('body', {}).get('result', {})
+        if result.get('code', '111') != '000':
+            e = GathermateException(result.get('message', 'Not available') + ' : %s', cid)
+            self.cache.set(key_if_error, e, timeout=self.fetcher.timeout)
+            raise e
         stream = js.get('body', {}).get('stream')
         content = js.get('body', {}).get('content')
         if stream:
             stream_url = self.decrypt(key, cid, stream['broadcast']['broad_url'])
         else:
             e = GathermateException('Stream URL is not available : %s', cid)
-            self.cache.set(key_if_error, e, timeout=60)
+            self.cache.set(key_if_error, e, timeout=self.fetcher.timeout)
             raise e
         channel_type = content['info']['schedule']['channel']['type']
         if channel_type == 'CPCS0300':

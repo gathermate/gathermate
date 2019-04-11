@@ -84,7 +84,7 @@ class Pooq(HlsStreamer):
         url = js.get('playurl')
         if url is None:
             e = GathermateException('Stream URL is not available : %s', cid)
-            self.cache.set(key_if_error, e, timeout=60)
+            self.cache.set(key_if_error, e, timeout=self.fetcher.timeout)
             raise e
         aws_cookie = js.get('awscookie')
         if aws_cookie is not None:

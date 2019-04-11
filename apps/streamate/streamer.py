@@ -92,8 +92,7 @@ class HlsStreamer(Streamer):
         playlist = self.get_playlist(playlist_url, referer, 0, played_seconds)
         buffering_time = dt.now()
         play_sequence = 0
-        safe_counter = 0
-        while self.should_stream and safe_counter < 10:
+        while self.should_stream:
             if len(playlist) > 0:
                 segment = playlist.popleft()
                 if self.should_stream:
@@ -102,7 +101,7 @@ class HlsStreamer(Streamer):
                     play_sequence = segment.sequence
                 if len(playlist) is 0 and playlist.is_endlist:
                     sleep_time = int((buffering_time - dt.now()).total_seconds()) - segment.duration
-                elif buffering_time - dt.now() > datetime.timedelta(seconds=int(segment.duration*3)):
+                elif buffering_time - dt.now() > datetime.timedelta(seconds=int(segment.duration*2)):
                     sleep_time = int(segment.duration)
                 else:
                     sleep_time = 0
@@ -120,9 +119,8 @@ class HlsStreamer(Streamer):
                 if self.should_stream:
                     playlist = self.get_playlist(playlist_url, referer, play_sequence, played_seconds)
                 if len(playlist) is 0:
-                    log.error('Next sequence not found')
-                    safe_counter += 1
                     play_sequence -= 1
+                    time.sleep(segment.duration)
 
     def get_playlist(self, playlist_url, referer, play_sequence, played_seconds):
         key_if_error = self.make_error_key(playlist_url)
@@ -133,7 +131,7 @@ class HlsStreamer(Streamer):
             e = GathermateException("The fetched playlist is empty.")
             log.error(e.message)
             self.should_stream = False
-            self.cache.set(key_if_error, e, timeout=60)
+            self.cache.set(key_if_error, e, timeout=self.fetcher.timeout)
             return playlist
         cumulative_time = 0
         for sequence, segment in enumerate(m3u.segments, m3u.media_sequence):
@@ -145,7 +143,7 @@ class HlsStreamer(Streamer):
                 segment.sequence = sequence
                 playlist.append(segment)
         if len(playlist) is 0:
-            log.error("This playlist doesn't start with %s, but %s", play_sequence, m3u.media_sequence)
+            log.error("No new item, %s is required but %s was given.", play_sequence, m3u.media_sequence + len(m3u.segments) - 1)
         return playlist
 
     def get_channels(self):

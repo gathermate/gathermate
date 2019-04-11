@@ -95,7 +95,7 @@ class Oksusu(HlsStreamer):
                 if js is None:
                     raise GathermateException("JSON is None : %s", cid)
             except Exception as e:
-                self.cache.set(key_if_error, e, timeout=60)
+                self.cache.set(key_if_error, e, timeout=self.fetcher.timeout)
                 raise e
             urlAUTO = js['streamUrl']['urlAUTO']
             nvodUrlList = js['streamUrl']['nvodUrlList']
@@ -111,7 +111,7 @@ class Oksusu(HlsStreamer):
                 return nvod_token, int(timestamp - starttime)
             else:
                 e = GathermateException("No available stream URL : %s", cid)
-                self.cache.set(key_if_error, e, timeout=60)
+                self.cache.set(key_if_error, e, timeout=self.fetcher.timeout)
                 raise e
 
 
