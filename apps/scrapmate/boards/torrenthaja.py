@@ -6,7 +6,7 @@ import logging
 from lxml import etree
 
 from apps.scrapmate.scraper import BoardScraper
-from apps.common.exceptions import MyFlaskException
+from apps.common.exceptions import GathermateException
 from apps.common import urldealer as ud
 from apps.common import toolbox as tb
 
@@ -39,7 +39,7 @@ class Torrenthaja(BoardScraper):
                     etc = '{} {}'.format(size, date)
                     yield {'id': id_, 'title': title, 'link': link, 'etc': etc}
             except:
-                MyFlaskException.trace_error()
+                GathermateException.trace_error()
 
     def get_item(self, r):
         root = self.etree(r, encoding=self.encoding)
@@ -59,7 +59,7 @@ class Torrenthaja(BoardScraper):
                 try:
                     fname = u'{}.torrent'.format(th.text.strip())
                 except:
-                    MyFlaskException.trace_error()
+                    GathermateException.trace_error()
                     log.debug(etree.tostring(th))
                     protected = th[0].get('data-cfemail')
                     if protected:
@@ -67,7 +67,7 @@ class Torrenthaja(BoardScraper):
 
                 yield {'name': fname, 'link': link, 'type': 'file', 'ticket': ticket}
             except:
-                MyFlaskException.trace_error()
+                GathermateException.trace_error()
 
         magnet_xpath = r'//button[contains(@onclick, "magnet_link")]'
         magnet_regex = re.compile(r'magnet_link\(\'(.*)\'\);')
@@ -80,7 +80,7 @@ class Torrenthaja(BoardScraper):
                     magnet_name = link
                 yield {'name': magnet_name, 'link': link, 'type': 'magnet'}
             except:
-                MyFlaskException.trace_error()
+                GathermateException.trace_error()
 
         attached_xpath = r'//a[contains(@class, "view_file_download")]'
         for e in root.xpath(attached_xpath):
@@ -89,7 +89,7 @@ class Torrenthaja(BoardScraper):
                 flink = e.get('href')
                 yield {'name': fname, 'link': flink, 'type': 'file'}
             except:
-                MyFlaskException.trace_error()
+                GathermateException.trace_error()
 
     def get_file(self, url, ticket):
         payload = ticket.get('payload', None)

@@ -5,7 +5,7 @@ from lxml.builder import E
 from lxml import etree
 
 from apps.scrapmate.scraper import Scraper
-from apps.common.exceptions import MyFlaskException
+from apps.common.exceptions import GathermateException
 
 log = logging.getLogger(__name__)
 
@@ -45,6 +45,6 @@ class Quotes(Scraper):
                 )
 
             except:
-                MyFlaskException.trace_error()
+                GathermateException.trace_error()
 
         return etree.tostring(html, pretty_print=True,)

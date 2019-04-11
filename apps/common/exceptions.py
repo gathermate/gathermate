@@ -7,10 +7,9 @@ from apps.common import caching
 
 log = logging.getLogger()
 
-class MyFlaskException(Exception):
+class GathermateException(Exception):
 
-    def __init__(self, *args, **kwargs):
-        self.response = kwargs.pop('response', None)
+    def __init__(self, response=None, *args, **kwargs):
         if args:
             if len(args) > 1:
                 self.message = args[0] % args[1:]
@@ -18,8 +17,9 @@ class MyFlaskException(Exception):
                 self.message = args[0]
         for key, value in kwargs.iteritems():
             self.message += '\n{}: {}'.format(key, value)
-        super(MyFlaskException, self).__init__(self.message)
-        if self.response:
+        super(GathermateException, self).__init__(self.message)
+        self.response = response
+        if self.response is not None:
             if self.response.content:
                 self.content = toolbox.decode(self.response.content)
             else:

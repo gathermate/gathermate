@@ -4,7 +4,7 @@ import time
 import logging
 
 from apps.scrapmate.scraper import BoardScraper
-from apps.common.exceptions import MyFlaskException
+from apps.common.exceptions import GathermateException
 from apps.common import urldealer as ud
 
 log = logging.getLogger(__name__)
@@ -43,7 +43,7 @@ class Cineaste(BoardScraper):
                 etc = '{} {}'.format(date, lang)
                 yield {'id': id_, 'title': title, 'link': link, 'etc': etc}
             except:
-                MyFlaskException.trace_error()
+                GathermateException.trace_error()
 
     def get_item(self, r):
         root = self.etree(r, encoding=self.encoding)
@@ -56,7 +56,7 @@ class Cineaste(BoardScraper):
                 link = e.get('href')
                 yield {'name': name, 'link': link, 'type': 'file'}
             except:
-                MyFlaskException.trace_error()
+                GathermateException.trace_error()
 
     def get_file(self, url, ticket):
         self.fetch(url, referer=ticket['referer'])

@@ -7,7 +7,7 @@ import httplib
 import importlib
 import os
 
-from apps.common.exceptions import MyFlaskException
+from apps.common.exceptions import GathermateException
 from apps.common import caching
 from apps.common import urldealer as ud
 from apps.common import toolbox as tb
@@ -74,16 +74,16 @@ class Fetcher(object):
                                 headers=self._get_headers(url, referer, headers),
                                 **kwargs)
             except httplib.BadStatusLine:
-                MyFlaskException.trace_error()
+                GathermateException.trace_error()
             except Exception as e:
-                MyFlaskException.trace_error()
+                GathermateException.trace_error()
                 if type(e) in self._get_retry_exceptions():
                     log.warning('Retry fetching...')
                     continue
-                raise MyFlaskException('%s, while fetching [%s]', e.message, url.text)
+                raise GathermateException('%s, while fetching [%s]', e.message, url.text)
             break
         if not r:
-            raise MyFlaskException('Failed to fetch [%s]', url.text)
+            raise GathermateException('Failed to fetch [%s]', url.text)
         r.key = key
         log.debug('%s%s %d %s', url.netloc, url.path if len(url.path) < 20 else url.path[:5] + '...' + url.path[-12:], r.status_code, tb.size_text(len(r.content)))
         self._handle_response(url, r)

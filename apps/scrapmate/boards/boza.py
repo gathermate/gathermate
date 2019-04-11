@@ -3,7 +3,7 @@ import re
 import logging
 
 from apps.scrapmate.scraper import BoardScraper
-from apps.common.exceptions import MyFlaskException
+from apps.common.exceptions import GathermateException
 from apps.common import urldealer as ud
 
 log = logging.getLogger(__name__)
@@ -30,7 +30,7 @@ class Boza(BoardScraper):
                 date = e.getparent().xpath('div/span[2]')[0].xpath('string()')
                 yield {'id': id_, 'title': title, 'link': link, 'etc': date}
             except:
-                MyFlaskException.trace_error()
+                GathermateException.trace_error()
 
     def get_item(self, r):
         root = self.etree(r, encoding=self.encoding)
@@ -43,7 +43,7 @@ class Boza(BoardScraper):
                 link = e.get('href')
                 yield {'name': name.decode('utf-8', 'ignore'), 'link': link, 'type': 'file'}
             except:
-                MyFlaskException.trace_error()
+                GathermateException.trace_error()
 
         magnet_xpath = r'//a[contains(@href, "magnet:?xt=")]'
         for e in root.xpath(magnet_xpath):
@@ -53,7 +53,7 @@ class Boza(BoardScraper):
                 link = e.get('href')
                 yield {'name': name, 'link': link, 'type': 'magnet'}
             except:
-                MyFlaskException.trace_error()
+                GathermateException.trace_error()
 
     def get_file(self, url, ticket):
         if self.aggressive:

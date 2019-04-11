@@ -4,7 +4,7 @@ import logging
 import re
 
 from apps.scrapmate.scraper import BoardScraper
-from apps.common.exceptions import MyFlaskException
+from apps.common.exceptions import GathermateException
 from apps.common import urldealer as ud
 
 log = logging.getLogger(__name__)
@@ -34,7 +34,7 @@ class Torrentmi(BoardScraper):
                 etc = '{} {}'.format(category, date)
                 yield {'id': id_, 'title': title, 'link': link, 'etc': etc}
             except:
-                MyFlaskException.trace_error()
+                GathermateException.trace_error()
 
     def get_item(self, r):
         root = self.etree(r, encoding=self.encoding)
@@ -46,7 +46,7 @@ class Torrentmi(BoardScraper):
                 link = e.get('href')
                 yield {'name': name, 'link': link, 'type': 'file'}
             except:
-                MyFlaskException.trace_error()
+                GathermateException.trace_error()
 
     def get_file(self, url, ticket):
         root = self.fetch_and_etree(url,

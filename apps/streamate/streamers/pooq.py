@@ -6,7 +6,7 @@ import logging
 import m3u8
 
 from apps.common import urldealer as ud
-from apps.common.exceptions import MyFlaskException
+from apps.common.exceptions import GathermateException
 from apps.streamate.streamer import HlsStreamer
 from apps.streamate.streamer import Channel
 
@@ -87,7 +87,7 @@ class Pooq(HlsStreamer):
         url = js.get('playurl')
         if url is None:
             self.set_cache(key_if_error, True, timeout=60)
-            raise MyFlaskException('Stream URL is not available : %s', cid)
+            raise GathermateException('Stream URL is not available : %s', cid)
         aws_cookie = js.get('awscookie')
         if aws_cookie is not None:
             self.set_cookie(aws_cookie)

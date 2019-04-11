@@ -4,7 +4,7 @@ import logging
 
 import packer
 from apps.common import fetchers
-from apps.common.exceptions import MyFlaskException
+from apps.common.exceptions import GathermateException
 from apps.common import toolbox as tb
 from apps.common import urldealer as ud
 from apps.common.manager import Manager
@@ -26,11 +26,11 @@ class ScrapmateManager(Manager):
     def _hire_board(self, target):
         domain = target.domain if target.domain else target.hostname
         if not domain:
-            raise MyFlaskException('Target URL is wrong : %s' % target.text)
+            raise GathermateException('Target URL is wrong : %s' % target.text)
         try:
             class_ = self.__scraper_classes[domain]
         except KeyError:
-            MyFlaskException.trace_error()
+            GathermateException.trace_error()
             class_ = self._find_scraper(domain)
         log.debug("%s class matches with [%s].", class_.__name__, target.text)
         return self._train_baord(class_, self.config.get('SCRAPERS'))
@@ -40,7 +40,7 @@ class ScrapmateManager(Manager):
             if alias in domain:
                 log.debug("%s class matches with [%s].", class_.__name__, alias)
                 return class_
-        raise MyFlaskException('There is no class associate with : {}'.format(alias))
+        raise GathermateException('There is no class associate with : {}'.format(alias))
 
     def _train_baord(self, class_, config):
         default_config = {
@@ -93,7 +93,7 @@ class ScrapmateManager(Manager):
         board.isRSS = True
         items = board.parse_item(target)
         if len(items) is 0:
-            raise MyFlaskException('No items found.')
+            raise GathermateException('No items found.')
         if items[0]['type'] in ['magnet', 'link']:
             return items[0]['link']
         return board.parse_file(ud.Url(items[0]['link']), items[0]['ticket'])
@@ -115,7 +115,7 @@ class ScrapmateManager(Manager):
             class_ = self._find_scraper(query.get('site'))
             target = ud.Url(class_.LIST_URL % query.get('board'))
         else:
-            raise MyFlaskException('There is no target page.')
+            raise GathermateException('There is no target page.')
         search_key = query.get('search')
         if search_key:
             target.update_qs('search={}'.format(search_key))

@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import logging
+from functools import wraps
+
 
 from flask import Blueprint
 from flask import request
@@ -9,6 +11,7 @@ from flask import stream_with_context
 from flask import Response
 
 from apps.common.auth import auth
+from apps.common import caching
 
 log = logging.getLogger(__name__)
 name = 'Streamate'
@@ -21,6 +24,7 @@ streamate = Blueprint(
 @streamate.route('/', strict_slashes=False)
 @auth.requires_auth
 def index():
+    log.debug('##### %s', caching.make_view_key())
     return 'Welcome'
 
 @streamate.route('/<path:streamer>/resource')

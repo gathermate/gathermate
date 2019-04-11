@@ -100,6 +100,10 @@ class Url(object):
         return self
 
     @property
+    def full_path(self):
+        return '?'.join([self.path, self.query])
+
+    @property
     def query(self):
         return unsplit_qs(self.url[QUERY])
 

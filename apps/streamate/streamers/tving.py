@@ -14,7 +14,7 @@ import m3u8
 from Crypto.Cipher import DES3
 
 from apps.common import urldealer as ud
-from apps.common.exceptions import MyFlaskException
+from apps.common.exceptions import GathermateException
 from apps.streamate.streamer import HlsStreamer
 from apps.streamate.streamer import Channel
 
@@ -124,7 +124,7 @@ class Tving(HlsStreamer):
             stream_url = self.decrypt(key, cid, stream['broadcast']['broad_url'])
         else:
             self.set_cache(key_if_error, True, timeout=60)
-            raise MyFlaskException('Stream URL is not available : %s', cid)
+            raise GathermateException('Stream URL is not available : %s', cid)
         channel_type = content['info']['schedule']['channel']['type']
         if channel_type == 'CPCS0300':
             server_time = self.get_datetime(js['body']['server']['time'])

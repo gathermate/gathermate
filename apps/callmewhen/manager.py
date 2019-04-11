@@ -4,7 +4,7 @@ import logging
 import json
 
 from apps.common.manager import Manager
-from apps.common.exceptions import MyFlaskException
+from apps.common.exceptions import GathermateException
 from apps.common import fetchers
 from apps.common import urldealer as ud
 from apps.common import caching
@@ -51,7 +51,7 @@ class Telegram(Messenser):
 
     @TOKEN.setter
     def TOKEN(self, value):
-        raise MyFlaskException('Not allowed.')
+        raise GathermateException('Not allowed.')
 
     @property
     def CHAT_ID(self):
@@ -59,7 +59,7 @@ class Telegram(Messenser):
 
     @CHAT_ID.setter
     def CHAT_ID(self, value):
-        raise MyFlaskException('Not allowed.')
+        raise GathermateException('Not allowed.')
 
     def send(self, sender, text, parse_mode=None, disable_web_page_preview=False,
                     disable_notification=False, reply_to_message_id=None, reply_markup=None):

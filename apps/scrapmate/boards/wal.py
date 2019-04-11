@@ -3,7 +3,7 @@ import re
 import logging
 
 from apps.scrapmate.scraper import BoardScraper
-from apps.common.exceptions import MyFlaskException
+from apps.common.exceptions import GathermateException
 from apps.common import urldealer as ud
 
 log = logging.getLogger(__name__)
@@ -49,7 +49,7 @@ class Wal(BoardScraper):
                 info = ' '.join([child.text for child in td.getchildren() if child.text is not None] + [''.join(vol.split(' ')), date])
                 yield {'id': id_, 'title': title, 'link': link, 'etc': re.sub('[\[\]]', '', info)}
             except:
-                MyFlaskException.trace_error()
+                GathermateException.trace_error()
 
         category_regexp = re.compile(r'^\[.*?\]\s')
         if ud.Url(r.url).path == '':
@@ -65,7 +65,7 @@ class Wal(BoardScraper):
                     info = '%d %s' % (self.get_id_num(link), cate[1:-2])
                     yield {'id': id_, 'title': title, 'link': link, 'etc': re.sub('[\[\]]', '', info)}
                 except:
-                    MyFlaskException.trace_error()
+                    GathermateException.trace_error()
 
     def get_item(self, r):
         root = self.etree(r, encoding=self.encoding)
@@ -95,7 +95,7 @@ class Wal(BoardScraper):
                     name = re.sub(r'\(.+\)$', '', a.xpath('string()').strip()).strip()
                     yield {'name': name, 'link': link, 'type': 'file'}
             except:
-                MyFlaskException.trace_error()
+                GathermateException.trace_error()
 
     def get_file(self, url, ticket):
         return self.fetch(url, referer=ticket['referer'])

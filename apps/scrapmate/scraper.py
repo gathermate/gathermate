@@ -7,7 +7,7 @@ from functools import wraps
 from lxml import etree
 from concurrent import futures
 
-from apps.common.exceptions import MyFlaskException
+from apps.common.exceptions import GathermateException
 from apps.common import urldealer as ud
 from apps.common import toolbox as tb
 
@@ -27,7 +27,7 @@ class Scraper(object):
         down_response = self.get_file(url, ticket)
         if not down_response or not down_response.headers.get('Content-Disposition'):
             log.error('HEADERS : %s', down_response.headers)
-            raise MyFlaskException('Could not download : {}'.format(url.text),
+            raise GathermateException('Could not download : {}'.format(url.text),
                      response=self.fetcher.current_response)
         filename = tb.filename_from_headers(down_response.headers)
         if not self.ESCAPE_REGEXP.search(filename):
@@ -68,7 +68,7 @@ class Scraper(object):
             log.debug('Refetching [%s]', url.text)
             r = self.fetcher.fetch(url, forced_update=True, **kwargs)
             if self.check_login(r):
-                raise MyFlaskException('Could not login.',
+                raise GathermateException('Could not login.',
                          response=self.fetcher.current_response)
         return r
 
@@ -84,7 +84,7 @@ class Scraper(object):
                         if item:
                             yield item
                     except:
-                        MyFlaskException.trace_error()
+                        GathermateException.trace_error()
             return decorate
         return handle_element
 
@@ -118,7 +118,7 @@ class BoardScraper(Scraper):
         try:
             self.want_regex = self._get_want_regex(self.want)
         except:
-            MyFlaskException.trace_error()
+            GathermateException.trace_error()
             self.want_regex = self._get_want_regex([])
 
     def get_list(self, response):
@@ -163,7 +163,7 @@ class BoardScraper(Scraper):
                 article['link'] = ud.join(url.text, article['link'])
                 self.articles[id_num] = article
         except:
-            MyFlaskException.trace_error()
+            GathermateException.trace_error()
         self._log_result(url)
         self._paginate(url, response.content)
         if self.max_page > self.current_page:
@@ -194,7 +194,7 @@ class BoardScraper(Scraper):
     def _check_length(self, url, articles, current_ids):
         total = len(articles)
         if total < 1:
-            raise MyFlaskException('There are no articles that could be parsed : {}'.format(url.text),
+            raise GathermateException('There are no articles that could be parsed : {}'.format(url.text),
                      response=self.fetcher.current_response)
         current = len(current_ids)
         if current < 1:
@@ -264,7 +264,7 @@ class BoardScraper(Scraper):
                 if item['type'] == 'file' and not ud.Url(item['link']).netloc:
                     item['link'] = unicode(ud.join(article_url.text, item['link']))
         except:
-            MyFlaskException.trace_error()
+            GathermateException.trace_error()
         self._log_result(article_url)
         if len(items) is not 0:
             if self.isRSS and not self.aggressive:

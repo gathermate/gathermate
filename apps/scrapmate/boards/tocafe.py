@@ -6,7 +6,7 @@ import logging
 from lxml import etree
 
 from apps.scrapmate.scraper import BoardScraper
-from apps.common.exceptions import MyFlaskException
+from apps.common.exceptions import GathermateException
 from apps.common import urldealer as ud
 from apps.common import toolbox as tb
 
@@ -36,7 +36,7 @@ class Tocafe(BoardScraper):
                 date = tr.find('td[3]').text
                 yield {'id': id_, 'title': title, 'link': link, 'etc': '{} {}'.format(volume, date)}
             except:
-                MyFlaskException.trace_error()
+                GathermateException.trace_error()
 
         list_xpath = r'//div[@class="gall_con"]/div[2]'
         for e in tree.xpath(list_xpath):
@@ -52,7 +52,7 @@ class Tocafe(BoardScraper):
                 yield {'id': id_, 'title': title, 'link': link, 'etc': etc}
 
             except:
-                MyFlaskException.trace_error()
+                GathermateException.trace_error()
 
     def get_item(self, r):
         tree = self.etree(r, self.encoding)
@@ -75,7 +75,7 @@ class Tocafe(BoardScraper):
                     link = magnet.get('href')
                     yield {'name': name, 'link': link, 'type': 'magnet'}
             except:
-                MyFlaskException.trace_error()
+                GathermateException.trace_error()
 
     def get_file(self, url, ticket):
         return self.fetch(url, referer=ticket['referer'])

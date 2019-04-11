@@ -3,7 +3,7 @@ import re
 import logging
 
 from apps.scrapmate.scraper import BoardScraper
-from apps.common.exceptions import MyFlaskException
+from apps.common.exceptions import GathermateException
 from apps.common import urldealer as ud
 
 log = logging.getLogger(__name__)
@@ -51,7 +51,7 @@ class Etoland(BoardScraper):
                     etc = date
                 yield {'id': id_, 'title': title, 'link': link, 'etc': etc}
             except:
-                MyFlaskException.trace_error()
+                GathermateException.trace_error()
 
     def get_item(self, r):
         root = self.etree(r, encoding=self.encoding)
@@ -65,7 +65,7 @@ class Etoland(BoardScraper):
                 link = 'http://www.etoland.co.kr/bbs{}'.format(matches.group(1))
                 yield {'name': name, 'link': link, 'type': 'file', 'etc': 'test'}
             except:
-                MyFlaskException.trace_error()
+                GathermateException.trace_error()
 
         for e in root.xpath(r'//td[@class="mw_basic_view_file"]/a[contains(@href, "magnet")]'):
             try:
@@ -73,7 +73,7 @@ class Etoland(BoardScraper):
                 link = e.get('href')
                 yield {'name': name, 'link': link, 'type': 'magnet'}
             except:
-                MyFlaskException.trace_error()
+                GathermateException.trace_error()
 
         location_regexp = re.compile(r'location\.replace\(["\'](.+)["\']\);')
         for e in root.xpath(r'//td[@class="mw_basic_view_link"]/a'):
@@ -87,7 +87,7 @@ class Etoland(BoardScraper):
                         name = match.group(1)
                 yield {'name': name, 'link': name, 'type': 'link'}
             except:
-                MyFlaskException.trace_error()
+                GathermateException.trace_error()
 
         url = ud.Url(r.url)
         if url.query_dict.get('bo_table').startswith('data_'):
@@ -97,7 +97,7 @@ class Etoland(BoardScraper):
                     link = e.get('href')
                     yield {'name': link, 'link': link, 'type': 'link'}
                 except:
-                    MyFlaskException.trace_error()
+                    GathermateException.trace_error()
 
     def get_file(self, url, ticket):
         return self.fetch(url, referer=ticket['referer'])

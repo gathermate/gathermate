@@ -6,7 +6,7 @@ import inspect
 import importlib
 import logging
 
-from apps.common.exceptions import MyFlaskException
+from apps.common.exceptions import GathermateException
 
 log = logging.getLogger(__name__)
 
@@ -14,7 +14,7 @@ class Manager(object):
 
     def __init__(self, config):
         if not config:
-            raise MyFlaskException('Config is not set.')
+            raise GathermateException('Config is not set.')
         self.__config = config
 
     @property
@@ -23,7 +23,7 @@ class Manager(object):
 
     @config.setter
     def config(self, value):
-        raise MyFlaskException('Not allowed.')
+        raise GathermateException('Not allowed.')
 
     def _register_modules(self, package, module_type, parent_class=None):
         modules = {}

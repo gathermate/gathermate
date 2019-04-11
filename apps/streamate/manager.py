@@ -8,7 +8,7 @@ from concurrent import futures
 
 from apps.common.manager import Manager
 from apps.common import urldealer as ud
-from apps.common.exceptions import MyFlaskException
+from apps.common.exceptions import GathermateException
 from apps.streamate import packer
 from apps.streamate import epggrabber
 from apps.common import fetchers
@@ -81,7 +81,7 @@ class StreamManager(Manager):
         try:
             self.__streamer_classes[streamer.capitalize()]
         except KeyError:
-            raise MyFlaskException("There is no streamer : '%s'", streamer.capitalize())
+            raise GathermateException("There is no streamer : '%s'", streamer.capitalize())
         instance = self.hire_streamers(streamer.capitalize())[0]
         try:
             function = getattr(self, '_order_%s' % order)

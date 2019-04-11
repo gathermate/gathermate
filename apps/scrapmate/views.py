@@ -15,7 +15,7 @@ from flask import flash
 from flask import stream_with_context
 
 from apps.common.auth import auth
-from apps.common.exceptions import MyFlaskException
+from apps.common.exceptions import GathermateException
 
 log = logging.getLogger(__name__)
 name = 'Scrapmate'
@@ -88,15 +88,15 @@ def order_page(data):
 @scrapmate.errorhandler(Exception)
 @auth.requires_auth
 def unhandled_exception(e):
-    MyFlaskException.trace_error()
+    GathermateException.trace_error()
     flash(e.message)
     app.send('{}#{}'.format(name, request.host), e.message)
     path = request.path.split('/')
     content = None
-    if type(e) is MyFlaskException and e.response:
+    if type(e) is GathermateException and e.response:
         content = e.content
     if len(path) > 2 and path[2] in ['item']:
-        return render_template_string(MyFlaskException.VIEW_ERROR_TEMPLATE,
+        return render_template_string(GathermateException.VIEW_ERROR_TEMPLATE,
                                       msg=e.message,
                                       response=content)
     return render_template('index.html',

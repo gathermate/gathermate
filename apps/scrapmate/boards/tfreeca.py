@@ -5,7 +5,7 @@ import logging
 import re
 
 from apps.scrapmate.scraper import BoardScraper
-from apps.common.exceptions import MyFlaskException
+from apps.common.exceptions import GathermateException
 from apps.common import urldealer as ud
 
 log = logging.getLogger(__name__)
@@ -36,7 +36,7 @@ class Tfreeca(BoardScraper):
                 etc = '{} {}'.format(category, date)
                 yield {'id': id_, 'title': title, 'link': link, 'etc': etc}
             except:
-                MyFlaskException.trace_error()
+                GathermateException.trace_error()
 
         caption_xpath = r'//td[normalize-space(@class)="subject"]//a[contains(@href, "wr_id")]/text()/..'
         for e in tree.xpath(caption_xpath):
@@ -47,7 +47,7 @@ class Tfreeca(BoardScraper):
                 id_ = self.get_id_num(link)
                 yield {'id': id_, 'title': title, 'link': link}
             except:
-                MyFlaskException.trace_error()
+                GathermateException.trace_error()
 
     def get_item(self, r):
         tree = self.etree(r, self.encoding)
@@ -59,7 +59,7 @@ class Tfreeca(BoardScraper):
                 link = e.get('href').strip()
                 yield {'name': name, 'link': link, 'type': 'file'}
             except:
-                MyFlaskException.trace_error()
+                GathermateException.trace_error()
 
         url = ud.Url(r.url)
         if not url.query_dict.get('bo_table', [''])[0] == 'captions':
@@ -77,7 +77,7 @@ class Tfreeca(BoardScraper):
                     link = e.getnext()[0].get('href').strip()
                     yield {'name': name, 'link': link, 'type': 'magnet'}
                 except:
-                    MyFlaskException.trace_error()
+                    GathermateException.trace_error()
 
         caption_xpath = r'//a[contains(@href, "file_download")]'
         script_regexp = re.compile(r'javascript:file_download\([\'"](.*)[\'"]\,\s[\'"](.*)[\'"]\);')
@@ -88,7 +88,7 @@ class Tfreeca(BoardScraper):
                 link = ud.join(self.URL, match.group(1))
                 yield {'name': name, 'link': link, 'type': 'file'}
             except:
-                MyFlaskException.trace_error()
+                GathermateException.trace_error()
 
     def get_file(self, url, ticket):
         key_xpath = r'//form/input[@name="key"]/@value'

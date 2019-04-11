@@ -11,7 +11,7 @@ import m3u8
 from apps.common import caching
 from apps.common.datastructures import MultiDict
 from apps.common import urldealer as ud
-from apps.common.exceptions import MyFlaskException
+from apps.common.exceptions import GathermateException
 
 log = logging.getLogger(__name__)
 
@@ -51,7 +51,7 @@ class Streamer(object):
 
     def was_error_before(self, was_error):
         if was_error:
-            raise MyFlaskException('This request raised error before, try later.')
+            raise GathermateException('This request raised error before, try later.')
 
 
 class HlsStreamer(Streamer):

@@ -11,7 +11,7 @@ from Crypto.Cipher import PKCS1_v1_5
 from lxml import etree
 
 from apps.common import urldealer as ud
-from apps.common.exceptions import MyFlaskException
+from apps.common.exceptions import GathermateException
 from apps.streamate.streamer import HlsStreamer
 from apps.streamate.streamer import Channel
 
@@ -95,7 +95,7 @@ class Oksusu(HlsStreamer):
             js = json.loads(match.group(1))
             if js is None:
                 self.set_cache(key_if_error, True, timeout=60)
-                raise MyFlaskException("JSON is None.")
+                raise GathermateException("JSON is None.")
             urlAUTO = js['streamUrl']['urlAUTO']
             nvodUrlList = js['streamUrl']['nvodUrlList']
             if urlAUTO:
@@ -110,7 +110,7 @@ class Oksusu(HlsStreamer):
                 return nvod_token, int(timestamp - starttime)
             else:
                 self.set_cache(key_if_error, True, timeout=60)
-                raise MyFlaskException("No available stream URL.")
+                raise GathermateException("No available stream URL.")
 
 
     LOGIN_OKSUSU_URL = 'https://www.oksusu.com/user/login'
@@ -224,4 +224,4 @@ class Oksusu(HlsStreamer):
             self._login_failed(r.url)
 
     def _login_failed(self, url):
-        raise MyFlaskException('Login failed at %s', url)
+        raise GathermateException('Login failed at %s', url)
