@@ -67,8 +67,6 @@ class Tving(HlsStreamer):
         self.login_type = login_type
         if self.get_cache('pcid') is None:
             self.set_cookie(self.make_pcid_cookie())
-        if bool(self.should_login()):
-            self.login()
 
     def _get_channels(self, pageNo):
         channels = []
@@ -113,9 +111,8 @@ class Tving(HlsStreamer):
         return sorted(channels, key=lambda item: item.name), hasNext, pageNo
 
     def get_playlist_url(self, cid, qIndex):
+        key_if_error = self.make_error_key(cid, qIndex)
         quality = self.get_quality(qIndex)
-        key_if_error = 'get_playlist_url-%s-%s-error' % (cid, qIndex)
-        self.was_error_before(self.get_cache(key_if_error))
         key = int(time.time()*1000)
         js = self.api_streaminfo(cid, quality, key)
         stream = js.get('body', {}).get('stream')
@@ -123,8 +120,9 @@ class Tving(HlsStreamer):
         if stream:
             stream_url = self.decrypt(key, cid, stream['broadcast']['broad_url'])
         else:
-            self.set_cache(key_if_error, True, timeout=60)
-            raise GathermateException('Stream URL is not available : %s', cid)
+            e = GathermateException('Stream URL is not available : %s', cid)
+            self.cache.set(key_if_error, e, timeout=60)
+            raise e
         channel_type = content['info']['schedule']['channel']['type']
         if channel_type == 'CPCS0300':
             server_time = self.get_datetime(js['body']['server']['time'])

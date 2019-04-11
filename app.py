@@ -11,7 +11,7 @@ from flask import send_from_directory
 from flask import render_template
 
 from apps.common import caching
-from apps.common.exceptions import MyFlaskException
+from apps.common.exceptions import GathermateException
 from apps.common import logger
 from apps.common import urldealer as ud
 from apps.common.datastructures import MultiDict
@@ -107,13 +107,10 @@ def teardown_requst_to_do(exception):
 
 @app.errorhandler(Exception)
 def unhandled_exception(e):
-    MyFlaskException.trace_error()
+    GathermateException.trace_error()
     app.send('{}#{}'.format(__name__, request.host), e.message)
-    try:
-        if e.response is not None:
-            return e.response.content, e.response.status_code, dict(e.response.headers)
-    except AttributeError as abe:
-        app.logger.debug(abe.message)
+    if hasattr(e, 'response') and e.response is not None:
+        return e.response.content, e.response.status_code, dict(e.response.headers)
     return e.message, 404
 
 @app.template_filter('quote')

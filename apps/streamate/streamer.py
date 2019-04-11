@@ -5,6 +5,7 @@ import time
 import datetime
 from datetime import datetime as dt
 from collections import deque
+from functools import wraps
 
 import m3u8
 
@@ -12,6 +13,7 @@ from apps.common import caching
 from apps.common.datastructures import MultiDict
 from apps.common import urldealer as ud
 from apps.common.exceptions import GathermateException
+from apps.streamate.views import name as app_name
 
 log = logging.getLogger(__name__)
 
@@ -21,11 +23,19 @@ class Streamer(object):
     def __init__(self, fetcher):
         self.fetcher = fetcher
 
+    @property
+    def cache(self):
+        return caching.cache
+
     def fetch(self, url, cached=False, callback=None, **kwargs):
         r = self.fetcher.fetch(url, cached=cached, **kwargs)
         if callback:
             return callback(r)
         return r
+
+    def make_error_key(self, *args):
+        key_list = [app_name, self.__class__.__name__.lower()] + list(args)
+        return caching.make_error_key(key_list)
 
     def get_cache(self, key, default=None):
         cached = self.get_caches()
@@ -49,9 +59,14 @@ class Streamer(object):
         r = self.fetch(url, referer=self.BASE_URL)
         return r.content, r.status_code, dict(r.headers)
 
-    def was_error_before(self, was_error):
-        if was_error:
-            raise GathermateException('This request raised error before, try later.')
+
+def login_required(func):
+    @wraps(func)
+    def check_login(self, *args, **kwargs):
+        if self.should_login():
+            self.login()
+        return func(self, *args, **kwargs)
+    return check_login
 
 
 class HlsStreamer(Streamer):
@@ -63,6 +78,7 @@ class HlsStreamer(Streamer):
         self.qualities = qualities
         self.should_stream = True
 
+    @login_required
     def streaming(self, cid, qIndex):
         '''
         Allows only one request.
@@ -109,15 +125,15 @@ class HlsStreamer(Streamer):
                     play_sequence -= 1
 
     def get_playlist(self, playlist_url, referer, play_sequence, played_seconds):
-        key_if_error = 'get_playlist-{}'.format(playlist_url)
-        self.was_error_before(self.get_cache(key_if_error))
+        key_if_error = self.make_error_key(playlist_url)
         r = self.fetch(playlist_url, referer=referer)
         m3u = m3u8.loads(r.content)
         playlist = Playlist(is_endlist=m3u.is_endlist)
         if len(m3u.segments) is 0:
-            log.error("The fetched playlist is empty.")
+            e = GathermateException("The fetched playlist is empty.")
+            log.error(e.message)
             self.should_stream = False
-            self.set_cache(key_if_error, True, timeout=60)
+            self.cache.set(key_if_error, e, timeout=60)
             return playlist
         cumulative_time = 0
         for sequence, segment in enumerate(m3u.segments, m3u.media_sequence):

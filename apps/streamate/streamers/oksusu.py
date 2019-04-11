@@ -14,6 +14,7 @@ from apps.common import urldealer as ud
 from apps.common.exceptions import GathermateException
 from apps.streamate.streamer import HlsStreamer
 from apps.streamate.streamer import Channel
+from apps.common import flask_helper as fh
 
 log = logging.getLogger(__name__)
 
@@ -44,8 +45,6 @@ class Oksusu(HlsStreamer):
         self.user_pw = pw
         self.channel_numbers_from = channel_numbers_from
         self.login_type = login_type
-        if self.should_login():
-            self.login()
 
     def _get_epoch_time(self):
         return int(time.time()*1000)
@@ -87,15 +86,17 @@ class Oksusu(HlsStreamer):
         return sorted(channels, key=lambda item: item.name), False, pageNo
 
     def get_playlist_url(self, cid, qIndex):
-        key_if_error = 'get_playlist_url-%s-%s-error' % (cid, qIndex)
-        self.was_error_before(self.get_cache(key_if_error))
+        key_if_error = self.make_error_key(cid, qIndex)
         r = self.fetch(self.PLAYER_URL % cid, referer=self.PLAYER_URL % cid)
         match = re.search(r'contentsInfo:\s(.+)\s\|', r.content)
         if match:
-            js = json.loads(match.group(1))
-            if js is None:
-                self.set_cache(key_if_error, True, timeout=60)
-                raise GathermateException("JSON is None.")
+            try:
+                js = json.loads(match.group(1))
+                if js is None:
+                    raise GathermateException("JSON is None : %s", cid)
+            except Exception as e:
+                self.cache.set(key_if_error, e, timeout=60)
+                raise e
             urlAUTO = js['streamUrl']['urlAUTO']
             nvodUrlList = js['streamUrl']['nvodUrlList']
             if urlAUTO:
@@ -109,8 +110,9 @@ class Oksusu(HlsStreamer):
                 starttime = float(js['channel']['programs'][0]['startTime'])/1000
                 return nvod_token, int(timestamp - starttime)
             else:
-                self.set_cache(key_if_error, True, timeout=60)
-                raise GathermateException("No available stream URL.")
+                e = GathermateException("No available stream URL : %s", cid)
+                self.cache.set(key_if_error, e, timeout=60)
+                raise e
 
 
     LOGIN_OKSUSU_URL = 'https://www.oksusu.com/user/login'

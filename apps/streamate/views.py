@@ -3,15 +3,15 @@
 import logging
 from functools import wraps
 
-
 from flask import Blueprint
 from flask import request
-from flask import current_app as app
+from flask import current_app
 from flask import stream_with_context
 from flask import Response
 
 from apps.common.auth import auth
 from apps.common import caching
+from apps.common import flask_helper as fh
 
 log = logging.getLogger(__name__)
 name = 'Streamate'
@@ -24,7 +24,6 @@ streamate = Blueprint(
 @streamate.route('/', strict_slashes=False)
 @auth.requires_auth
 def index():
-    log.debug('##### %s', caching.make_view_key())
     return 'Welcome'
 
 @streamate.route('/<path:streamer>/resource')
@@ -37,10 +36,11 @@ def streamer(streamer):
     return streamer
 
 @streamate.route('/<path:streamer>/<string:cid>')
-def streamer_channel_streaming(streamer, cid):
-    qIndex = request.args.get('q', -1, int)
+@fh.extract_query('q')
+@fh.check_error(name)
+def streamer_channel_streaming(streamer, cid='cid', q=-1):
     gen = _order(streamer, 'streaming', None)
-    response = Response(stream_with_context(gen(cid, qIndex)), mimetype='video/MP2T')
+    response = Response(stream_with_context(gen(cid, q)), mimetype='video/MP2T')
     response.headers['Content-Disposition'] = 'attachment; filename={}-{}.ts'.format(streamer, cid)
     return response
 
@@ -58,17 +58,17 @@ def streamer_m3u(streamer, filename):
 @streamate.route('/<string:filename>.m3u')
 @auth.requires_auth
 def m3u(filename):
-    gen = app.managers[name].order_all_m3u(request.args)
+    gen = current_app.managers[name].order_all_m3u(request.args)
     return _get_m3u_response(gen, filename)
 
 @streamate.route('/<string:filename>.xml')
 @auth.requires_auth
 def epg(filename):
-    gen = app.managers[name].order_all_epg(request.args)
+    gen = current_app.managers[name].order_all_epg(request.args)
     return _get_epg_response(gen, filename)
 
 def _order(streamer, order, query):
-    return app.managers[name].request(streamer, order, query)
+    return current_app.managers[name].request(streamer, order, query)
 
 def _get_m3u_response(generator, filename):
     response = Response(stream_with_context(generator), mimetype='application/x-mpegURL')
