@@ -9,7 +9,8 @@ log = logging.getLogger()
 
 class GathermateException(Exception):
 
-    def __init__(self, response=None, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
+        self.response = kwargs.pop('response', None)
         if args:
             if len(args) > 1:
                 self.message = args[0] % args[1:]
@@ -18,7 +19,6 @@ class GathermateException(Exception):
         for key, value in kwargs.iteritems():
             self.message += '\n{}: {}'.format(key, value)
         super(GathermateException, self).__init__(self.message)
-        self.response = response
         if self.response is not None:
             if self.response.content:
                 self.content = toolbox.decode(self.response.content)
