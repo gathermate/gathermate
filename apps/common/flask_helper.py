@@ -38,8 +38,8 @@ def check_error(app_name):
             key = caching.make_error_key([app_name] + list(args) + kw_list)
             error = caching.cache.get(key)
             if error is not None:
-                log.error('This request raised error before, try later.')
-                return error.message, 404
+                log.error(error.message)
+                return 'This request raised error before, try later.', 404
             else:
                 return func(*args, **kwargs)
         return check_cache

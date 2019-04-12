@@ -90,18 +90,18 @@ class HlsStreamer(Streamer):
         referer = self.PLAYER_URL % cid
         playlist_url, played_seconds = self.get_playlist_url(cid, qIndex)
         playlist = self.get_playlist(playlist_url, referer, 0, played_seconds)
-        buffering_time = dt.now()
+        played_time = dt.now()
         play_sequence = 0
         while self.should_stream:
             if len(playlist) > 0:
                 segment = playlist.popleft()
                 if self.should_stream:
                     yield self.fetch(segment.uri, referer=referer).content
-                    buffering_time += datetime.timedelta(seconds=segment.duration)
+                    played_time += datetime.timedelta(seconds=segment.duration)
                     play_sequence = segment.sequence
                 if len(playlist) is 0 and playlist.is_endlist:
-                    sleep_time = int((buffering_time - dt.now()).total_seconds()) - segment.duration
-                elif buffering_time - dt.now() > datetime.timedelta(seconds=int(segment.duration*2)):
+                    sleep_time = int((played_time - dt.now()).total_seconds()) - segment.duration
+                elif played_time - dt.now() > datetime.timedelta(seconds=int(segment.duration*2)):
                     sleep_time = int(segment.duration)
                 else:
                     sleep_time = 0
@@ -120,7 +120,7 @@ class HlsStreamer(Streamer):
                     playlist = self.get_playlist(playlist_url, referer, play_sequence, played_seconds)
                 if len(playlist) is 0:
                     play_sequence -= 1
-                    time.sleep(segment.duration)
+                    time.sleep(segment.duration*2)
 
     def get_playlist(self, playlist_url, referer, play_sequence, played_seconds):
         key_if_error = self.make_error_key(playlist_url)
@@ -143,7 +143,7 @@ class HlsStreamer(Streamer):
                 segment.sequence = sequence
                 playlist.append(segment)
         if len(playlist) is 0:
-            log.error("No new item, %s is required but %s was given.", play_sequence, m3u.media_sequence + len(m3u.segments) - 1)
+            log.debug("No new item, %s is required but %s was given.", play_sequence, m3u.media_sequence + len(m3u.segments) - 1)
         return playlist
 
     def get_channels(self):
