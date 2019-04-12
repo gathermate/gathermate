@@ -55,7 +55,7 @@ class Wal(BoardScraper):
             except:
                 GathermateException.trace_error()
 
-        category_regexp = re.compile(r'^\[.*?\]\s')
+        category_regexp = re.compile(r'^\[(.*?)\]')
         if ud.Url(r.url).path == '':
             pop_xpath = r'//ol[@id="latest_popular"]/li/a'
             root = tree.xpath(pop_xpath)
@@ -64,11 +64,11 @@ class Wal(BoardScraper):
                 try:
                     title = re.sub(category_regexp, '', e.text.strip())
                     match = category_regexp.search(e.text.strip())
-                    cate = category_regexp.search(e.text.strip()).group(0) if match is not None else '[기타]'
+                    cate = match.group(1) if match is not None else '기타'
                     link = e.get('href')
                     id_ = length - idx
-                    info = '%d %s' % (self.get_id_num(link), cate[1:-2])
-                    yield {'id': id_, 'title': title, 'link': link, 'etc': re.sub('[\[\]]', '', info)}
+                    info = '%d %s' % (self.get_id_num(link), cate)
+                    yield {'id': id_, 'title': title, 'link': link, 'etc': info}
                 except:
                     GathermateException.trace_error()
 

@@ -89,18 +89,22 @@ def order_page(data):
 @auth.requires_auth
 def unhandled_exception(e):
     GathermateException.trace_error()
-    flash(e.message)
-    app.send('{}#{}'.format(name, request.host), e.message)
+    if hasattr(e, 'message') and e.message != '':
+        err_message = e.message
+    else:
+        err_message = str(e)
+    flash(err_message)
+    app.send('{}#{}'.format(name, request.host), err_message)
     path = request.path.split('/')
     content = None
     if type(e) is GathermateException and e.response:
         content = e.content
     if len(path) > 2 and path[2] in ['item']:
         return render_template_string(GathermateException.VIEW_ERROR_TEMPLATE,
-                                      msg=e.message,
+                                      msg=err_message,
                                       response=content)
     return render_template('index.html',
-                           error_msg=e.message,
+                           error_msg=err_message,
                            response=content)
 
 

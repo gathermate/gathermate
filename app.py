@@ -108,10 +108,14 @@ def teardown_requst_to_do(exception):
 @app.errorhandler(Exception)
 def unhandled_exception(e):
     GathermateException.trace_error()
-    app.send('{}#{}'.format(__name__, request.host), e.message)
+    if hasattr(e, 'message') and e.message != '':
+        err_message = e.message
+    else:
+        err_message = str(e)
+    app.send('{}#{}'.format(__name__, request.host), err_message)
     if hasattr(e, 'response') and e.response is not None:
         return e.response.content, e.response.status_code, dict(e.response.headers)
-    return e.message, 404
+    return err_message, 404
 
 @app.template_filter('quote')
 def quote_filter(url):
