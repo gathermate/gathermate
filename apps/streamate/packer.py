@@ -27,14 +27,14 @@ def pack_m3u(streamer, mapped_channels, ffmpeg):
     - tvg-shift is value in hours to shift EPG time. This tag can be used in #EXTM3U for apply shift to all channels or in #EXTINF for apply shift only to current channel.
     - group-name is channels group name. If the tag is absent then addon will use group name from the previous channel.
     '''
-    yield '#EXTM3U\n'
     streamer_name = streamer.__class__.__name__.lower()
+    yield '#EXTM3U\n'
     for channel in streamer.get_channels():
         yield '#EXTINF:-1 tvg-id="{cid}" tvg-logo="{logo}" tvh-chnum="{chnum}" group-name="{streamer}",{name}\n' \
             .format(streamer=channel.streamer.lower(),
                     cid=channel.getlist('cid')[-1] if len(channel.getlist('cid')) > 1 else '%s.%s' % (channel.cid, streamer_name),
                     logo=channel.logo,
-                    name=channel.name,
+                    name=channel.getlist('name')[-1],
                     chnum=channel.chnum)
         url = url_for('.streamer_channel_streaming',
                       _external=True,

@@ -5,6 +5,7 @@ import copy
 
 
 class Flask(object):
+    # 이 클래스를 기반으로 실제 설정값을 설정합니다.
     NAME = 'Flask @ user_config.py'
     SECRET_KEY = os.urandom(8).encode('hex')
 
@@ -57,7 +58,7 @@ class Flask(object):
 
         # 쿠키를 파일로 저장하려면 경로를 설정하세요.
         # None 입력시 캐쉬에 저장.
-        # instance/cookies
+        # e.g. /opt/apps/gathermate/instance/cookies
         #'COOKIE_PATH': os.path.join(os.path.dirname(os.path.abspath(__file__)), 'cookies'),
         'COOKIE_PATH': None,
 
@@ -70,6 +71,8 @@ class Localhost(Flask):
     # 이 설정의 이름입니다.
     NAME = 'Localhost @ user_config.py'
 
+    # 이 설정에만 적용되는 값으로 수정하기 위해
+    # 기본 설정값(Flask 클래스)을 복사합니다.
     FETCHER = copy.deepcopy(Flask.FETCHER)
     FETCHER['COOKIE_PATH'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'cookies')
 
@@ -89,13 +92,14 @@ class Localhost(Flask):
         # False일 경우 여러 게시물을 순차적으로 접속하여 파싱합니다.
         # True일 경우 여러 게시물을 동시에 접속하여 파싱합니다.
         # 대상 사이트에서 요청 횟수를 제한할 경우 효과가 없을 수 있습니다.
-        RSS_ASYNC=False,
+        RSS_ASYNC=True,
         # RSS_ASYNC 값이 True일 때 적용되는 쓰레드 수 입니다.
         # 반드시 0 보다 큰 값이어야 합니다.
         RSS_WORKERS=5,
         # RSS를 생성할 때 참고할 게시물의 수 입니다.
         # RSS_AGGRESSIVE가 True일 경우 5가 적당합니다. (5일 경우 대상 사이트에 총 6번 접속)
-        # 대상 사이트의 페이지별 게시물 수를 고려해서 입력하세요.
+        # RSS_AGGRESSIVE가 False일 경우 대상 사이트의 페이지별 게시물 수를 고려해서 입력하세요.
+        # (페이지별 게시물 수가 15, RSS_LENGTH가 20인 경우 총 2 페이지를 접속하고 수집한 30개 중 20개만 출력)
         RSS_LENGTH=5,
         # RSS_AGGRESSIVE가 False일 때 다운로드할 파일의 우선 순위입니다.
         # 아래 리스트의 정규 표현식으로 파일 이름을 순차적으로 검사합니다.
@@ -136,6 +140,7 @@ class Localhost(Flask):
     )
 
     STREAMATE.update(
+        # m3u의 스트림 주소를 pipe 형태로 출력할 경우(m3u 요청시 쿼리에 ffmpeg path 지정) 사용되는 포맷입니다.
         FFMPEG_COMMAND = 'pipe://{ffmpeg} -i {url} -c copy -f mpegts pipe:1',
         STREAMERS = {
             'Pooq': {
@@ -187,8 +192,8 @@ class Localhost(Flask):
     )
 
 
-
 class GoogleAppEngine(Localhost):
+    # GAE에서 사용할 환경 설정입니다.
     NAME = 'GoogleAppEngine @ user_config.py'
     # GAE는 파일 쓰기 권한이 없으므로 쿠키를 캐시에 저장
     FETCHER = copy.deepcopy(Localhost.FETCHER)
@@ -202,8 +207,14 @@ LOCALHOST_INSTANCE = Localhost()
 GOOGLEAPPENGINE_INSTANCE = GoogleAppEngine()
 
 '''
-형식 : '채널ID':dict(name='채널이름',chnum=채널번호,그래버='그래버채널ID',그래버='그래버검색어',skip='그래버|그래버',only='그래버|그래버',logo='아이콘주소'),
-채널ID : 채널 매핑에 사용할 채널 ID (e.g. tvg-id)
+사용자 등록 채널 목록
+
+- 등록된 채널만 EPG 검색을 시도합니다.
+- EPG 수집을 위해 스트리머가 제공하지 않는 채널을 등록하여도 무방합니다.
+- 각 스트리머의 채널은 사용자 등록 채널 목록에 존재할 경우 지정된 채널 이름, 채널 번호, 채널 로고를 사용하게 됩니다.
+
+형식 : '사용자채널ID':dict(name='채널이름',chnum=채널번호,그래버='그래버채널ID',그래버='그래버검색어',skip='그래버|그래버',only='그래버|그래버',logo='아이콘주소'),
+사용자채널ID : 채널 매핑에 사용할 채널 ID (e.g. tvg-id)
 그래버 : ID 기반 그래버(e.g kt, lg, sky ...)의 채널ID, 혹은 검색어 기반 그래버(e.g. naver, daum)의 채널 검색어
 only : EPG 검색시 필요한 그래버(화이트리스트). 복수 입력시 '|'로 구분
 skip : EPG 검색시 제외할 그래버(블랙리스트). 복수 입력시 '|'로 구분
