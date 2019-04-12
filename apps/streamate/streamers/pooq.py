@@ -145,7 +145,7 @@ class Pooq(HlsStreamer):
         if json.loads(self.api_user()).get('uno') is None: return True
         return False
 
-    def api_login(self):
+    def login(self):
         api = ud.Url(ud.join(self.API_URL, '/login'))
         api.update_query(self.API_QUERY)
         #self.fetch(api, method='OPTIONS', referer=self.LOGIN_REFERER)
