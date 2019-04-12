@@ -63,6 +63,9 @@ class Streamer(object):
 def login_required(func):
     @wraps(func)
     def check_login(self, *args, **kwargs):
+        if self.user_id is None or self.user_id == '' \
+           or self.user_pw is None or self.user_pw == '':
+           raise GathermateException('Check your ID and Password.')
         if self.should_login():
             self.login()
         return func(self, *args, **kwargs)
@@ -160,11 +163,15 @@ class HlsStreamer(Streamer):
     def _get_mapped_channel(self, streamer, scid):
         return next(((cid, ch) for cid, ch in self.mapped_channels.iteritems() if str(ch.get(streamer)) == str(scid)), (None, None))
 
+    def _login_failed(self, url):
+        raise GathermateException('Login failed at %s', url)
+
     def get_playlist_url(self):
         raise NotImplementedError
 
     def _get_channels(self):
         raise NotImplementedError
+
 
 
 class Channel(MultiDict):

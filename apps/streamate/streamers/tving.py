@@ -236,15 +236,15 @@ class Tving(HlsStreamer):
                        kaptcha='',
                        returnUrl='')
         r = self.fetch(self.LOGIN_URL, method='POST', payload=payload, referer=self.LOGIN_REFERER)
+        if str(r.status_code)[0] in ['4', '5']:
+            self._login_failed(r.url)
         if self.LOGIN_OK_REGEXP.search(r.content) is not None:
             log.debug('Login succeeded.')
             match = self.JQUERY_VERSION_REGEXP.search(r.content)
             if match is not None:
                 self.set_cache('jquery_version', match.group(1))
-            return True
         else:
-            log.debug('Login failed.')
-            return False
+            self._login_failed(r.url)
 
     def should_login(self):
         my = 'http://www.tving.com/my/main'

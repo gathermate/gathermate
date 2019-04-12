@@ -224,6 +224,3 @@ class Oksusu(HlsStreamer):
             r = self.fetch(self.LOGIN_OKSUSU_URL, payload=payload, method='POST', referer=self.LOGIN_OKSUSU_URL + '?rw=%2Fmy', follow_redirects=True)
         else:
             self._login_failed(r.url)
-
-    def _login_failed(self, url):
-        raise GathermateException('Login failed at %s', url)
