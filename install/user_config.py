@@ -147,7 +147,7 @@ class Localhost(Flask):
                 'ID': '',
                 'PW': '',
                 # 720p 이상은 유료 계정 필요.
-                'QUALITY': ['100p', '270p', '360p', '480p'],
+                'QUALITIES': ['100p', '270p', '360p', '480p'],
                 # 제외 채널 (채널 이름은 옵션)
                 'EXCEPTED_CHANNELS': {
                     'C4102': '현대홈쇼핑+샵 (예시 제외 채널)',
@@ -161,7 +161,7 @@ class Localhost(Flask):
                 'PW': '',
                 # CJ One 회원: 10, Tvning 회원: 20
                 'LOGIN_TYPE': 20,
-                'QUALITY': ['stream20', 'stream25', 'stream30', 'stream40', 'stream50'],
+                'QUALITIES': ['stream20', 'stream25', 'stream30', 'stream40', 'stream50'],
                 'EXCEPTED_CHANNELS': {
                     'C05661': '디즈니채널 (DRM 필요)',
                 },
