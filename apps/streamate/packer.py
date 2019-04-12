@@ -11,7 +11,7 @@ from apps.common import urldealer as ud
 
 log = logging.getLogger(__name__)
 
-def extract_by_streamer(streamer_name, mapped_channels):
+def channels_by_streamer(streamer_name, mapped_channels):
     channels = {}
     for cid, ch in mapped_channels.iteritems():
         if ch.get(streamer_name) is not None:
@@ -51,7 +51,7 @@ def pack_m3u(streamer, mapped_channels, ffmpeg):
 
 def pack_channels(streamer, mapped_channels):
     streamer_name = streamer.__class__.__name__.lower()
-    registered_channels = extract_by_streamer(streamer_name, mapped_channels)
+    registered_channels = channels_by_streamer(streamer_name, mapped_channels)
     info = "'{cid}':dict(name='{name}',chnum={chnum},{streamer}={scid},{extra}logo='{logo}'),\n"
     yield '{\n'
     for ch in streamer.get_channels():

@@ -16,7 +16,10 @@ def extract_query(*query):
         def extract(*args, **kwargs):
             for q in query:
                 if request.args.get(q) is not None:
-                    kwargs[q] = request.args.get(q)
+                    if len(request.args.getlist(q)) > 2:
+                        kwargs[q] = request.args.getlist(q)
+                    else:
+                        kwargs[q] = request.args.get(q)
             return func(*args, **kwargs)
         return extract
     return wrapper

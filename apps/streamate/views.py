@@ -36,6 +36,7 @@ def streamer(streamer):
     return streamer
 
 @streamate.route('/<path:streamer>/<string:cid>')
+@auth.requires_auth
 @fh.extract_query('q')
 @fh.check_error(name)
 def streamer_channel_streaming(streamer, cid='cid', q=-1):
