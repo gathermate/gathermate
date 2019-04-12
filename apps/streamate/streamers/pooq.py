@@ -156,7 +156,7 @@ class Pooq(HlsStreamer):
                        profile='')
         response = self.fetch(api, method='JSON', payload=payload, referer=self.LOGIN_REFERER)
         if str(response.status_code)[0] in ['4', '5']:
-            self._login_failed(response.url)
+            self._login_failed('%d status code.' % response.status_code)
         js = json.loads(response.content)
         credential = js.get('credential')
         self.API_QUERY.update(credential=credential)

@@ -14,7 +14,6 @@ from apps.common import urldealer as ud
 from apps.common.exceptions import GathermateException
 from apps.streamate.streamer import HlsStreamer
 from apps.streamate.streamer import Channel
-from apps.common import flask_helper as fh
 
 log = logging.getLogger(__name__)
 
@@ -124,8 +123,6 @@ class Oksusu(HlsStreamer):
             self.fetch(self.LOGIN_OKSUSU_URL, method='POST', payload=payload, referer=self.LOGIN_OKSUSU_URL + '?rw=%2F')
         else:
             pass
-        if self.should_login():
-            self._login_failed("should_login() still returns True")
 
     def should_login(self):
         r = self.fetch(self.LOGIN_CHECK_URL, referer=self.BASE_URL, cached=True)
@@ -157,7 +154,7 @@ class Oksusu(HlsStreamer):
             if match:
                 var[match.group(1)] = match.group(2)
         if len(var) is 0:
-            self._login_failed(r.url)
+            self._login_failed("Couldn't find javascript variables.")
         query = dict(client_id=var['clientId'],
                      client_secret=var['clientSecret'],
                      redirect_uri=self.LOGIN_TID_URL,
@@ -177,11 +174,11 @@ class Oksusu(HlsStreamer):
         for inp in html.xpath('//form[@id="loginForm"]/input'):
             data[inp.get('name')] = inp.get('value')
         if len(data) is 0:
-            self._login_failed(r.url)
+            self._login_failed("Couldn't parse login form elements.")
         r = self.fetch('https://auth.skt-id.co.kr/auth/api/v1/keys.do', method='POST', payload={'valueType': 'hex'}, referer=referer)
         js = json.loads(r.content)
         if len(js) is 0:
-            self._login_failed(r.url)
+            self._login_failed("The JSON object is empty.")
         data.update(dict(issuing_type=10,
                          cipher_kid=js['kid'],
                          ciphertext=self.get_login_ciphertext(user_id, user_pw, js['nonce'], js['n'], js['e']),
@@ -198,7 +195,7 @@ class Oksusu(HlsStreamer):
         r = self.fetch('https://auth.skt-id.co.kr/auth/type/login/loginPreChecker.do', method='POST', payload=data, referer=referer)
         result = json.loads(r.content)
         if result['resultCode'] != '0000':
-            self._login_failed(r.url)
+            self._login_failed("resultCode is %s" % result['resultCode'])
         r = self.fetch('https://auth.skt-id.co.kr/auth/type/login/loginProcess.do', method='POST', follow_redirects=True, payload=data, referer=referer)
         '''
         url = ud.Url('http://sktsso.tworld.co.kr/createsubcookie.jsp')
@@ -223,4 +220,4 @@ class Oksusu(HlsStreamer):
             }
             r = self.fetch(self.LOGIN_OKSUSU_URL, payload=payload, method='POST', referer=self.LOGIN_OKSUSU_URL + '?rw=%2Fmy', follow_redirects=True)
         else:
-            self._login_failed(r.url)
+            self._login_failed("Couldn't find redirect url.")
