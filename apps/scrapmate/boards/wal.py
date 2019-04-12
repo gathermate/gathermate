@@ -39,7 +39,11 @@ class Wal(BoardScraper):
         for tr in tree.xpath(list_xpath):
             try:
                 td = tr.find('td[@class="subject"]')
-                a = td.findall('a')[-1]
+                a_list = td.findall('a')
+                if len(a_list) > 0:
+                    a = td.findall('a')[-1]
+                else:
+                    continue
                 link = a.get('href')
                 id_ = self.get_id_num(link)
                 title = a.text.strip()
@@ -59,7 +63,8 @@ class Wal(BoardScraper):
             for idx, e in enumerate(root):
                 try:
                     title = re.sub(category_regexp, '', e.text.strip())
-                    cate = category_regexp.search(e.text.strip()).group(0)
+                    match = category_regexp.search(e.text.strip())
+                    cate = category_regexp.search(e.text.strip()).group(0) if match is not None else '[기타]'
                     link = e.get('href')
                     id_ = length - idx
                     info = '%d %s' % (self.get_id_num(link), cate[1:-2])

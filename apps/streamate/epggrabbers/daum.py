@@ -43,6 +43,9 @@ class Daum(EpgGrabber):
             if td_id in date_index:
                 hour = int(filter(str.isdigit, str(td.getparent().find('th').text.strip())))
                 for dl in td.findall('dl'):
+                    minute_dt = dl.find('dt')
+                    if minute_dt is None:
+                        continue
                     minute = int(dl.find('dt').text)
                     start = dt(date_index[td_id].year,
                                date_index[td_id].month,
