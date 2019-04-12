@@ -110,14 +110,14 @@ apt install git
 git clone https://github.com/gathermate/gathermate.git /opt/apps/gathermate
 ```
 
-#### 2. 파이썬 2.7 설치
-`python 2.7`, `python-pip`을 설치합니다. Entware는 추가로 `python-lxml`을 설치합니다. `lxml`을 [Entware][entware] 패키지에서 설치하는 이유는 `pip`으로 설치할 경우 컴파일 오류가 발생하기 때문입니다. `lxml`을 컴파일하려면 헤더 파일이 필요한데 [Entware][entware]에는 기본 탑재되어 있지 않습니다. 그래도 정말 컴파일 하기를 원한다면 [Using gcc](https://github.com/Entware/Entware-ng/wiki/Using-gcc-(native-compilation))를 참조하세요.
+#### 2. 파이썬 2.7 및 추가 패키지 설치
+`python 2.7`, `python-pip`을 설치합니다. [Entware][entware]는 추가로 `python-lxml`, `python-gevent`, `python-crypto`를 설치합니다. `pip`으로 설치할 경우 일부 파이썬 패키지는 설치 과정 중 컴파일에 필요한 헤더 파일을 찾을 수 없어 오류가 발생합니다. [Entware][entware]에는 컴파일에 필요한 헤더 파일이 기본 탑재되어 있지 않으므로 미리 컴파일된 패키지를 설치합니다. 자세한 [Entware][entware] 컴파일 정보는 [Using gcc](https://github.com/Entware/Entware-ng/wiki/Using-gcc-(native-compilation))를 참조하세요.
 
 [entware]: https://github.com/Entware/Entware
 
 ```shell
 # Entware on ASUS RT-AC68U aka T-mobile AC1900
-opkg install python-light python-pip python-lxml python-crypto ffmpeg
+opkg install python-light python-pip python-lxml python-gevent python-crypto ffmpeg
 ```
 ```shell
 # Debian/Ubuntu on WSL
@@ -133,13 +133,14 @@ source /opt/apps/gathermate/venv/bin/activate
 ```
 
 #### 4. 파이썬 패키지 설치
-가상환경 내에서 `python` 추가 패키지를 설치합니다. Entware는 `opkg`로 설치한 `lxml`, `rypto` 패키지도 가상환경 폴더에 복사해 주세요.
+가상환경 내에서 `python` 추가 패키지를 설치합니다. Entware는 `opkg`로 설치한 `lxml`, `crypto`, `gevent` 패키지도 가상환경 폴더에 복사해 주세요.
 
 ```shell
 # Entware on ASUS RT-AC68U aka T-mobile AC1900
 pip install -r /opt/apps/gathermate/install/requirements-entware.txt
 cp -r /opt/lib/python2.7/site-packages/lxml* /opt/apps/gathermate/venv/lib/python2.7/site-packages/
 cp -r /opt/lib/python2.7/site-packages/Crypto /opt/apps/gathermate/venv/lib/python2.7/site-packages/
+cp -r /opt/lib/python2.7/site-packages/gevent /opt/lib/python2.7/site-packages/greenlet.so /opt/apps/gathermate/venv/lib/python2.7/site-packages/
 ```
 ```shell
 # Debian/Ubuntu on WSL
@@ -147,6 +148,7 @@ pip install -r /opt/apps/gathermate/install/requirements.txt
 ```
 
 ##### GAE 파이썬 패키지 설치
+GAE에서 서버를 운영할 경우 설치하세요.
 
 ```shell
 pip install -t /opt/apps/gathermate/venv/gae/lib -r /opt/apps/gathermate/install/requirements-gae.txt --no-dependencies
@@ -233,11 +235,10 @@ iptables -L
 
 - **AUTH_ID** : 서버에 요청을 보낼 때 요구되는 **아이디** 입니다.
 - **AUTH_PW** : 서버에 요청을 보낼 때 요구되는 **비밀번호** 입니다.
-- **PATH** : 서버 URL의 path에 적용됩니다. `http://www.yourserver.com/PATH/?query=2`
 
 #### 설정 값 입력하기
 
-민감한 정보는 기본적으로 `os.environ.get()` 를 통해 `export`된 값을 불러오도록 되어 있습니다. `os.environ.get()`이 어떤 이름의 환경변수를 가져오는지 확인한 다음 데몬 스크립트에서 `export` 해 주면 됩니다. GAE는 `app.yaml`에서 `export`할 값을 입력할 수 있습니다. 이 방법이 어려울 경우 직접 `instance/config.py`에 입력하세요.
+민감한 정보는 기본적으로 `os.environ.get()` 를 통해 `export`된 값을 불러오도록 되어 있습니다. `os.environ.get()`이 어떤 이름의 환경변수를 가져오는지 확인한 다음 데몬 스크립트에서 `export` 해 주면 됩니다. GAE는 `app.yaml`에서 `export`할 값을 입력할 수 있습니다. 또는 직접 `instance/config.py`에 입력하세요.
 
 데몬 스크립트에는 아래의 환경 변수가 기본값으로 입력되어 있습니다.
 ```shell
@@ -343,11 +344,11 @@ download_auth:
     </thead>
     <tbody>
         <tr>
-            <td>모든 사이트의 재생목록</td>
+            <td>모든 스트리머의 재생목록</td>
             <td>stream/<code>원하는파일이름</code>.m3u?ffmpeg=<code>ffmpeg실행경로</code><br/><code>stream/myserverplaylist.m3u?ffmpeg=/usr/bin/ffmpeg</code></td>
         </tr>
         <tr>
-            <td>특정 사이트의 재생목록</td>
+            <td>특정 스트리머의 재생목록</td>
             <td>stream/<code>사이트</code>/<code>원하는파일이름</code>.m3u?ffmpeg=<code>ffmpeg실행경로</code><br/><code>stream/pooq/pooq.m3u?ffmpeg=/opt/bin/ffmpeg</code></td>
         </tr>
         <tr>
@@ -380,13 +381,3 @@ download_auth:
 
 ##### GAE
 현재 Google App Engine의 Python 3 환경은 무료 사용량의 초과분에 대한 결제가 필수입니다. 때문에 무료 사용량 초과시 차단되는 방식인 Python 2 Standard 환경에 맞추었습니다. [Google App Engine 시작하기](https://cloud.google.com/appengine/docs/standard/python/quickstart)
-
-##### GAE 테스트 서버
-```shell
-dev_appserver.py --log_level=debug app.yaml
-```
-
-##### GAE 배포
-```shell
-gcloud app deploy --version=20181201-my-version --verbosity=info
-```
