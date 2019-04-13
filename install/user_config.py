@@ -141,7 +141,7 @@ class Localhost(Flask):
 
     STREAMATE.update(
         # m3u의 스트림 주소를 pipe 형태로 출력할 경우(m3u 요청시 쿼리에 ffmpeg path 지정) 사용되는 포맷입니다.
-        FFMPEG_COMMAND = 'pipe://{ffmpeg} -i {url} -c copy -f mpegts pipe:1',
+        FFMPEG_COMMAND = 'pipe://{ffmpeg} -loglevel fatal -i {url} -c copy -f mpegts pipe:1',
         STREAMERS = {
             'Pooq': {
                 'ID': '',
