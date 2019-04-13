@@ -133,9 +133,8 @@ class HlsStreamer(Streamer):
         if len(m3u.segments) is 0:
             e = GathermateException("The fetched playlist is empty.")
             log.error(e.message)
-            self.should_stream = False
             self.cache.set(key_if_error, e, timeout=self.fetcher.timeout)
-            return playlist
+            raise e
         cumulative_time = 0
         for sequence, segment in enumerate(m3u.segments, m3u.media_sequence):
             cumulative_time += segment.duration
