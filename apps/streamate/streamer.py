@@ -91,8 +91,9 @@ class HlsStreamer(Streamer):
             self.__class__.streaming_instance.should_stream = False
         self.__class__.streaming_instance = self
         referer = self.PLAYER_URL % cid
+        key_if_error = self.make_error_key(cid, qIndex)
         playlist_url, played_seconds = self.get_playlist_url(cid, qIndex)
-        playlist = self.get_playlist(playlist_url, referer, 0, played_seconds)
+        playlist = self.get_playlist(playlist_url, referer, 0, played_seconds, key_if_error)
         played_time = dt.now()
         play_sequence = 0
         while self.should_stream:
@@ -125,8 +126,7 @@ class HlsStreamer(Streamer):
                     play_sequence -= 1
                     time.sleep(segment.duration*2)
 
-    def get_playlist(self, playlist_url, referer, play_sequence, played_seconds):
-        key_if_error = self.make_error_key(playlist_url)
+    def get_playlist(self, playlist_url, referer, play_sequence, played_seconds, key_if_error):
         r = self.fetch(playlist_url, referer=referer)
         m3u = m3u8.loads(r.content)
         playlist = Playlist(is_endlist=m3u.is_endlist)
