@@ -20,6 +20,9 @@ def make_view_key():
     key = ud.Url(request.url).update_query(request.form).full_path if request.form else ud.Url(request.url).full_path
     return create_key(key)
 
+def make_view_error_key():
+    return make_view_key() + '-error'
+
 def make_error_key(key_list):
     key = '-'.join(['errors'] + [str(item) for item in key_list])
     return create_key(key)

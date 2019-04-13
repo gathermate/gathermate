@@ -24,18 +24,14 @@ class Streamer(object):
         self.fetcher = fetcher
 
     @property
-    def cache(self):
-        return caching.cache
+    def caching(self):
+        return caching
 
     def fetch(self, url, cached=False, callback=None, **kwargs):
         r = self.fetcher.fetch(url, cached=cached, **kwargs)
         if callback:
             return callback(r)
         return r
-
-    def make_error_key(self, *args):
-        key_list = [app_name, self.__class__.__name__.lower()] + list(args)
-        return caching.make_error_key(key_list)
 
     def get_cache(self, key, default=None):
         cached = self.get_caches()
@@ -91,9 +87,8 @@ class HlsStreamer(Streamer):
             self.__class__.streaming_instance.should_stream = False
         self.__class__.streaming_instance = self
         referer = self.PLAYER_URL % cid
-        key_if_error = self.make_error_key(cid, qIndex)
         playlist_url, played_seconds = self.get_playlist_url(cid, qIndex)
-        playlist = self.get_playlist(playlist_url, referer, 0, played_seconds, key_if_error)
+        playlist = self.get_playlist(playlist_url, referer, 0, played_seconds)
         played_time = dt.now()
         play_sequence = 0
         while self.should_stream:
@@ -126,14 +121,14 @@ class HlsStreamer(Streamer):
                     play_sequence -= 1
                     time.sleep(segment.duration*2)
 
-    def get_playlist(self, playlist_url, referer, play_sequence, played_seconds, key_if_error):
+    def get_playlist(self, playlist_url, referer, play_sequence, played_seconds):
         r = self.fetch(playlist_url, referer=referer)
         m3u = m3u8.loads(r.content)
         playlist = Playlist(is_endlist=m3u.is_endlist)
         if len(m3u.segments) is 0:
             e = GathermateException("The fetched playlist is empty.")
             log.error(e.message)
-            self.cache.set(key_if_error, e, timeout=self.fetcher.timeout)
+            self.caching.cache.set(self.caching.make_view_error_key(), e, timeout=self.fetcher.timeout)
             raise e
         cumulative_time = 0
         for sequence, segment in enumerate(m3u.segments, m3u.media_sequence):

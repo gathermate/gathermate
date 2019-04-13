@@ -24,7 +24,18 @@ def extract_query(*query):
         return extract
     return wrapper
 
-def check_error(app_name):
+def check_error(func):
+    @wraps(func)
+    def check_cache(*args, **kwargs):
+        error = caching.cache.get(caching.make_view_error_key())
+        if error is not None:
+            log.error('Cached error : ' + error.message)
+            return 'This request raised error before, try later.', 404
+        else:
+            return func(*args, **kwargs)
+    return check_cache
+
+def check_error_by_parameter(app_name):
     def wrapper(func):
         @wraps(func)
         def check_cache(*args, **kwargs):
@@ -41,9 +52,8 @@ def check_error(app_name):
             key = caching.make_error_key([app_name] + list(args) + kw_list)
             error = caching.cache.get(key)
             if error is not None:
-                message = 'This request raised error before, try later.'
-                log.error(error.message + '\n' + message)
-                return message, 404
+                log.error('Cached error : ' + error.message)
+                return 'This request raised error before, try later.', 404
             else:
                 return func(*args, **kwargs)
         return check_cache

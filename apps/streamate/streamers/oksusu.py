@@ -85,7 +85,6 @@ class Oksusu(HlsStreamer):
         return sorted(channels, key=lambda item: item.name), False, pageNo
 
     def get_playlist_url(self, cid, qIndex):
-        key_if_error = self.make_error_key(cid, qIndex)
         r = self.fetch(self.PLAYER_URL % cid, referer=self.PLAYER_URL % cid)
         match = re.search(r'contentsInfo:\s(.+)\s\|', r.content)
         if match:
@@ -94,7 +93,7 @@ class Oksusu(HlsStreamer):
                 if js is None:
                     raise GathermateException("JSON is None : %s", cid)
             except Exception as e:
-                self.cache.set(key_if_error, e, timeout=self.fetcher.timeout)
+                self.caching.cache.set(self.caching.make_view_error_key(), e, timeout=self.fetcher.timeout)
                 raise e
             urlAUTO = js['streamUrl']['urlAUTO']
             nvodUrlList = js['streamUrl']['nvodUrlList']
@@ -110,7 +109,7 @@ class Oksusu(HlsStreamer):
                 return nvod_token, int(timestamp - starttime)
             else:
                 e = GathermateException("No available stream URL : %s", cid)
-                self.cache.set(key_if_error, e, timeout=self.fetcher.timeout)
+                self.caching.cache.set(self.caching.make_view_error_key(), e, timeout=self.fetcher.timeout)
                 raise e
 
 

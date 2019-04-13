@@ -79,12 +79,11 @@ class Pooq(HlsStreamer):
         If you are authorized for streams, AWS Policy allows you
         to access them while 6 hours. If not, only 10 minutes.
         '''
-        key_if_error = self.make_error_key(cid, qIndex)
         js = self.api_streamlist(cid, self.qualities[-1])
         url = js.get('playurl')
         if url is None:
             e = GathermateException('Stream URL is not available : %s', cid)
-            self.cache.set(key_if_error, e, timeout=self.fetcher.timeout)
+            self.caching.cache.set(self.caching.make_view_error_key(), e, timeout=self.fetcher.timeout)
             raise e
         aws_cookie = js.get('awscookie')
         if aws_cookie is not None:

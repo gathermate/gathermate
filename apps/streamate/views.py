@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import logging
-from functools import wraps
 
 from flask import Blueprint
 from flask import request
@@ -10,7 +9,6 @@ from flask import stream_with_context
 from flask import Response
 
 from apps.common.auth import auth
-from apps.common import caching
 from apps.common import flask_helper as fh
 
 log = logging.getLogger(__name__)
@@ -37,9 +35,9 @@ def streamer(streamer):
 
 @streamate.route('/<path:streamer>/<string:cid>')
 @auth.requires_auth
-@fh.extract_query('q')
-@fh.check_error(name)
-def streamer_channel_streaming(streamer, cid='cid', q=-1):
+@fh.check_error
+def streamer_channel_streaming(streamer, cid='cid'):
+    q = request.args.get('q', -1, int)
     gen = _order(streamer, 'streaming', None)
     response = Response(stream_with_context(gen(cid, q)), mimetype='video/MP2T')
     response.headers['Content-Disposition'] = 'attachment; filename={}-{}.ts'.format(streamer, cid)

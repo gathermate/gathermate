@@ -111,14 +111,13 @@ class Tving(HlsStreamer):
         return sorted(channels, key=lambda item: item.name), hasNext, pageNo
 
     def get_playlist_url(self, cid, qIndex):
-        key_if_error = self.make_error_key(cid, qIndex)
         quality = self.get_quality(qIndex)
         key = int(time.time()*1000)
         js = self.api_streaminfo(cid, quality, key)
         result = js.get('body', {}).get('result', {})
         if result.get('code', '111') != '000':
             e = GathermateException(result.get('message', 'Not available') + ' : %s', cid)
-            self.cache.set(key_if_error, e, timeout=self.fetcher.timeout)
+            self.caching.cache.set(self.caching.make_view_error_key(), e, timeout=self.fetcher.timeout)
             raise e
         stream = js.get('body', {}).get('stream')
         content = js.get('body', {}).get('content')
@@ -126,7 +125,7 @@ class Tving(HlsStreamer):
             stream_url = self.decrypt(key, cid, stream['broadcast']['broad_url'])
         else:
             e = GathermateException('Stream URL is not available : %s', cid)
-            self.cache.set(key_if_error, e, timeout=self.fetcher.timeout)
+            self.caching.cache.set(self.caching.make_view_error_key(), e, timeout=self.fetcher.timeout)
             raise e
         channel_type = content['info']['schedule']['channel']['type']
         if channel_type == 'CPCS0300':
