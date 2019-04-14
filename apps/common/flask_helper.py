@@ -30,7 +30,7 @@ def check_error(func):
         error = caching.cache.get(caching.make_view_error_key())
         if error is not None:
             log.error('Cached error : ' + error.message)
-            return 'This request raised error before, try later.'
+            return 'This request raised error before, try later.', 404
         else:
             return func(*args, **kwargs)
     return check_cache
