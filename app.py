@@ -88,6 +88,14 @@ def to_robots():
 def index(path):
     return render_template('default.html')
 
+@app.route('/404')
+def not_found_test():
+    return '404 Not Found', 404
+
+@app.route('/500')
+def server_error_test():
+    return '500 Internal Server Error', 500
+
 @app.before_request
 def before_request_to_do():
     request.args = MultiDict(request.args.iteritems(multi=True))
