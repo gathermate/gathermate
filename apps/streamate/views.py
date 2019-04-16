@@ -39,9 +39,8 @@ def streamer(streamer):
 def streamer_channel_streaming(streamer, cid='cid'):
     q = request.args.get('q', -1, int)
     gen = _order(streamer, 'streaming', None)
-    response = Response(stream_with_context(gen(cid, q)))
-    #response = Response(stream_with_context(gen(cid, q)), mimetype='video/MP2T')
-    #response.headers['Content-Disposition'] = 'attachment; filename={}-{}.ts'.format(streamer, cid)
+    response = Response(stream_with_context(gen(cid, q)), mimetype='video/MP2T')
+    response.headers['Content-Disposition'] = 'attachment; filename={}-{}.ts'.format(streamer, cid)
     return response
 
 @streamate.route('/<path:streamer>/channels')
