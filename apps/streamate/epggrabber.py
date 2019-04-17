@@ -21,8 +21,11 @@ def get_epg(channel_map, grabbers, days=1):
         pq.set(grabber.__class__.__name__.lower(), grabber)
     with futures.ThreadPoolExecutor() as exe:
         fs = [exe.submit(set_epg, cid, ch, days, pq) for cid, ch in channel_map.iteritems()]
-        for f in futures.as_completed(fs):
-            yield f.result()
+        for f in futures.as_completed(fs, timeout=30):
+            try:
+                yield f.result()
+            except futures.TimeoutError as te:
+                log.error(te.message)
     log.debug('\n' + '\n'.join(['%s : priority(%d), age(%d)' % (n.upper(), p, c) for p, c, n, _ in pq.entries.values()]) + '\n')
 
 def set_epg(cid, mapped_channel, days, pq):
