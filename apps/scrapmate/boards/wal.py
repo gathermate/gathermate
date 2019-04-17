@@ -106,7 +106,7 @@ class Wal(BoardScraper):
                         yield {'name': name, 'link': link, 'type': 'file'}
                 else:
                     link = ud.join(self.URL, href)
-                    name = re.sub(r'\(.+\)$', '', a.xpath('string()').strip()).strip()
+                    name = re.sub(r'\((?:.(?!\())+$', '', a.xpath('string()').strip()).strip()
                     yield {'name': name, 'link': link, 'type': 'file'}
             except:
                 GathermateException.trace_error()

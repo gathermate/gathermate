@@ -274,13 +274,26 @@ class BoardScraper(Scraper):
         return items
 
     def _want(self, items):
+        torrent_list = []
+        etc_list = []
+        for item in items:
+            if item['name'].endswith('.torrent'):
+                torrent_list.append(item)
+            else:
+                etc_list.append(item)
+        wanted = self.find_want(torrent_list)
+        if wanted is None:
+            wanted = self.find_want(etc_list)
+        return wanted or (torrent_list or etc_list)[0]
+
+    def find_want(self, list_):
         for want in self.want_regex:
-            for item in items:
+            for item in list_:
                 match = want.search(item['name'].lower())
                 if match:
                     log.debug('[%s] matched.', match.group(0))
                     return item
-        return items[0]
+        return None
 
     def _get_want_regex(self, want_list):
         if not want_list:
