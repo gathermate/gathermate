@@ -3,6 +3,7 @@
 import os
 import sys
 import importlib
+import threading
 
 import click
 from flask import Flask
@@ -64,12 +65,7 @@ def create_app():
     # Register a function for sending messages to telegram bot.
     def send(sender, msg):
         if should_send:
-            result = app.managers['Callmewhen'].request('send',
-                                                        {'msg':msg, 'sender': sender})
-            if result:
-                app.logger.debug('The message was sent.')
-            else:
-                app.logger.warning('The message wasn\'t sent.')
+            threading.Thread(target=app.managers['Callmewhen'].request, args=('send', {'msg':msg, 'sender': sender})).start()
     app.send = send
     return app
 
@@ -90,11 +86,11 @@ def index(path):
 
 @app.route('/404')
 def not_found_test():
-    return '404 Not Found', 404
+    return page_not_found(Exception())
 
 @app.route('/500')
 def server_error_test():
-    return '500 Internal Server Error', 500
+    return internal_server_error(Exception())
 
 @app.before_request
 def before_request_to_do():
@@ -124,6 +120,14 @@ def unhandled_exception(e):
     if hasattr(e, 'response') and e.response is not None:
         return e.response.content, e.response.status_code, dict(e.response.headers)
     return err_message, 404
+
+@app.errorhandler(404)
+def page_not_found(e):
+    return '404 Not Found...', 404
+
+@app.errorhandler(500)
+def internal_server_error(e):
+    return '500 Internal Server Error...', 500
 
 @app.template_filter('quote')
 def quote_filter(url):

@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+
+import sys
 import traceback
 import logging
 
@@ -30,7 +32,17 @@ class GathermateException(Exception):
 
     @staticmethod
     def trace_error():
-        log.error('\n{}'.format(traceback.format_exc()))
+        log.error(traceback.format_exc())
+
+    @staticmethod
+    def full_stack(e):
+        exception_list = traceback.format_stack()
+        exception_list = exception_list[:-2]
+        exception_list.extend(traceback.format_tb(sys.exc_info()[2]))
+        exception_list.extend(traceback.format_exception_only(sys.exc_info()[0], sys.exc_info()[1]))
+        exception_str = "Traceback (most recent call last):\n"
+        exception_str += "".join(exception_list)
+        log.error(exception_str[:-1])
 
     VIEW_ERROR_TEMPLATE = '''
         <i class="fa fa-exclamation-triangle" aria-hidden="true"></i> {{ msg }}
