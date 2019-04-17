@@ -35,9 +35,12 @@ class Wal(BoardScraper):
     def get_list(self, r):
         tree = self.etree(r, encoding=self.encoding)
 
+        s_read_regexp = re.compile(r'\("(.+?)",\s"(.+?)"\)')
         list_xpath = r'//table[@class="board_list"]/tr'
         for tr in tree.xpath(list_xpath):
             try:
+                if tr.get('style') == 'display:none':
+                    continue
                 td = tr.find('td[@class="subject"]')
                 a_list = td.findall('a')
                 if len(a_list) > 0:
@@ -46,6 +49,12 @@ class Wal(BoardScraper):
                     continue
                 link = a.get('href')
                 id_ = self.get_id_num(link)
+                if id_ < 0:
+                    match = s_read_regexp.search(str(a.get('onclick')))
+                    if match:
+                        board = match.group(1)
+                        id_ = int(match.group(2))
+                        link = '/bbs/view_mid.php?bo_table={:s}&wr_id={:d}'.format(board, id_)
                 title = a.text.strip()
                 date = ''.join(tr.find('td[@class="datetime"]').itertext())
                 vol = ''.join(tr.find('td[@class="hit"]').itertext())
