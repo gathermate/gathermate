@@ -80,13 +80,12 @@ class Fetcher(object):
                 if type(e) in self._get_retry_exceptions():
                     log.warning('Retry fetching...')
                     continue
-                raise GathermateException('%s, while fetching [%s]', e.message, url.text)
+                log.error('%s, while fetching [%s]', e.message, url.text)
             break
-        if not r:
-            raise GathermateException('Failed to fetch [%s]', url.text)
-        r.key = key
-        log.debug('%s%s %d %s', url.netloc, url.path if len(url.path) < 20 else url.path[:5] + '...' + url.path[-12:], r.status_code, tb.size_text(len(r.content)))
-        self._handle_response(url, r)
+        if r:
+            r.key = key
+            log.debug('%s%s %d %s', url.netloc, url.path if len(url.path) < 20 else url.path[:5] + '...' + url.path[-12:], r.status_code, tb.size_text(len(r.content)))
+            self._handle_response(url, r)
         return r
 
     def _get_headers(self, url, referer, headers):
@@ -204,7 +203,6 @@ class Requests(Fetcher):
         return [self.module.exceptions.ConnectionError, self.module.exceptions.ChunkedEncodingError]
 
 class Urlfetch(Fetcher):
-    import google.appengine.runtime.CancelledError
 
     def __init__(self, module, deadline=30, cache_timeout=60,
                  cookie_timeout=0, cookie_path=None):
