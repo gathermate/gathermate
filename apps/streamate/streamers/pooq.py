@@ -67,7 +67,7 @@ class Pooq(HlsStreamer):
                              cid=cid,
                              chnum=mapped_channel.get('chnum') if mapped_channel else int(filter(str.isdigit, str(cid[0]))) + self.channel_numbers_from,
                              name=name,
-                             logo=mapped_channel.get('logo') if mapped_channel else channel.get('tvimage'),
+                             logo=mapped_channel.get('logo') if mapped_channel else ud.Url(channel.get('tvimage')).text,
                         )
                     )
                 )
