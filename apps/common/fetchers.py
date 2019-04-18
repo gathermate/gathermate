@@ -14,6 +14,10 @@ from apps.common import toolbox as tb
 
 log = logging.getLogger(__name__)
 
+backend = os.environ.get('SERVER_SOFTWARE', '')
+if backend.startswith('Google App Engine/') or backend.startswith('Development/'):
+    urlfetch_errors = importlib.import_module('google.appengine.api.urlfetch_errors')
+
 def hire_fetcher(module='requests', deadline=30, cache_timeout=60, cookie_timeout=3600*48, cookie_path=None):
     mod = module.split('.')[-1]
     return globals()[mod.capitalize()](importlib.import_module(module), deadline, cache_timeout, cookie_timeout, cookie_path)
@@ -203,7 +207,7 @@ class Requests(Fetcher):
         return [self.module.exceptions.ConnectionError, self.module.exceptions.ChunkedEncodingError]
 
 class Urlfetch(Fetcher):
-
+    #google.appengine.api.urlfetch_errors.DeadlineExceededError
     def __init__(self, module, deadline=30, cache_timeout=60,
                  cookie_timeout=0, cookie_path=None):
         Fetcher.__init__(self, module, deadline, cache_timeout, cookie_timeout, cookie_path)
@@ -216,13 +220,17 @@ class Urlfetch(Fetcher):
             method = 'POST'
         else:
             payload = ud.unsplit_qs(payload)
-        r = self.module.fetch(
-            url.text,
-            deadline=deadline,
-            payload=payload,
-            method=method.upper(),
-            headers=headers,
-            follow_redirects=follow_redirects)
+        try:
+            r = self.module.fetch(
+                url.text,
+                deadline=deadline,
+                payload=payload,
+                method=method.upper(),
+                headers=headers,
+                follow_redirects=follow_redirects)
+        except urlfetch_errors.DeadlineExceededError as dee:
+            log.error(dee.message)
+            return Response(url.text, None, headers={}, content=dee.message, status_code=500)
         r.url = r.final_url if r.final_url else url.text
         return Response(url.text, r)
 

@@ -23,8 +23,6 @@ def get_epg(channel_map, grabbers, days=1):
         fs = [exe.submit(set_epg, cid, ch, days, pq) for cid, ch in channel_map.iteritems()]
         try:
             for f in futures.as_completed(fs, timeout=30):
-                if f.exception() is not None:
-                    log.error(f.exception().message)
                 yield f.result()
         except Exception as e:
             log.error(e.message)

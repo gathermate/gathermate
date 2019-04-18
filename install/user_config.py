@@ -54,7 +54,7 @@ class Flask(object):
         'CACHE_TIMEOUT': 60,
 
         # 목표 웹페이지의 응답을 기다리는 최대 시간(초)입니다.
-        'DEADLINE': 60,
+        'DEADLINE': 45,
 
         # 쿠키를 파일로 저장하려면 경로를 설정하세요.
         # None 입력시 캐쉬에 저장.
