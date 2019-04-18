@@ -38,13 +38,4 @@ export GATHERMATE_ETO_PW=
 export GATHERMATE_CINE_ID=
 export GATHERMATE_CINE_PW=
 
-case ${1} in
-    send)
-        source $ACTIVATE
-        cd $ROOT
-        flask send "$2" "$3"
-        exit $?
-        ;;
-esac
-
 source /opt/etc/init.d/rc.func

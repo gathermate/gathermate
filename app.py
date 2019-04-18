@@ -5,7 +5,6 @@ import sys
 import importlib
 import threading
 
-import click
 from flask import Flask
 from flask import request
 from flask import send_from_directory
@@ -132,9 +131,3 @@ def internal_server_error(e):
 @app.template_filter('quote')
 def quote_filter(url):
     return ud.quote(url)
-
-@app.cli.command('send')
-@click.argument('sender', nargs=1)
-@click.argument('message', nargs=1)
-def send_message(sender, message):
-    app.send(sender + '#CLI', message)

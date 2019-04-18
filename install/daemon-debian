@@ -48,12 +48,6 @@ case "$1" in
   status)
     status_of_proc -p $PIDFILE $DAEMON && exit 0 || exit $?
     ;;
-  send)
-    source $ACTIVATE
-    cd $ROOT
-    flask send "$2" "$3"
-    exit $?
-    ;;
   *)
     echo "Usage: $0 {start|stop|restart|force-reload|status}"
     exit 1

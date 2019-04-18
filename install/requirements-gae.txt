@@ -1,6 +1,6 @@
-chardet
-flask-Caching
 futures
+flask
+flask-Caching
 tld
 m3u8
-iso8601
+chardet

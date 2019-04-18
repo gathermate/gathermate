@@ -204,11 +204,11 @@ class Requests(Fetcher):
         return [self.module.exceptions.ConnectionError, self.module.exceptions.ChunkedEncodingError]
 
 class Urlfetch(Fetcher):
+    import google.appengine.runtime.CancelledError
 
     def __init__(self, module, deadline=30, cache_timeout=60,
                  cookie_timeout=0, cookie_path=None):
         Fetcher.__init__(self, module, deadline, cache_timeout, cookie_timeout, cookie_path)
-        self.errors = importlib.import_module('google.appengine.api.urlfetch_errors')
 
     def _fetch(self, url, deadline=30, method='GET', payload=None, headers=None, follow_redirects=False):
         # Override
@@ -218,18 +218,14 @@ class Urlfetch(Fetcher):
             method = 'POST'
         else:
             payload = ud.unsplit_qs(payload)
-        try:
-            r = self.module.fetch(
-                url.text,
-                deadline=deadline,
-                payload=payload,
-                method=method.upper(),
-                headers=headers,
-                follow_redirects=follow_redirects)
-            r.url = r.final_url if r.final_url else url.text
-        except self.errors.DeadlineExceededError as e:
-            log.error('{} : {}'.format(e.message, url.text))
-            return Response(url.text, None, {}, '', 404)
+        r = self.module.fetch(
+            url.text,
+            deadline=deadline,
+            payload=payload,
+            method=method.upper(),
+            headers=headers,
+            follow_redirects=follow_redirects)
+        r.url = r.final_url if r.final_url else url.text
         return Response(url.text, r)
 
     def _get_retry_exceptions(self):
