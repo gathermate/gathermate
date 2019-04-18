@@ -21,12 +21,12 @@ def hire_fetcher(module='requests', deadline=30, cache_timeout=60, cookie_timeou
 
 class Response(object):
 
-    def __init__(self, url, response):
+    def __init__(self, url, response=None, headers=None, content=None, status_code=404, final_url=None):
         self.url = url
-        self.headers = response.headers
-        self.content = response.content
-        self.status_code = response.status_code
-        self.final_url = response.url
+        self.headers = response.headers if response else headers
+        self.content = response.content if response else content
+        self.status_code = response.status_code if response else status_code
+        self.final_url = response.url if response else final_url
 
 
 class Fetcher(object):
@@ -205,6 +205,11 @@ class Requests(Fetcher):
 
 class Urlfetch(Fetcher):
 
+    def __init__(self, module, deadline=30, cache_timeout=60,
+                 cookie_timeout=0, cookie_path=None):
+        Fetcher.__init__(self, module, deadline, cache_timeout, cookie_timeout, cookie_path)
+        self.errors = importlib.import_module('google.appengine.api.urlfetch_errors')
+
     def _fetch(self, url, deadline=30, method='GET', payload=None, headers=None, follow_redirects=False):
         # Override
         if method.upper() == 'JSON':
@@ -213,14 +218,18 @@ class Urlfetch(Fetcher):
             method = 'POST'
         else:
             payload = ud.unsplit_qs(payload)
-        r = self.module.fetch(
-            url.text,
-            deadline=deadline,
-            payload=payload,
-            method=method.upper(),
-            headers=headers,
-            follow_redirects=follow_redirects)
-        r.url = r.final_url if r.final_url else url.text
+        try:
+            r = self.module.fetch(
+                url.text,
+                deadline=deadline,
+                payload=payload,
+                method=method.upper(),
+                headers=headers,
+                follow_redirects=follow_redirects)
+            r.url = r.final_url if r.final_url else url.text
+        except self.errors.DeadlineExceededError as e:
+            log.error('{} : {}'.format(e.message, url.text))
+            return Response(url.text, None, {}, '', 404)
         return Response(url.text, r)
 
     def _get_retry_exceptions(self):
