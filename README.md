@@ -84,8 +84,6 @@ chmod +x /opt/apps/install-gathermate.sh
 /opt/apps/install-gathermate.sh -u entware # 엔트웨어
 /opt/apps/install-gathermate.sh -u debian # 데비안
 ```
-##### 외부 접속 차단
-개별 설치하기를 참고하세요.
 
 ### 개별 설치하기
 Debian, Ubuntu는 `Windows Subsystem for Linux` 환경에서 테스트 했습니다.
@@ -203,27 +201,6 @@ sudo service gathermate start
 ```
 
 `공유기_주소:8181/scrap`로 접속하여 "Welcome" 페이지가 나오는지 확인.
-
-#### 6. 외부 접속 차단
-##### Entware on ASUS RT-AC68U aka T-mobile AC1900
-`/jffs/scripts/firewall-start`에 아래 내용을 추가합니다. `Insert`로 입력하기 때문에 역순으로 규칙이 적용됩니다.
-
-```shell
-#gunicorn
-iptables -I INPUT -p tcp --dport 8181 -j DROP # 3. 그 외의 모든 접속 차단
-iptables -I INPUT -p tcp -s 192.168.0.0/16 --dport 8181 -j ACCEPT # 2. 내부 아이피의 접속 허용
-iptables -I INPUT -p tcp -s localhost --dport 8181 -j ACCEPT # 1. localhost의 접속 허용
-```
-
-firewall 서비스 재실행
-```shell
-service restart_firewall
-```
-
-확인
-```shell
-iptables -L
-```
 
 설정하기
 --------
@@ -381,3 +358,8 @@ download_auth:
 
 ##### GAE
 현재 Google App Engine의 Python 3 환경은 무료 사용량의 초과분에 대한 결제가 필수입니다. 때문에 무료 사용량 초과시 차단되는 방식인 Python 2 Standard 환경에 맞추었습니다. [Google App Engine 시작하기](https://cloud.google.com/appengine/docs/standard/python/quickstart)
+
+### GAE 라이브러리 설치
+```shell
+pip install -r venv/gae/lib /opt/apps/gathermate/install/requirements-gae.txt
+```

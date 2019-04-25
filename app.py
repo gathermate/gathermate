@@ -15,6 +15,7 @@ from apps.common.exceptions import GathermateException
 from apps.common import logger
 from apps.common import urldealer as ud
 from apps.common.datastructures import MultiDict
+from apps.common import fetchers
 
 reload(sys)
 sys.setdefaultencoding('utf-8')
@@ -82,6 +83,15 @@ def to_robots():
 @app.route('/<path:path>')
 def index(path):
     return render_template('default.html')
+
+@app.route('/proxy')
+def proxy():
+    url = request.args.get('url')
+    if url:
+        fetcher = fetchers.hire_fetcher(**{k.lower(): v for k, v in app.config.get('FETCHER').iteritems()})
+        r = fetcher.fetch(url, follow_redirects=True)
+        return r.content, r.status_code
+    return render_template('proxy.html')
 
 @app.route('/404')
 def not_found_test():

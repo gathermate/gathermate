@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<head>
+  {%- block head %}
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>{%- block title %}Proxy{% endblock title %}</title>
+  <link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.ico') }}" type="image/x-icon" />
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+  {%- endblock head %}
+</head>
+<html>
+  <body class="bg-light">
+    <div class="mt-3 user-inputs">
+      <div class="input-group">
+        <input type="text" class="form-control" placeholder="URL" id="proxy-url" name="proxy-url" onkeydown="loadFromUrlEnter(this)" />
+        <div class="input-group-append">
+          <button class="btn btn-outline-secondary" type="button" id="proxy-button" onclick="loadFromUrl(document.getElementById('proxy-url'))">Proxy</button>
+        </div>
+      </div>
+    </div>
+    <section class="bg-white">
+        <div id="main-content">
+            {% if response %}
+            {{ response.content|safe }}
+            {% endif %}
+        </div>
+    </section>
+  </body>
+  <script>
+    function loadFromUrl(element){
+        var url = encodeURI(element.value);
+        window.location.href = "{{ url_for('proxy', url='') }}" + url;
+    }
+
+    function loadFromUrlEnter(element){
+        if(event.keyCode == 13){
+            loadFromUrl(element);
+        }
+    }
+    </script>
+</html>

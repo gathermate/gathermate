@@ -25,12 +25,12 @@ def hire_fetcher(module='requests', deadline=30, cache_timeout=60, cookie_timeou
 
 class Response(object):
 
-    def __init__(self, url, response):
+    def __init__(self, url, response=None, headers=None, content=None, status_code=None, final_url=None):
         self.url = url
-        self.headers = response.headers
-        self.content = response.content
-        self.status_code = response.status_code
-        self.final_url = response.url
+        self.headers = response.headers if response else headers
+        self.content = response.content if response else content
+        self.status_code = response.status_code if response else status_code
+        self.final_url = response.url if response else final_url
 
 
 class Fetcher(object):
@@ -42,7 +42,6 @@ class Fetcher(object):
     def __init__(self, module, deadline=30, cache_timeout=60,
                  cookie_timeout=0, cookie_path=None):
         self.set_config(module, deadline, cache_timeout, cookie_timeout, cookie_path)
-        self.current_response = None
 
     def get_config(self):
         return dict(module=self.module,
@@ -85,6 +84,7 @@ class Fetcher(object):
                     log.warning('Retry fetching...')
                     continue
                 log.error('%s, while fetching [%s]', e.message, url.text)
+                r = Response(url.text, None, headers={}, content=e.message, status_code=0, final_url=url.text)
             break
         if r:
             r.key = key
@@ -115,8 +115,6 @@ class Fetcher(object):
         return new_headers
 
     def _handle_response(self, url, r):
-        self.current_response = r
-        self.url = url.text
         status_code = str(r.status_code)
         if status_code[0] in ['4', '5']:
             log.error('Destination URL not working.\n' +
@@ -234,7 +232,7 @@ class Urlfetch(Fetcher):
                 follow_redirects=follow_redirects)
         except urlfetch_errors.DeadlineExceededError as dee:
             log.error(dee.message)
-            return None
+            return Response(url.text, None, headers={}, content=dee.message, status_code=500, final_url=url.text)
         r.url = r.final_url if r.final_url else url.text
         return Response(url.text, r)
 
