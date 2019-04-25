@@ -361,5 +361,5 @@ download_auth:
 
 ##### GAE 라이브러리 설치
 ```shell
-pip install -r venv/gae/lib /opt/apps/gathermate/install/requirements-gae.txt
+pip install -t venv/gae/lib -r install/requirements-gae.txt
 ```
