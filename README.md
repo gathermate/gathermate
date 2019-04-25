@@ -48,10 +48,6 @@ opt/
                 bin/
                 gae/
                     lib/
-                        chardet/
-                        concurrent/
-                        flask_caching/
-                        tld/
                 include/
                 lib/
                 local/
@@ -168,6 +164,12 @@ cp -r chardet concurrent flask_caching tld m3u8 iso8601 /opt/apps/gathermate/ven
 ```shell
 mkdir /opt/apps/gathermate/instance
 cp /opt/apps/gathermate/install/user_config.py /opt/apps/gathermate/instance/config.py
+```
+
+설정 파일을 다른 경로에 저장하고 싶을 경우 데몬 스크립트에서 환경 변수를 입력해 주세요.
+
+```bash
+export GATHERMATE_CONFIG=/opt/etc/myconfig.py
 ```
 
 ##### 데몬 스크립트 복사

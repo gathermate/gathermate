@@ -13,7 +13,7 @@ PRECMD="source $ACTIVATE"
 PREARGS=
 
 APP=app:app
-# 기본 포트 번호를 변경 후 외부 접속을 차단해주세요.
+# 기본 포트(8181)를 변경해 주세요.
 BIND=0.0.0.0:8181
 WORKERS=1
 LOGLEVEL=ERROR
@@ -30,6 +30,8 @@ export LC_ALL=en_US.UTF-8
 export TZ="$(cat /etc/TZ)"
 export PYTHONIOENCODING=utf-8
 
+# 설정 파일의 절대 경로
+export GATHERMATE_CONFIG=
 # instance/config.py 에서 사용할 정보를 입력해 주세요.
 export GATHERMATE_AUTH_ID=admin
 export GATHERMATE_AUTH_PW=password

@@ -21,13 +21,19 @@ reload(sys)
 sys.setdefaultencoding('utf-8')
 
 def create_app():
+    config_path = os.environ.get('GATHERMATE_CONFIG', '')
+    if not os.path.exists(config_path):
+        config_path = os.path.dirname(os.path.realpath(__file__)) + '/instance/config.py'
+        if not os.path.exists(config_path):
+            raise GathermateException('No config file found.')
     # Make flask instance
     app = Flask(__name__,
+                instance_path=os.path.dirname(config_path),
                 instance_relative_config=True,
                 static_folder='static',
                 template_folder='templates')
     # Set configuration.
-    app.config.from_pyfile('config.py', silent=True)
+    app.config.from_pyfile(os.path.basename(config_path), silent=True)
     app.config['SERVER_SOFTWARE'] = os.environ.get('SERVER_SOFTWARE', '')
     app.config['ROOT_DIR'] = os.path.dirname(os.path.abspath(__file__))
     software = app.config.get('SERVER_SOFTWARE')
@@ -41,7 +47,7 @@ def create_app():
     app.config.from_object(app.config.get(config_instance + '_INSTANCE'))
     logger.config(software, app.config['LOG_LEVEL'])
     app.logger.info('Server Software: %s', software)
-    app.logger.info('Config: %s', app.config['NAME'])
+    app.logger.info('Config: %s in %s', app.config['NAME'], config_path)
     caching.init(app, app.config, cache_type)
     # Register apps from config.
     app.managers = {}
