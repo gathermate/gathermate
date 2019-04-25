@@ -356,10 +356,10 @@ download_auth:
 그 밖에...
 ---------
 
-##### GAE
+#### GAE
 현재 Google App Engine의 Python 3 환경은 무료 사용량의 초과분에 대한 결제가 필수입니다. 때문에 무료 사용량 초과시 차단되는 방식인 Python 2 Standard 환경에 맞추었습니다. [Google App Engine 시작하기](https://cloud.google.com/appengine/docs/standard/python/quickstart)
 
-### GAE 라이브러리 설치
+##### GAE 라이브러리 설치
 ```shell
 pip install -r venv/gae/lib /opt/apps/gathermate/install/requirements-gae.txt
 ```
