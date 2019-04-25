@@ -22,24 +22,24 @@ class CallMeWhenManager(Manager):
 
     def request(self, order, query):
         if order == 'send':
-            messenser = Telegram(self.config)
+            messenser = Telegram(self.config, self._hire_fetcher())
             return messenser.send(query.get('sender', None), query.get('msg', ''))
 
 class Messenser(object):
 
-    def __init__(self, config):
+    def __init__(self, config, fetcher):
         self.config = config
+        self.fetcher = fetcher
 
     def fetch(self, *args, **kwargs):
-        fetcher = fetchers.hire_fetcher(**{k.lower(): v for k, v in self.config['FETCHER'].iteritems()})
-        return fetcher.fetch(*args, **kwargs)
+        return self.fetcher.fetch(*args, **kwargs)
 
     def send(self):
         raise NotImplementedError
 
 class Telegram(Messenser):
-    def __init__(self, config):
-        super(Telegram, self).__init__(config)
+    def __init__(self, config, fetcher):
+        super(Telegram, self).__init__(config, fetcher)
         self.__TOKEN = self.config['TELEGRAM_BOT_TOKEN']
         self.__CHAT_ID = self.config['TELEGRAM_CHAT_ID']
         self.BASE_URL = 'https://api.telegram.org/bot%s/' % self.TOKEN

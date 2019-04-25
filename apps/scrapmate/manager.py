@@ -3,7 +3,6 @@
 import logging
 
 import packer
-from apps.common import fetchers
 from apps.common.exceptions import GathermateException
 from apps.common import toolbox as tb
 from apps.common import urldealer as ud
@@ -54,7 +53,7 @@ class ScrapmateManager(Manager):
         }
         if config.get(class_.__name__, None):
             default_config.update(config.get(class_.__name__))
-        return class_(fetchers.hire_fetcher(**{k.lower(): v for k, v in self.config['FETCHER'].iteritems()}),
+        return class_(self._hire_fetcher(),
                       default_config['ENCODING'],
                       default_config['LOGIN_INFO'],
                       default_config['RSS_LENGTH'],

@@ -42,6 +42,7 @@ class Fetcher(object):
     def __init__(self, module, deadline=30, cache_timeout=60,
                  cookie_timeout=0, cookie_path=None):
         self.set_config(module, deadline, cache_timeout, cookie_timeout, cookie_path)
+        self.current_response = None
 
     def get_config(self):
         return dict(module=self.module,
@@ -55,7 +56,7 @@ class Fetcher(object):
         self.timeout = cache_timeout
         self.cookie_timeout = cookie_timeout
         self.deadline = deadline
-        self.cookie_path = cookie_path
+        Fetcher.cookie_path = cookie_path
 
     def fetch(self, url, payload=None, forced_update=False, cached=True, **kwargs):
         url = ud.Url(url) if type(url) is not ud.Url else url
@@ -104,17 +105,14 @@ class Fetcher(object):
             new_headers.update(headers)
             new_cookie = new_headers.pop('cookie', None)
             if new_cookie is not None:
-                self.set_cookie(str(new_cookie),
-                                url,
-                                path=self.cookie_path)
-        cookie = self.get_cookie(url,
-                                 tostring=True,
-                                 path=self.cookie_path)
+                self.set_cookie(str(new_cookie), url)
+        cookie = self.get_cookie(url, tostring=True)
         if cookie != '':
             new_headers['cookie'] = cookie
         return new_headers
 
     def _handle_response(self, url, r):
+        self.current_response = r
         status_code = str(r.status_code)
         if status_code[0] in ['4', '5']:
             log.error('Destination URL not working.\n' +
@@ -124,8 +122,7 @@ class Fetcher(object):
                       'Headers: %s' % r.headers)
         set_cookie = r.headers.get('set-cookie')
         if set_cookie:
-            self.set_cookie(set_cookie, url,
-                            path=self.cookie_path)
+            self.set_cookie(set_cookie, url)
 
     @staticmethod
     def get_cookie_key(url):
@@ -136,12 +133,12 @@ class Fetcher(object):
         return os.path.join(path, '%s.txt' % (url.domain if url.domain else url.hostname))
 
     @classmethod
-    def get_cookie(cls, url, tostring=False, path=None):
+    def get_cookie(cls, url, tostring=False):
         url = ud.Url(url) if type(url) is str else url
         cookie = ''
         try:
-            if path is not None and os.path.exists(path):
-                file = cls.get_cookie_file(url, path)
+            if cls.cookie_path is not None and os.path.exists(cls.cookie_path):
+                file = cls.get_cookie_file(url, cls.cookie_path)
                 if os.path.exists(file):
                     with open(file, 'r') as f:
                         cookie = f.read()
@@ -155,19 +152,19 @@ class Fetcher(object):
             return Cookie.SimpleCookie(str(cookie))
 
     @classmethod
-    def set_cookie(cls, cookie, url, path=None):
+    def set_cookie(cls, cookie, url):
         if type(url) is not ud.Url:
             url = ud.Url(url)
         if type(cookie) is not Cookie.SimpleCookie:
             cookie = Cookie.SimpleCookie(str(cookie))
         try:
-            cookies = cls.get_cookie(url, path=path)
+            cookies = cls.get_cookie(url)
             cookies.load(cookie)
             cookies = cookies.output(cls.COOKIE_ATTRS, header='', sep=';').strip()
-            if path is not None:
-                if not os.path.exists(path):
-                    os.makedirs(path)
-                with open(cls.get_cookie_file(url, path), 'w+' ) as f:
+            if cls.cookie_path is not None:
+                if not os.path.exists(cls.cookie_path):
+                    os.makedirs(cls.cookie_path)
+                with open(cls.get_cookie_file(url, cls.cookie_path), 'w+' ) as f:
                     f.write(cookies)
             else:
                 caching.cache.set(cls.get_cookie_key(url), cookies, timeout=0)
@@ -175,10 +172,10 @@ class Fetcher(object):
             log.warning(e.message)
 
     @classmethod
-    def reset_cookie(cls, url, path=None):
+    def reset_cookie(cls, url):
         url = ud.Url(url) if type(url) is str else url
-        if path is not None:
-            os.remove(cls.get_cookie_file(url, path))
+        if cls.cookie_path is not None:
+            os.remove(cls.get_cookie_file(url, cls.cookie_path))
         else:
             key = Fetcher.get_cookie_key(url)
             caching.cache.delete(key)

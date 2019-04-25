@@ -6,12 +6,12 @@ import copy
 
 class Flask(object):
     # 이 클래스를 기반으로 실제 설정값을 설정합니다.
-    NAME = 'Flask @ user_config.py'
+    NAME = 'Flask @ install/user_config.py'
     SECRET_KEY = os.urandom(8).encode('hex')
 
     # Flask 개발 서버의 로그 레벨입니다.
     # gunicorn과 GAE는 해당 서버의 로그 레벨을 따릅니다.
-    LOG_LEVEL = 'DEBUG'
+    LOG_LEVEL = 'INFO'
 
     # HTTP Basic Authentication에 사용될 아이디와 비밀번호입니다.
     # GAE은 app.yaml에서 환경 설정 값을 지정할 수 있으며
@@ -56,11 +56,9 @@ class Flask(object):
         # 목표 웹페이지의 응답을 기다리는 최대 시간(초)입니다.
         'DEADLINE': 45,
 
-        # 쿠키를 파일로 저장하려면 경로를 설정하세요.
-        # None 입력시 캐쉬에 저장.
-        # e.g. /opt/apps/gathermate/instance/cookies
-        #'COOKIE_PATH': os.path.join(os.path.dirname(os.path.abspath(__file__)), 'cookies'),
-        'COOKIE_PATH': None,
+        # 쿠키를 파일에 저장하려면 True, cache에 저장하려면 False를 입력하세요.
+        # 쿠키 파일은 설정 파일 폴더의 cookies 폴더에 저장됩니다.
+        'COOKIE_TO_FILE': True,
 
         # 쿠키를 캐시에 저장할 경우 지속 시간
         'COOKIE_TIMEOUT' : 0,
@@ -68,14 +66,12 @@ class Flask(object):
 
 
 class Localhost(Flask):
-    # 이 설정의 이름입니다.
+    # 실제 사용되는 설정입니다.
     NAME = 'Localhost @ user_config.py'
 
     # 이 설정에만 적용되는 값으로 수정하기 위해
     # 기본 설정값(Flask 클래스)을 복사합니다.
     FETCHER = copy.deepcopy(Flask.FETCHER)
-    FETCHER['COOKIE_PATH'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'cookies')
-
     SCRAPMATE = copy.deepcopy(Flask.SCRAPMATE)
     STREAMATE = copy.deepcopy(Flask.STREAMATE)
     CALLMEWHEN = copy.deepcopy(Flask.CALLMEWHEN)
@@ -141,6 +137,7 @@ class Localhost(Flask):
 
     STREAMATE.update(
         # m3u의 스트림 주소를 pipe 형태로 출력할 경우(m3u 요청시 쿼리에 ffmpeg path 지정) 사용되는 포맷입니다.
+        # {ffmpeg}은 ffmpeg의 경로, {url}은 스트림 주소로 변환됩니다.
         FFMPEG_COMMAND = 'pipe://{ffmpeg} -loglevel fatal -i {url} -c copy -f mpegts pipe:1',
         STREAMERS = {
             'Pooq': {
@@ -195,22 +192,22 @@ class Localhost(Flask):
 class GoogleAppEngine(Localhost):
     # GAE에서 사용할 환경 설정입니다.
     NAME = 'GoogleAppEngine @ user_config.py'
-    # GAE는 파일 쓰기 권한이 없으므로 쿠키를 캐시에 저장
+    # GAE는 파일 쓰기 권한이 없으므로 쿠키를 캐시에 저장합니다.
     FETCHER = copy.deepcopy(Localhost.FETCHER)
-    FETCHER['COOKIE_PATH'] = None
+    FETCHER['COOKIE_TO_FILE'] = False
     FETCHER['MODULE'] = 'google.appengine.api.urlfetch'
-    SCRAPMATE = copy.deepcopy(Localhost.SCRAPMATE)
-    SCRAPMATE['RSS_AGGRESSIVE'] = True
-    #APPS = [Localhost.SCRAPMATE, Localhost.CALLMEWHEN]
 
+
+# Localhost 설정의 인스턴스
 LOCALHOST_INSTANCE = Localhost()
+# GoogleAppEngine 설정의 인스턴스
 GOOGLEAPPENGINE_INSTANCE = GoogleAppEngine()
 
 '''
-사용자 등록 채널 목록
+사용자 정의 채널
 
-- 각 스트리머의 채널은 사용자 등록 채널 목록에서 지정된 채널 이름, 채널 번호, 채널 로고를 사용하게 됩니다.
-- 채널을 등록하지 않으면 스트리머의 기본값 사용.
+- 각 스트리머의 채널은 사용자 정의 채널에 존재할 경우 지정된 채널 이름, 채널 번호, 채널 로고를 사용하게 됩니다.
+- 채널을 등록하지 않으면 스트리머가 제공하는 정보를 사용합니다.
 - 등록된 채널만 EPG 검색을 시도합니다.
 - 형식 : '사용자채널ID':dict(name='채널이름',chnum=채널번호,그래버='그래버채널ID',그래버='그래버검색어',skip='그래버|그래버',only='그래버|그래버',logo='아이콘주소'),
 - 사용자채널ID : 채널 매핑에 사용할 채널 ID (e.g. tvg-id)

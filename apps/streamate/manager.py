@@ -11,7 +11,6 @@ from apps.common import urldealer as ud
 from apps.common.exceptions import GathermateException
 from apps.streamate import packer
 from apps.streamate import epggrabber
-from apps.common import fetchers
 
 log = logging.getLogger(__name__)
 
@@ -31,11 +30,12 @@ class StreamManager(Manager):
         for name in grabber_names:
             name = name.capitalize()
             if name in self.__epg_grabber_classes:
-                grabbers.append(self.__epg_grabber_classes[name](fetchers.hire_fetcher(**{k.lower(): v for k, v in self.config['FETCHER'].iteritems()})))
+                grabbers.append(
+                    self.__epg_grabber_classes[name](self._hire_fetcher()))
         if grabber_names and len(grabbers) < 1:
             raise KeyError('There is no grabber named : %s' % ', '.join(grabber_names))
         if len(grabbers) < 1:
-            grabbers = [class_(fetchers.hire_fetcher(**{k.lower(): v for k, v in self.config['FETCHER'].iteritems()})) for class_ in self.__epg_grabber_classes.itervalues()]
+            grabbers = [class_(self._hire_fetcher()) for class_ in self.__epg_grabber_classes.itervalues()]
         return grabbers
 
     def hire_streamers(self, *streamer_names):
@@ -50,7 +50,7 @@ class StreamManager(Manager):
         streamers = []
         for class_ in classes:
             streamers.append(class_(
-                fetchers.hire_fetcher(**{k.lower(): v for k, v in self.config['FETCHER'].iteritems()}),
+                self._hire_fetcher(),
                 mapped_channels=self.config['CHANNELS'],
                 **{k.lower(): v for k, v in self.config['STREAMERS'][class_.__name__].iteritems()}
                 ))

@@ -46,10 +46,10 @@ class Streamer(object):
         caching.cache.set(caching.create_key(self.CACHE_KEY), cached, timeout=timeout)
 
     def set_cookie(self, value, url=None):
-        self.fetcher.set_cookie(value, url or self.BASE_URL, path=self.fetcher.cookie_path)
+        self.fetcher.set_cookie(value, url or self.BASE_URL)
 
     def get_cookie(self, tostring=False):
-        return self.fetcher.get_cookie(self.BASE_URL, tostring=tostring, path=self.fetcher.cookie_path)
+        return self.fetcher.get_cookie(self.BASE_URL, tostring=tostring)
 
     def get_resource(self, url):
         r = self.fetch(url, referer=self.BASE_URL)

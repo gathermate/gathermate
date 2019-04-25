@@ -10,9 +10,9 @@ from flask import request
 from flask import send_from_directory
 from flask import render_template
 
+from apps.common import logger
 from apps.common import caching
 from apps.common.exceptions import GathermateException
-from apps.common import logger
 from apps.common import urldealer as ud
 from apps.common.datastructures import MultiDict
 from apps.common import fetchers
@@ -21,11 +21,18 @@ reload(sys)
 sys.setdefaultencoding('utf-8')
 
 def create_app():
-    config_path = os.environ.get('GATHERMATE_CONFIG', '')
-    if not os.path.exists(config_path):
-        config_path = os.path.dirname(os.path.realpath(__file__)) + '/instance/config.py'
-        if not os.path.exists(config_path):
-            raise GathermateException('No config file found.')
+    root_dir = os.path.dirname(os.path.realpath(__file__))
+    configs = [
+        os.environ.get('GATHERMATE_CONFIG', ''),
+        os.path.join(root_dir, 'instance/config.py'),
+        os.path.join(root_dir, 'install/user_config.py'),
+    ]
+    config_path = [config for config in configs if os.path.exists(config)]
+    if len(config_path) is 0:
+        os.system('echo "No config file found."')
+        sys.exit(1)
+    else:
+        config_path = config_path[0]
     # Make flask instance
     app = Flask(__name__,
                 instance_path=os.path.dirname(config_path),
@@ -35,7 +42,8 @@ def create_app():
     # Set configuration.
     app.config.from_pyfile(os.path.basename(config_path), silent=True)
     app.config['SERVER_SOFTWARE'] = os.environ.get('SERVER_SOFTWARE', '')
-    app.config['ROOT_DIR'] = os.path.dirname(os.path.abspath(__file__))
+    app.config['ROOT_DIR'] = root_dir
+    app.config['CONFIG_DIR'] = os.path.dirname(config_path)
     software = app.config.get('SERVER_SOFTWARE')
     if software.startswith('Google App Engine/') or software.startswith('Development/'):
         software = 'GoogleAppEngine'
@@ -45,6 +53,7 @@ def create_app():
         config_instance = 'LOCALHOST'
         cache_type = {'CACHE_TYPE': 'simple'}
     app.config.from_object(app.config.get(config_instance + '_INSTANCE'))
+    app.logger.setLevel(app.config['LOG_LEVEL'])
     logger.config(software, app.config['LOG_LEVEL'])
     app.logger.info('Server Software: %s', software)
     app.logger.info('Config: %s in %s', app.config['NAME'], config_path)
@@ -54,7 +63,8 @@ def create_app():
     should_send = False
     for app_config in app.config.get('APPS'):
         app_config.update(ROOT_DIR=app.config['ROOT_DIR'],
-                          FETCHER=app.config['FETCHER'])
+                          FETCHER=app.config['FETCHER'],
+                          CONFIG_DIR=app.config['CONFIG_DIR'])
         if app_config['NAME'] == 'Streamate':
             app_config['CHANNELS'] = app.config['CHANNELS']
         app.managers[app_config['NAME']] = importlib.import_module(app_config['MANAGER']).hire_manager(app_config)
