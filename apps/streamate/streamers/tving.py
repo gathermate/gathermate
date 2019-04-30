@@ -149,6 +149,10 @@ class Tving(HlsStreamer):
         else:
             response = self.fetch(stream_url, referer=self.PLAYER_URL % cid)
             variant = m3u8.loads(response.content)
+            if len(variant.playlists) is 0:
+                e = GathermateException('The playlist is empty : %s', stream_url.path)
+                self.caching.cache.set(self.caching.make_view_error_key(), e, timeout=self.fetcher.timeout)
+                raise e
             return ud.join(stream_url.text, variant.playlists[0].uri), play_seconds
 
     def get_quality(self, index):

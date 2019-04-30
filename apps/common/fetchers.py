@@ -92,7 +92,7 @@ class Fetcher(object):
             log.debug('%s%s %d %s',
                 url.netloc,
                 url.path[:5] + '...' + url.path[-12:] if url.path and len(url.path) > 20 else url.path,
-                r.status_code,
+                r.status_code if r.status_code else 0,
                 tb.size_text(len(r.content) if r.content else 0))
             self._handle_response(url, r)
         return r
@@ -120,9 +120,10 @@ class Fetcher(object):
                       'Content size: %d\n' % (len(r.content) if r.content else 0) +
                       'Status Code: %d\n' % r.status_code +
                       'Headers: %s' % r.headers)
-        set_cookie = r.headers.get('set-cookie')
-        if set_cookie:
-            self.set_cookie(set_cookie, url)
+        if r.headers:
+            set_cookie = r.headers.get('set-cookie')
+            if set_cookie:
+                self.set_cookie(set_cookie, url)
 
     @staticmethod
     def get_cookie_key(url):
