@@ -11,7 +11,7 @@ from concurrent import futures
 
 from apps.common.datastructures import MultiDict
 
-log = logging.getLogger(__name__)
+log = logging.getLogger()
 lock = threading.RLock()
 
 def get_epg(channel_map, grabbers, days=1):

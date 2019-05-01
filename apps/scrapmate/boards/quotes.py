@@ -7,7 +7,7 @@ from lxml import etree
 from apps.scrapmate.scraper import Scraper
 from apps.common.exceptions import GathermateException
 
-log = logging.getLogger(__name__)
+log = logging.getLogger()
 
 def register():
     return 'Scraper', Quotes

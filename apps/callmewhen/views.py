@@ -8,7 +8,7 @@ from flask import current_app as app
 
 from apps.common.auth import auth
 
-log = logging.getLogger(__name__)
+log = logging.getLogger()
 name = 'Callmewhen'
 cmw = Blueprint(
     name,

@@ -10,7 +10,7 @@ from apps.streamate.epggrabber import Program
 from apps.streamate.streamers import pooq
 from apps.common import urldealer as ud
 
-log = logging.getLogger(__name__)
+log = logging.getLogger()
 
 def register():
     return 'EpgGrabber', Pooq

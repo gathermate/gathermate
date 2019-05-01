@@ -11,7 +11,7 @@ from flask import Response
 from apps.common.auth import auth
 from apps.common import flask_helper as fh
 
-log = logging.getLogger(__name__)
+log = logging.getLogger()
 name = 'Streamate'
 streamate = Blueprint(
     name,

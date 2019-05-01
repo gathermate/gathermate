@@ -8,7 +8,7 @@ from flask import request
 
 from apps.common import caching
 
-log = logging.getLogger(__name__)
+log = logging.getLogger()
 
 def extract_query(*query):
     def wrapper(func):

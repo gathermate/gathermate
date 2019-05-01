@@ -18,7 +18,7 @@ from apps.common.exceptions import GathermateException
 from apps.streamate.streamer import HlsStreamer
 from apps.streamate.streamer import Channel
 
-log = logging.getLogger(__name__)
+log = logging.getLogger()
 
 def register():
     return 'Streamer', Tving

@@ -13,9 +13,8 @@ from apps.common import caching
 from apps.common.datastructures import MultiDict
 from apps.common import urldealer as ud
 from apps.common.exceptions import GathermateException
-from apps.streamate.views import name as app_name
 
-log = logging.getLogger(__name__)
+log = logging.getLogger()
 
 
 class Streamer(object):

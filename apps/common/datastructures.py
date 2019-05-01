@@ -3,7 +3,7 @@
 import logging
 from copy import deepcopy
 
-log = logging.getLogger(__name__)
+log = logging.getLogger()
 
 class MultiDict(dict):
     """

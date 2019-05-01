@@ -8,7 +8,7 @@ from flask import Response
 
 from apps.common import caching
 
-log = logging.getLogger(__name__)
+log = logging.getLogger()
 
 class Auth(object):
 

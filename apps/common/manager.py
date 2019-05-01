@@ -9,7 +9,7 @@ import logging
 from apps.common.exceptions import GathermateException
 from apps.common import fetchers
 
-log = logging.getLogger(__name__)
+log = logging.getLogger()
 
 class Manager(object):
 

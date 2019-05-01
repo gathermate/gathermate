@@ -3,32 +3,31 @@
 import logging
 from logging.config import dictConfig
 
-dictConfig({
-    'version': 1,
-    'formatters': {'default': {
-        'format': '%(asctime)s '
-                  '%(levelname)8s: '
-                  '%(message)s '
-                  '<%(name)s:%(filename)s:%(lineno)d>',
-        'datefmt': '%Y-%m-%d %H:%M:%S',
-    }},
-    'handlers': {
-        'default': {
-            'class': 'logging.StreamHandler',
-            'stream': 'ext://sys.stdout',
-            'formatter': 'default'
-        },
-    },
-    'root': {
-        'handlers': ['default']
-    }
-})
-
 def config(software, level):
-    if software == 'GoogleAppEngine':
-        return
     root = logging.getLogger()
     root.setLevel(level)
+    if software == 'GoogleAppEngine':
+        return
+    dictConfig({
+        'version': 1,
+        'formatters': {'default': {
+            'format': '%(asctime)s '
+                      '%(levelname)8s: '
+                      '%(message)s '
+                      '<%(name)s:%(filename)s:%(lineno)d>',
+            'datefmt': '%Y-%m-%d %H:%M:%S',
+        }},
+        'handlers': {
+            'default': {
+                'class': 'logging.StreamHandler',
+                'stream': 'ext://sys.stdout',
+                'formatter': 'default'
+            },
+        },
+        'root': {
+            'handlers': ['default']
+        }
+    })
     # chardet decode() logs TMI on DEBUG level.
     chardet_logger = logging.getLogger('chardet.charsetprober')
     chardet_logger.setLevel('WARNING')

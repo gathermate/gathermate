@@ -17,7 +17,7 @@ from flask import stream_with_context
 from apps.common.auth import auth
 from apps.common.exceptions import GathermateException
 
-log = logging.getLogger(__name__)
+log = logging.getLogger()
 name = 'Scrapmate'
 scrapmate = Blueprint(
     name,

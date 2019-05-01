@@ -7,7 +7,7 @@ from apps.scrapmate.scraper import BoardScraper
 from apps.common.exceptions import GathermateException
 from apps.common import urldealer as ud
 
-log = logging.getLogger(__name__)
+log = logging.getLogger()
 
 def register():
     return 'Scraper', Cineaste

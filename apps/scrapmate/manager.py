@@ -8,7 +8,7 @@ from apps.common import toolbox as tb
 from apps.common import urldealer as ud
 from apps.common.manager import Manager
 
-log = logging.getLogger(__name__)
+log = logging.getLogger()
 
 def hire_manager(config):
     packer.ACCEPTED_EXT = config['ACCEPTED_EXT']

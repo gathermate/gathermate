@@ -10,7 +10,7 @@ from flask import url_for
 from apps.common import urldealer as ud
 from apps.common import toolbox as tb
 
-log = logging.getLogger(__name__)
+log = logging.getLogger()
 
 ACCEPTED_EXT = []
 

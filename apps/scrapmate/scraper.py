@@ -11,7 +11,7 @@ from apps.common.exceptions import GathermateException
 from apps.common import urldealer as ud
 from apps.common import toolbox as tb
 
-log = logging.getLogger(__name__)
+log = logging.getLogger()
 
 class Scraper(object):
     def __init__(self, fetcher, encoding='utf-8', login_info=None):

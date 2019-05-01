@@ -12,7 +12,7 @@ from apps.streamate.epggrabber import EpgGrabber
 from apps.streamate.epggrabber import Program
 from apps.common import urldealer as ud
 
-log = logging.getLogger(__name__)
+log = logging.getLogger()
 
 def register():
     return 'EpgGrabber', Naver

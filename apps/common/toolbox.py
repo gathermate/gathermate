@@ -15,7 +15,7 @@ from difflib import SequenceMatcher
 from functools import wraps
 import inspect
 
-log = logging.getLogger(__name__)
+log = logging.getLogger()
 
 def timeit(method):
     @wraps(method)

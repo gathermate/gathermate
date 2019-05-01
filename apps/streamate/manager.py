@@ -12,7 +12,7 @@ from apps.common.exceptions import GathermateException
 from apps.streamate import packer
 from apps.streamate import epggrabber
 
-log = logging.getLogger(__name__)
+log = logging.getLogger()
 
 def hire_manager(config):
     return StreamManager(config)

@@ -9,7 +9,7 @@ from apps.common import fetchers
 from apps.common import urldealer as ud
 from apps.common import caching
 
-log = logging.getLogger(__name__)
+log = logging.getLogger()
 
 def hire_manager(config):
     return CallMeWhenManager(config)
