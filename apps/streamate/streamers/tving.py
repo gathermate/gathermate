@@ -21,7 +21,7 @@ from apps.streamate.streamer import Channel
 log = logging.getLogger()
 
 def register():
-    return 'Streamer', Tving
+    return 'Streamer_Disabled', Tving
 
 
 class Tving(HlsStreamer):
@@ -122,7 +122,8 @@ class Tving(HlsStreamer):
         stream = js.get('body', {}).get('stream')
         content = js.get('body', {}).get('content')
         if stream:
-            stream_url = self.decrypt(key, cid, stream['broadcast']['broad_url'])
+            stream_url = self.decrypt(stream['broadcast']['broad_url'].split('|')[0], cid, stream['broadcast']['broad_url'].split('|')[1])
+            log.debug('###### %s', stream_url)
         else:
             e = GathermateException('Stream URL is not available : %s', cid)
             self.caching.cache.set(self.caching.make_view_error_key(), e, timeout=self.fetcher.timeout)
@@ -180,6 +181,7 @@ class Tving(HlsStreamer):
         return cookie
 
     '''
+    #getEventListeners(document)['oocCreate'][0]['listener']
     def api_streamlist(self, cid, stream_code):
         ooc = 'height=1^isPrimary=true^pointerId=1^pointerType=mouse^pressure=0^tiltX=0^tiltY=0^twist=0^width=1^altKey=false^button=0^buttons=0^clientX=239^clientY=93^ctrlKey=false^layerX=170^layerY=93^metaKey=false^movementX=0^movementY=0^offsetX=31^offsetY=35^pageX=239^pageY=93^screenX=239^screenY=207^shiftKey=false^which=1^x=239^y=93^detail=1^bubbles=true^cancelBubble=false^cancelable=true^defaultPrevented=true^eventPhase=2^isTrusted=true^returnValue=false^timeStamp=69351.9603^type=click^AT_TARGET=2^BUBBLING_PHASE=3^CAPTURING_PHASE=1^NONE=0^'
         self.set_cookie('onClickEvent2=%s; Path=/; Domain=.tving.com' % ud.quote(ooc))
@@ -201,11 +203,13 @@ class Tving(HlsStreamer):
             teleCode=self.CS.get('teleCode'),
             screenCode=self.CS.get('screenCode'),
             streamCode=stream_code,
-            callingFrom='FLASH',
+            callingFrom='HTML5',
             networkCode=self.CS.get('networkCode'), osCode=self.CS.get('osCode'),
             info='y',
             mediaCode=cid))
-        return json.loads(self.fetch(url, referer=self.PLAYER_URL % cid).content)
+        r = self.fetch(url, referer=self.PLAYER_URL % cid)
+        log.debug(r.content)
+        return json.loads(r.content)
 
     def decrypt(self, key, media_code, value):
         key = base64.b64decode('Y2podip0dmluZyoqZ29vZC8=') + media_code[3:] + '/' + str(key)

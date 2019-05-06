@@ -61,6 +61,7 @@ class Tfreeca(BoardScraper):
             except:
                 GathermateException.trace_error()
 
+        '''
         url = ud.Url(r.url)
         if not url.query_dict.get('bo_table', [''])[0] == 'captions':
             iframe_xpath = r'//iframe[contains(@src, "info.php")]/@src'
@@ -78,6 +79,7 @@ class Tfreeca(BoardScraper):
                     yield {'name': name, 'link': link, 'type': 'magnet'}
                 except:
                     GathermateException.trace_error()
+        '''
 
         caption_xpath = r'//a[contains(@href, "file_download")]'
         script_regexp = re.compile(r'javascript:file_download\([\'"](.*)[\'"]\,\s[\'"](.*)[\'"]\);')
