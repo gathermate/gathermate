@@ -3,6 +3,10 @@
 import time
 import logging
 import re
+import base64
+import random
+import math
+import json
 
 from apps.scrapmate.scraper import BoardScraper
 from apps.common.exceptions import GathermateException
@@ -23,7 +27,7 @@ class Tfreeca(BoardScraper):
     def get_list(self, r):
         tree = self.etree(r, self.encoding)
 
-        list_xpath = r'//td[@class="subject"]/div/a[contains(@class, "stitle")]'
+        list_xpath = r'//td[@class="subject"]/div/a[2]'
         for e in tree.xpath(list_xpath):
             try:
                 title = e.xpath('string()').strip()
@@ -93,16 +97,42 @@ class Tfreeca(BoardScraper):
                 GathermateException.trace_error()
 
     def get_file(self, url, ticket):
-        key_xpath = r'//form/input[@name="key"]/@value'
-
         tree = self.fetch_and_etree(url,
                                     referer=ticket['referer'],
                                     encoding=self.encoding)
-
-        key = tree.xpath(key_xpath)
-        log.info("Wait for Linktender's countdown...")
-        time.sleep(3)
-        log.info('Start download on Linktender...')
-
-        return self.fetch('http://file.filetender.com/Execdownload.php?link=%s' % key,
-                          referer=url.text)
+        forms = tree.xpath(r'//form[@id="Down"]')
+        inputs = {}
+        for form in forms:
+            for inpt in form.findall('.//input'):
+                inputs[inpt.get('name')] = inpt.get('value')
+        payload = {
+            'aid': tree.xpath(r'//a[@id="TencentCaptcha"]')[0].get('data-appid'),
+            'accver': 1,
+            'showtype': 'popup',
+            'ua': base64.b64encode(self.fetcher.HEADERS['User-Agent']),
+            'noheader': 1,
+            'fb': 1,
+            'fpinfo': 'fpsig=undefined',
+            'grayscale': 1,
+            'clienttype': 2,
+            'cap_cd': '',
+            'uid': '',
+            'wxLang': '',
+            'subsid': 1,
+            'callback': '_aq_%d' % math.floor(1e6 * random.random()) ,
+            'sess': '',
+        }
+        captcha_url = ud.Url('https://ssl.captcha.qq.com/cap_union_prehandle').update_query(payload)
+        r  = self.fetch(captcha_url, referer=url.text)
+        match = re.search(r'_aq_\d+\((\{.+\})\)', r.content)
+        if match:
+            js = json.loads(match.group(1))
+            inputs['Ticket'] = js['ticket']
+            inputs['Randstr'] = js['randstr']
+            down_url = ud.Url('http://file.filetender.com/file.php').update_query(inputs)
+            log.info("Wait for Linktender's countdown...")
+            time.sleep(3)
+            log.info('Start download on Linktender...')
+            return self.fetch(down_url, referer=url.text)
+        else:
+            raise GathermateException('Failed to pass captcha.')
