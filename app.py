@@ -42,8 +42,6 @@ def create_app():
     # Set configuration.
     app.config.from_pyfile(os.path.basename(config_path), silent=True)
     app.config['SERVER_SOFTWARE'] = os.environ.get('SERVER_SOFTWARE', '')
-    app.config['ROOT_DIR'] = root_dir
-    app.config['CONFIG_DIR'] = os.path.dirname(config_path)
     software = app.config.get('SERVER_SOFTWARE')
     if software.startswith('Google App Engine/') or software.startswith('Development/'):
         software = 'GoogleAppEngine'
@@ -62,9 +60,9 @@ def create_app():
     app.managers = {}
     should_send = False
     for app_config in app.config.get('APPS'):
-        app_config.update(ROOT_DIR=app.config['ROOT_DIR'],
+        app_config.update(ROOT_DIR=app.root_path,
                           FETCHER=app.config['FETCHER'],
-                          CONFIG_DIR=app.config['CONFIG_DIR'])
+                          CONFIG_DIR=app.instance_path)
         if app_config['NAME'] == 'Streamate':
             app_config['CHANNELS'] = app.config['CHANNELS']
         app.managers[app_config['NAME']] = importlib.import_module(app_config['MANAGER']).hire_manager(app_config)

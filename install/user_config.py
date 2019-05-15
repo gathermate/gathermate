@@ -5,7 +5,7 @@ import copy
 
 
 class Flask(object):
-    # 이 클래스를 기반으로 실제 설정값을 설정합니다.
+    # 이 클래스를 기반으로 실제 설정값을 override 합니다.
     NAME = 'Flask @ install/user_config.py'
     SECRET_KEY = os.urandom(8).encode('hex')
 

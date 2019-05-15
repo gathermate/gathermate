@@ -2,6 +2,7 @@
 
 import os
 import glob
+import imp
 import inspect
 import importlib
 import logging
@@ -28,18 +29,26 @@ class Manager(object):
 
     def _register_modules(self, package, module_type, parent_class=None):
         modules = {}
-        modules_path = '{}/'.format(os.path.join(self.config['ROOT_DIR'], package.replace('.', '/')))
-        for file in glob.iglob("{}[!_]*.py".format(modules_path)):
-            fname, fext = os.path.splitext(os.path.basename(file))
-            module = importlib.import_module('{}.{}'.format(package, fname))
-            try:
-                type_, class_ = module.register()
-            except AttributeError:
-                log.warning('[%s%s] doesn\'t have register() function.', fname, fext)
-                continue
-            if type_ == module_type:
-                modules.update({class_.__name__: class_})
-                log.info("%s class is registered as %s.", class_.__name__, type_)
+        default_path = os.path.join(self.config['ROOT_DIR'], package.replace('.', '/'))
+        user_path = os.path.join(self.config['CONFIG_DIR'], default_path.split('/')[-1])
+        for m_path in [default_path, user_path]:
+            for file in glob.iglob("{}/[!_]*.py".format(m_path)):
+                fname, fext = os.path.splitext(os.path.basename(file))
+                if m_path == default_path:
+                    module = importlib.import_module('{}.{}'.format(package, fname))
+                elif m_path == user_path:
+                    module = imp.load_source(package, file)
+                try:
+                    type_, class_ = module.register()
+                except AttributeError:
+                    log.warning('[%s%s] doesn\'t have register() function.', fname, fext)
+                    continue
+                if type_ == module_type:
+                    if class_.__name__ in modules:
+                        log.info("%s class is overridden from %s", class_.__name__, file)
+                    else:
+                        log.info("%s class is registered as %s", class_.__name__, type_)
+                    modules.update({class_.__name__: class_})
         return modules
 
     def _get_class_of(self, module, class_):

@@ -19,11 +19,7 @@ from apps.common.exceptions import GathermateException
 
 log = logging.getLogger()
 name = 'Scrapmate'
-scrapmate = Blueprint(
-    name,
-    __name__,
-    template_folder='templates',
-    static_folder='static')
+scrapmate = Blueprint(name, __name__)
 
 @scrapmate.route('/', strict_slashes=False)
 @auth.requires_auth
