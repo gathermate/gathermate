@@ -34,11 +34,14 @@ def create_app():
     else:
         config_path = config_path[0]
     # Make flask instance
+    instance_path = os.path.dirname(config_path)
+    static_folder = instance_path + '/static' if os.path.exists(instance_path + '/static') else 'static'
+    template_folder = instance_path + '/templates' if os.path.exists(instance_path + '/templates') else 'templates'
     app = Flask(__name__,
-                instance_path=os.path.dirname(config_path),
+                instance_path=instance_path,
                 instance_relative_config=True,
-                static_folder='static',
-                template_folder='templates')
+                static_folder=static_folder,
+                template_folder=template_folder)
     # Set configuration.
     app.config.from_pyfile(os.path.basename(config_path), silent=True)
     app.config['SERVER_SOFTWARE'] = os.environ.get('SERVER_SOFTWARE', '')
