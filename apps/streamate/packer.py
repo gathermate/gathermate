@@ -91,7 +91,7 @@ def pack_epg(channel_generator):
         dp_name = etree.SubElement(channel, 'display-name')
         dp_name.text = unicode(ch.get('name'))
         icon = etree.SubElement(channel, 'icon')
-        icon.set('src', ch.get('logo'))
+        icon.set('src', unicode(ch.get('logo')))
         epg = ch.get('epg')
         if epg.get('source'):
             channel.set('source-info-name', epg.get('source'))

@@ -242,6 +242,7 @@ CHANNELS = {
 'ASIAN':dict(name='AsiaN',chnum=42,kt=111,lg=658,sky=976,pooq='C5101',oksusu=177,logo='http://img.pooq.co.kr/BMS/ChannelImg/AsiaN.png'),
 'CHANNELJ':dict(name='CHANNEL J',chnum=43,epgcokr=290,kt=108,lg=656,sky=973,pooq='C5501',logo='http://img.pooq.co.kr/BMS/ChannelImg/CH_J_TV.png'),
 'CHANNELW':dict(name='채널W',chnum=44,epgcokr=518,kt=116,lg=161,sky=518,pooq='C3901',logo='https://tv.kt.com/relatedmaterial/ch_logo/live/116.png'),
+'UXN':dict(name='UXN',chnum=45,lg=818,sky=624,epgcokr=624,logo='https://static.skylife.co.kr/upload/channel/201608/logo_uxn_1.png'),
 # 다큐/교양: 70-
 'KBSN-LIFE':dict(name='KBSN Life',chnum=70,epgcokr=168,kt=281,lg=582,sky=291,pooq='K05',logo='https://tv.kt.com/relatedmaterial/ch_logo/live/281.png'),
 'YTN-LIFE':dict(name='YTN Life',chnum=71,kt=190,lg=655,sky=502,tving='C01101',logo='http://image.tving.com/upload/cms/caic/CAIC0400/C01101.png'),
@@ -277,6 +278,8 @@ CHANNELS = {
 'ZHTV':dict(name='중화TV',chnum=125,epgcokr=664,kt=110,lg=725,sky=664,tving='C00544',logo='http://image.tving.com/upload/cms/caic/CAIC0400/C00544.png'),
 'MNET':dict(name='Mnet',chnum=126,epgcokr=27,kt=27,lg=687,sky=273,tving='C00579',logo='http://image.tving.com/upload/cms/caic/CAIC0300/C00579.png'),
 'KBSN-PLUS':dict(name='KBSN PLUS',chnum=129,pooq='K23',skip='naver',logo='http://img.pooq.co.kr/BMS/Channelimage30/image/KBSN-2.png'),
+'E-CHANNEL':dict(name='E 채널',chnum=130,kt=48,lg=712,sky=108,epgcokr=108,logo='https://tv.kt.com/relatedmaterial/ch_logo/live/48.png'),
+'CNTV':dict(name='CNTV',chnum=131,kt=68,lg=609,sky=83,epgcokr=355,logo='https://tv.kt.com/relatedmaterial/ch_logo/live/68.png'),
 # 스포츠/레저: 200-
 'SBS-SPORTS':dict(name='SBS Sports',chnum=200,kt=58,lg=613,sky=977,pooq='S02',logo='https://tv.kt.com/relatedmaterial/ch_logo/live/58.png'),
 'SBS-GOLF':dict(name='SBS 골프',chnum=201,kt=57,lg=614,sky=769,epgcokr=44,oksusu=350,logo='http://image.oksusu.com:8080/thumbnails/image/0_0_F20/live/logo/387/nsepg_350.png'),
@@ -313,6 +316,7 @@ CHANNELS = {
 # 해외: 400-449
 'CNN-INTERNATIONAL':dict(name='CNN Int’l',chnum=400,kt=191,lg=729,sky=117,epgcokr=117,oksusu=774,logo='http://image.oksusu.com:8080/thumbnails/image/0_0_F20/live/logo/387/nsepg_774.png'),
 'CCTV4':dict(name='CCTV4',chnum=401,kt=280,lg=178,sky=159,pooq='K12',skip='daum',logo='http://img.pooq.co.kr/BMS/ChannelImg/10_CCTV.png'),
+'arirang.com':dict(name='Arirang',kt=200,lg=601,sky=50,epgcokr=50,chnum=402,logo='https://tv.kt.com/relatedmaterial/ch_logo/live/200.png'),
 # 공공/공익/정보: 450-499
 'NATV':dict(name='국회방송',chnum=450,kt=65,lg=717,sky=427,epgcokr=427,oksusu=221,logo='http://image.oksusu.com:8080/thumbnails/image/0_0_F20/live/logo/387/nsepg_221.png'),
 # 홈쇼핑/기타: 500-549
@@ -329,6 +333,8 @@ CHANNELS = {
 'NSMALL':dict(name='NS홈쇼핑',chnum=510,kt=12,lg=673,sky=496,epgcokr=133,oksusu=322,logo='http://image.oksusu.com:8080/thumbnails/image/0_0_F20/live/logo/387/nsepg_322.png'),
 'SKSTOA':dict(name='SK stoa',chnum=511,kt=4,lg=738,sky=529,oksusu=330,skip='daum|naver',logo='http://image.oksusu.com:8080/thumbnails/image/0_0_F20/live/logo/387/nsepg_330.png'),
 'GONGYOUNGSHOP':dict(name='공영쇼핑',chnum=512,kt=22,lg=737,sky=632,oksusu=332,skip='naver',logo='http://image.oksusu.com:8080/thumbnails/image/0_0_F20/live/logo/387/nsepg_332.png'),
+'kshop.co.kr':dict(name='K쇼핑',chnum=513,kt=20,lg=811,sky=708,logo='https://tv.kt.com/relatedmaterial/ch_logo/live/20.png'),
+'w-shopping.co.kr':dict(name='더블유쇼핑',chnum=514,kt=40,lg=813,sky=640,logo='https://tv.kt.com/relatedmaterial/ch_logo/live/039c311971027110124.png'),
 # 오디오: 1000-
 'KBS1-RADIO':dict(name='KBS1 RADIO',chnum=1000,pooq='K07',logo='http://img.pooq.co.kr/BMS/ChannelImg/44_kbs%201%20radio.png'),
 'KBS2-RADIO':dict(name='KBS2 FM',chnum=1001,pooq='K08',logo='http://img.pooq.co.kr/BMS/ChannelImg/45_KBS%20coolFM.png'),
