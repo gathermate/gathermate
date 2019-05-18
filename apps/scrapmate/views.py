@@ -24,12 +24,12 @@ scrapmate = Blueprint(name, __name__)
 @scrapmate.route('/', strict_slashes=False)
 @auth.requires_auth
 def index():
-    return render_template('index.html')
+    return render_template('scrapmate/index.html')
 
 @scrapmate.route('/encode', methods=['GET'])
 @auth.requires_auth
 def quote():
-    return render_template('encode.html')
+    return render_template('scrapmate/encode.html')
 
 @scrapmate.route('/<path:site>/<path:board>/rss', methods=['GET'])
 @auth.requires_auth
@@ -68,7 +68,7 @@ def order_down(data):
 
 def order_list(data):
     pagination = Pagination(data['current_page'], data['max_page'])
-    return render_template('list.html',
+    return render_template('scrapmate/list.html',
                            index=request.args.get('index'),
                            pagination=pagination,
                            title='Scrapmate',
@@ -76,7 +76,7 @@ def order_list(data):
                            articles=data['articles'])
 
 def order_item(data):
-    return render_template('view.html', items=data)
+    return render_template('scrapmate/view.html', items=data)
 
 def order_page(data):
     return data
@@ -99,7 +99,7 @@ def unhandled_exception(e):
         return render_template_string(GathermateException.VIEW_ERROR_TEMPLATE,
                                       msg=err_message,
                                       response=content)
-    return render_template('index.html',
+    return render_template('scrapmate/index.html',
                            error_msg=err_message,
                            response=content)
 

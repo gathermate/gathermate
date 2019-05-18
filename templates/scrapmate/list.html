@@ -1,4 +1,4 @@
-{%- extends "index.html" %}
+{%- extends "scrapmate/index.html" %}
 {%- set path = request.path.split('/') %}
 {%- set remote_url = request.args.get('url') %}
 {% macro render_pagination(pagination) %}

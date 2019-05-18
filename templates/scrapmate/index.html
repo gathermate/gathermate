@@ -1,4 +1,4 @@
-{%- extends "base_layout.html" %}
+{%- extends "scrapmate/base_layout.html" %}
 {%- block title %}Scrapmate{% endblock %}
 {%- block sidebaritem %}
 
@@ -34,12 +34,19 @@
   ['tmovie', '영화'], ['tdrama', '드라마'], ['tent', '예능'], ['tv', 'TV프로'], ['tani', '애니메이션'], ['tmusic', '음악'], ['util', '유틸리티'],
 ] -%}
       {{ render_index('https://www.torrentzoa.com/', 'torrentzoa', '토렌x조아', menu) }}
+
+{%- set menu = [
+  ['tmovie', '영화'], ['tent', '예능'], ['tdrama', '드라마'], ['tv', 'TV'], ['tani', '애니'], ['tmusic', '음악'], ['util', '유틸'],
+] -%}
+      {{ render_index('https://www.torrentmi.com/', 'torrentmi', '토x트미', menu) }}
+
 -->
 
 {%- set menu = [
-  ['ko_movie', '한국영화'], ['movie', '외국영화'], ['ent', '예능'], ['drama', '드라마'], ['en_drama', '외국드라마'], ['daq', '다큐'], ['ani', '애니'], ['kids', '어린이'], ['toon', '만화'], ['game', '게임'], ['mo_game', '모바일게임'],
+  ['torrent_movie', '외국영화'], ['torrent_kmovie', '한국영화'],  ['torrent_ent', '예능'], ['torrent_drama', '드라마'], ['torrent_docu', '다큐'], ['torrent_video', '뮤비'], ['torrent_sports', '스포츠'], ['torrent_ani', '애니'], ['torrent_music', '음악'], ['torrent_game', '게임'], ['torrent_mobile', '모바일'], ['torrent_util', '유틸'], ['torrent_toon', '만화'], ['torrent_book', '도서'], ['torrent_kids', '어린이'],
 ] -%}
-      {{ render_index('https://torrentboza.com/', 'boza', '토x트보자', menu) }}
+      {{ render_index('https://torrenthaja1.com/', 'haja', '토x트하자', menu) }}
+
 
 {%- set menu = [
   ['t11', '영화'], ['t21', '드라마'], ['t22', '예능오락'], ['t23', '시사교양'], ['t24', '티비모음'], ['t31', '외국티비'], ['t32', '스포츠'], ['t33', '애니메이션'], ['t34', '외국티비모음'], ['t41', '음악'], ['t51', '피시게임'], ['t52', '피시유틸'], ['t53', '휴대기기'], ['a11', '유모토렌트'], ['a12', '노모토렌트'], ['a13', '서양토렌트'],
@@ -47,24 +54,16 @@
       {{ render_index('https://tocafe.net', 'tocafe', '토x페', menu) }}
 
 {%- set menu = [
+  ['ko_movie', '한국영화'], ['movie', '외국영화'], ['ent', '예능'], ['drama', '드라마'], ['en_drama', '외국드라마'], ['daq', '다큐'], ['ani', '애니'], ['kids', '어린이'], ['toon', '만화'], ['game', '게임'], ['mo_game', '모바일게임'],
+] -%}
+      {{ render_index('https://torrentboza.com/', 'boza', '토x트보자', menu) }}
+
+
+{%- set menu = [
   ['free_data', '공개자료실'], ['free_todata', '공개토렌트'], ['data_movie', '영화릴'], ['data_any', '애니릴'], ['data_kortv', '국내TV릴'],
   ['data_worldtv', '해외TV릴'], ['data_game', '게임릴'], ['data_worldmusic', '해외음원릴'],
 ] -%}
       {{ render_index('http://www.etoland.co.kr/', 'etoland', '이x랜드', menu) }}
-
-<!--
-{%- set menu = [
-  ['torrent_movie', '외국영화'], ['torrent_kmovie', '한국영화'],  ['torrent_ent', '예능'], ['torrent_drama', '드라마'], ['torrent_docu', '다큐'], ['torrent_video', '뮤비'], ['torrent_sports', '스포츠'], ['torrent_ani', '애니'], ['torrent_music', '음악'], ['torrent_game', '게임'], ['torrent_mobile', '모바일'], ['torrent_util', '유틸'], ['torrent_toon', '만화'], ['torrent_book', '도서'], ['torrent_kids', '어린이'],
-] -%}
-      {{ render_index('https://torrenthaja.com/', 'haja', '토x트하자', menu) }}
-
-
-
-{%- set menu = [
-  ['tmovie', '영화'], ['tent', '예능'], ['tdrama', '드라마'], ['tv', 'TV'], ['tani', '애니'], ['tmusic', '음악'], ['util', '유틸'],
-] -%}
-      {{ render_index('https://www.torrentmi.com/', 'torrentmi', '토x트미', menu) }}
--->
 
 {%- set menu = [
   ['psd_caption', '자막자료실'], ['psd_dramacap', '드라마자막']

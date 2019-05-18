@@ -16,7 +16,7 @@ def register():
     return 'Scraper', Torrenthaja
 
 class Torrenthaja(BoardScraper):
-    URL = 'https://torrenthaja.com/'
+    URL = 'https://torrenthaja1.com/'
     LIST_URL = ud.join(URL, '/bbs/board.php?bo_table=%s')
     SEARCH_QUERY = u'sca=&sop=and&sfl=wr_subject&stx=%s'
     PAGE_QUERY = u'page=%d'
@@ -96,7 +96,9 @@ class Torrenthaja(BoardScraper):
         method = ticket.get('method', 'GET')
         if payload:
             payload = ud.split_qs(payload)
-        if self.config.get('RSS_AGGRESSIVE'):
+            log.debug('########## %s', url)
+            log.debug('########## %s', payload)
+        if self.aggressive:
             self.fetch(ud.Url(ticket['referer']), referer=self.URL)
         return self.fetch(url,
                           referer=ticket['referer'],
