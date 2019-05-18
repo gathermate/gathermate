@@ -3,8 +3,6 @@
 import re
 import logging
 
-from lxml import etree
-
 from apps.scrapmate.scraper import BoardScraper
 from apps.common.exceptions import GathermateException
 from apps.common import urldealer as ud
