@@ -32,10 +32,10 @@ class Wal(BoardScraper):
             path = url.path.split('/')
             url.path = '/{}/{}'.format(path[1], self.PAGE_QUERY % int(num))
 
+    S_READ_REGEXP = re.compile(r'\("(.+?)",\s"(.+?)"\)')
+    CATEGORY_REGEXP = re.compile(r'^\[(.*?)\]')
     def get_list(self, r):
         tree = self.etree(r, encoding=self.encoding)
-
-        s_read_regexp = re.compile(r'\("(.+?)",\s"(.+?)"\)')
         list_xpath = r'//table[@class="board_list"]/tr'
         for tr in tree.xpath(list_xpath):
             try:
@@ -50,7 +50,7 @@ class Wal(BoardScraper):
                 link = a.get('href')
                 id_ = self.get_id_num(link)
                 if id_ < 0:
-                    match = s_read_regexp.search(str(a.get('onclick')))
+                    match = self.S_READ_REGEXP.search(str(a.get('onclick')))
                     if match:
                         board = match.group(1)
                         id_ = int(match.group(2))
@@ -63,16 +63,14 @@ class Wal(BoardScraper):
                 yield {'id': id_, 'title': title, 'link': link, 'etc': re.sub('[\[\]]', '', info)}
             except:
                 GathermateException.trace_error()
-
-        category_regexp = re.compile(r'^\[(.*?)\]')
         if ud.Url(r.url).path == '':
             pop_xpath = r'//ol[@id="latest_popular"]/li/a'
             root = tree.xpath(pop_xpath)
             length = len(root)
             for idx, e in enumerate(root):
                 try:
-                    title = re.sub(category_regexp, '', e.text.strip())
-                    match = category_regexp.search(e.text.strip())
+                    title = re.sub(self.CATEGORY_REGEXP, '', e.text.strip())
+                    match = self.CATEGORY_REGEXP.search(e.text.strip())
                     cate = match.group(1) if match is not None else '기타'
                     link = e.get('href')
                     id_ = length - idx
@@ -81,33 +79,39 @@ class Wal(BoardScraper):
                 except:
                     GathermateException.trace_error()
 
+    SCRIPT_REGEXP = re.compile(r'\'(.+?)\'')
+    ITEM_XPATH = r'//table[@id="file_table"]//a'
+    LOCATION_REGEXP = re.compile(r'document.location.href=[\'"](.+)[\'"];')
     def get_item(self, r):
         root = self.etree(r, encoding=self.encoding)
-
-        item_xpath = r'//table[@id="file_table"]/tr/td/a'
-        script_regexp = re.compile(r'javascript:file_download\(\'(.*?)\',.?\'(.*?)\'\)')
-        location_regexp = re.compile(r'document.location.href=[\'"](.+)[\'"];')
-        for a in root.xpath(item_xpath):
+        for a in root.xpath(self.ITEM_XPATH):
             try:
+                name = re.sub(r'\((?:.(?!\())+$', '', a.xpath('string()').strip()).strip()
+                onclick = a.get('onclick')
+                if onclick:
+                    match = self.SCRIPT_REGEXP.search(onclick)
+                    if match:
+                        link = match.group(1)
+                        yield {'name': name, 'link': link, 'type': 'file'}
+                        continue
                 href = a.get('href')
-                match = script_regexp.search(href)
-                if match:
-                    second_link = ud.Url(ud.join(self.URL, match.group(1)))
-                    if second_link.path.split('/')[-1].startswith('magnet'):
-                        r = self.fetch(second_link, referer=r.url)
-                        location_match = location_regexp.search(r.content)
+                matches = self.SCRIPT_REGEXP.findall(href)
+                if matches:
+                    link = matches[0]
+                    if 'magnet' in link:
+                        magnet_page = ud.Url(ud.join(self.URL, link))
+                        magnet_r = self.fetch(magnet_page, referer=r.url)
+                        location_match = self.LOCATION_REGEXP.search(magnet_r.content)
                         if location_match:
                             link = location_match.group(1)
                             name = ud.split_qs(link)['dn']
                             yield {'name': name, 'link': link, 'type': 'magnet'}
                     else:
-                        link = second_link.text
-                        name = match.group(2)
+                        name = matches[1]
                         yield {'name': name, 'link': link, 'type': 'file'}
                 else:
-                    link = ud.join(self.URL, href)
-                    name = re.sub(r'\((?:.(?!\())+$', '', a.xpath('string()').strip()).strip()
-                    yield {'name': name, 'link': link, 'type': 'file'}
+                    yield {'name': name, 'link': href, 'type': 'file'}
+
             except:
                 GathermateException.trace_error()
 

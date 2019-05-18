@@ -261,7 +261,7 @@ class BoardScraper(Scraper):
                     item['ticket'] = {}
                 item['ticket']['referer'] = article_url.text
                 log.debug('[%s] @ [%s]', item['name'], item['link'])
-                if item['type'] == 'file' and not ud.Url(item['link']).netloc:
+                if item['type'] == 'file' and not ud.Url(item['link']).hostname:
                     item['link'] = unicode(ud.join(article_url.text, item['link']))
         except:
             GathermateException.trace_error()
