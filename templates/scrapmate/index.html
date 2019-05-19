@@ -20,12 +20,6 @@
 {%- endmacro %}
 
 {%- set menu = [
-  ['torrent_popular', '인기', 'list', 'https%3A%2F%2Ftorrentwal.com'], ['torrent_movie', '영화'], ['torrent_variety', '예능'],  ['torrent_tv', '드라마'], ['torrent_docu', '다큐'], ['torrent_sports', '스포츠'], ['torrent_util', '유틸'],  ['torrent_ani', '애니'], ['torrent_song', '음원'], ['torrent_game', '게임'], ['torrent_mid', '해외TV'],  ['torrent_child', '어린이'], ['torrent_etc', '기타'], ['torrent_iphone', '휴대기기'], ['torrent_book', '도서'],
-] -%}
-      {{ render_index('https://torrentwal.com/', 'wal', '토x트왈', menu) }}
-
-<!--
-{%- set menu = [
   ['tmovie', '영화'], ['tent', '예능'], ['tdrama', '드라마'], ['tv', 'TV'], ['tani', '애니'], ['tmusic', '음악'], ['util', '유틸'],
 ] -%}
       {{ render_index('https://www.tfreeca22.com/home.php', 'tfreeca', '티프리x', menu) }}
@@ -40,7 +34,10 @@
 ] -%}
       {{ render_index('https://www.torrentmi.com/', 'torrentmi', '토x트미', menu) }}
 
--->
+{%- set menu = [
+  ['torrent_popular', '인기', 'list', 'https%3A%2F%2Ftorrentwal.com'], ['torrent_movie', '영화'], ['torrent_variety', '예능'],  ['torrent_tv', '드라마'], ['torrent_docu', '다큐'], ['torrent_sports', '스포츠'], ['torrent_util', '유틸'],  ['torrent_ani', '애니'], ['torrent_song', '음원'], ['torrent_game', '게임'], ['torrent_mid', '해외TV'],  ['torrent_child', '어린이'], ['torrent_etc', '기타'], ['torrent_iphone', '휴대기기'], ['torrent_book', '도서'],
+] -%}
+      {{ render_index('https://torrentwal.com/', 'wal', '토x트왈', menu) }}
 
 {%- set menu = [
   ['torrent_movie', '외국영화'], ['torrent_kmovie', '한국영화'],  ['torrent_ent', '예능'], ['torrent_drama', '드라마'], ['torrent_docu', '다큐'], ['torrent_video', '뮤비'], ['torrent_sports', '스포츠'], ['torrent_ani', '애니'], ['torrent_music', '음악'], ['torrent_game', '게임'], ['torrent_mobile', '모바일'], ['torrent_util', '유틸'], ['torrent_toon', '만화'], ['torrent_book', '도서'], ['torrent_kids', '어린이'],
