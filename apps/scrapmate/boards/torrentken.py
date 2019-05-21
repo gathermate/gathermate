@@ -14,7 +14,6 @@ def register():
     return 'Scraper', Torrentken
 
 class Torrentken(BoardScraper):
-    # https://torrentken.net/bbs/board.php?bo_table=torrent_movie&wr_id=254799
     URL = 'https://torrentken.net/'
     LIST_URL = ud.join(URL, 'bbs/board.php?bo_table=%s')
     ID_REGEXP = re.compile(r'wr_id=(\d{2,8})')
