@@ -289,7 +289,7 @@ class BoardScraper(Scraper):
             wanted = self.find_want(etc_list)
         return wanted or (torrent_list or etc_list)[0]
         '''
-        # It should return a torrent file in RSS.
+        # It should return a torrent file os RSS mode.
         if not wanted and not torrent_list:
             return items[0]
         return wanted or torrent_list[0]

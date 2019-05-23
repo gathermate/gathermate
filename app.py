@@ -54,8 +54,8 @@ def create_app():
         config_instance = 'LOCALHOST'
         cache_type = {'CACHE_TYPE': 'simple'}
     app.config.from_object(app.config.get(config_instance + '_INSTANCE'))
-    app.logger.setLevel(app.config['LOG_LEVEL'])
     logger.config(software, app.config['LOG_LEVEL'])
+    app.logger.setLevel(app.config['LOG_LEVEL'])
     app.logger.info('Server Software: %s', software)
     app.logger.info('Config: %s in %s', app.config['NAME'], config_path)
     caching.init(app, app.config, cache_type)
