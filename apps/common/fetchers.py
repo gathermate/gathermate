@@ -82,10 +82,10 @@ class Fetcher(object):
             except Exception as e:
                 GathermateException.trace_error()
                 if type(e) in self._get_retry_exceptions():
+                    log.error('%s, while fetching [%s]', e.message, url.text)
+                    r = Response(url.text, None, headers={}, content=str(e.message), status_code=0, final_url=url.text)
                     log.warning('Retry fetching...')
                     continue
-                log.error('%s, while fetching [%s]', e.message, url.text)
-                r = Response(url.text, None, headers={}, content=e.message, status_code=0, final_url=url.text)
             break
         if r:
             r.key = key
@@ -95,6 +95,8 @@ class Fetcher(object):
                 r.status_code if r.status_code else 0,
                 tb.size_text(len(r.content) if r.content else 0))
             self._handle_response(url, r)
+        else:
+            r = Response(url.text, None, headers={}, content='Falied to fetch %s' % url.text, status_code=0, final_url=url.text)
         return r
 
     def _get_headers(self, url, referer, headers):

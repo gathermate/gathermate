@@ -14,7 +14,7 @@ def register():
     return 'Scraper', Trtcall
 
 class Trtcall(BoardScraper):
-    URL = 'https://trtcall.com/'
+    URL = 'https://trtcall1.com/'
     LIST_URL = ud.join(URL, 'bbs/board.php?bo_table=%s')
     ID_REGEXP = re.compile(r'wr_id=(\d{2,8})')
     PAGE_QUERY = 'page=%d'

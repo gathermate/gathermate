@@ -98,7 +98,7 @@ class Tfreeca(BoardScraper):
                                     encoding=self.encoding)
         forms = tree.xpath(self.FORM_XPATH)
         inputs = {inpt.get('name'): inpt.get('value') for form in forms for inpt in form.findall('.//input')}
-        '''
+
         # If captcha exists...
         payload = {
             'aid': tree.xpath(self.CAPTCHA_XPATH)[0].get('data-appid'),
@@ -126,7 +126,7 @@ class Tfreeca(BoardScraper):
             inputs['Randstr'] = js['randstr']
         else:
             raise GathermateException('Failed to pass captcha.')
-        '''
+
         down_url = ud.Url('http://file.filetender.com/file.php').update_query(inputs)
         log.info("Wait for Linktender's countdown...")
         time.sleep(3)
