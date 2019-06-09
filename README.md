@@ -198,7 +198,14 @@ sudo service gathermate start
 
 설정하기
 --------
-실행시 `instance/config.py` 파일의 설정을 사용하게 됩니다. 설정 수정은 꼭 `instance/config.py`에서 해주세요. Google App Engine 환경이 아닌 직접 서버를 운영할 경우 Localhost 클래스의 설정을 수정하면 됩니다.
+
+#### 설정 파일의 외부 경로 지정
+
+프로그램이 실행 될 때 아래의 순서대로 설정 파일을 검색 후 먼저 발견되는 설정 파일을 사용하게 됩니다.
+
+1. 데몬 스크립트의 `export GATHERMATE_CONFIG=`에 입력된 경로
+2. Gathermate가 설치된 폴더내의 `instance/config.py`
+3. Gathermate가 설치된 폴더내의 `install/user_config.py`
 
 #### 꼭 변경해야 하는 값들
 
@@ -209,7 +216,7 @@ sudo service gathermate start
 
 #### 설정 값 입력하기
 
-민감한 정보는 기본적으로 `os.environ.get()` 를 통해 `export`된 값을 불러오도록 되어 있습니다. `os.environ.get()`이 어떤 이름의 환경변수를 가져오는지 확인한 다음 데몬 스크립트에서 `export` 해 주면 됩니다. GAE는 `app.yaml`에서 `export`할 값을 입력할 수 있습니다. 또는 직접 `instance/config.py`에 입력하세요.
+민감한 정보는 기본적으로 `os.environ.get()` 를 통해 `export`된 값을 불러오도록 되어 있습니다. `os.environ.get()`이 어떤 이름의 환경변수를 가져오는지 확인한 다음 데몬 스크립트에서 `export` 해 주면 됩니다. GAE는 `app.yaml`에서 `export`할 값을 입력할 수 있습니다. 또는 직접 설정 파일에 입력하세요.
 
 데몬 스크립트에는 아래의 환경 변수가 기본값으로 입력되어 있습니다.
 ```shell
@@ -222,32 +229,24 @@ export GATHERMATE_AUTH_PW=password
 export MY_AUTH_ID="admin" # 데몬 스크립트
 ```
 ```python
-AUTH_ID = os.environ.get('MY_AUTH_ID') # instance/config.py
+AUTH_ID = os.environ.get('MY_AUTH_ID') # 설정 파일
 ```
 
-`instance/config.py`에 직접 입력할 경우:
+설정 파일에 직접 입력할 경우:
 
 ```python
-AUTH_ID = 'admin' # instance/config.py
+AUTH_ID = 'admin' # 설정 파일
 ```
-
-#### 설정 파일의 외부 경로 지정
-
-프로그램이 실행 될 때 아래의 순서대로 설정 파일 검색을 시도합니다.
-
-- 데몬 스크립트의 `GATHERMATE_CONFIG`에 입력된 경로
-- Gathermate가 설치된 폴더내의 `instance/config.py`
-- Gathermate가 설치된 폴더내의 `install/user_config.py`
 
 #### 사용자 정의 소스
 
-Gathermate의 소스를 유지(Git 레코드를 유지)하면서 템플릿이나 소스 파일을 변경하려면 설정 파일을 Gathermate가 설치된 폴더 밖으로 빼주세요. 데몬 스크립트의 `GATHERMATE_CONFIG`에 설정 파일의 경로를 입력하면 해당 경로 내의 소스를 사용하게 됩니다.
+Gathermate의 소스를 유지(Git 레코드를 유지)하면서 템플릿이나 소스 파일을 변경하려면 설정 파일을 Gathermate가 설치된 폴더 밖으로 빼주세요. 데몬 스크립트의 `export GATHERMATE_CONFIG=`에 설정 파일의 경로를 입력하면 해당 경로 내의 소스를 사용하게 됩니다.
 
 Gathermate가 `/opt/apps/gathermate`에 설치되어 있고 실제 사용할 설정 파일을 `/home/my_id/config.py`라고 할 경우...
 
-데몬 스크립트의 `GATHERMATE_CONFIG`에 설정 파일의 경로를 입력합니다.
+데몬 스크립트의 `export GATHERMATE_CONFIG=`에 설정 파일의 경로를 입력합니다.
 ```
-GATHERMATE_CONFIG=/home/my_id/config.py
+export GATHERMATE_CONFIG=/home/my_id/config.py
 ```
 
 Gatermate가 참조할 기본 Static 폴더와 Templates 폴더는 아래처럼 변경 됩니다.
