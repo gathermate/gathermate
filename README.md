@@ -34,6 +34,12 @@ opt/
                 streamate/
             install/
             instance/
+                boards/ (사용자 정의)
+                cookies/
+                epggrabbers/ (사용자 정의)
+                static/ (사용자 정의)
+                streamers/ (사용자 정의)
+                templates/ (사용자 정의)
             static/
             templates/
             venv/
@@ -224,6 +230,44 @@ AUTH_ID = os.environ.get('MY_AUTH_ID') # instance/config.py
 ```python
 AUTH_ID = 'admin' # instance/config.py
 ```
+
+#### 설정 파일의 외부 경로 지정
+
+프로그램이 실행 될 때 아래의 순서대로 설정 파일 검색을 시도합니다.
+
+- 데몬 스크립트의 `GATHERMATE_CONFIG`에 입력된 경로
+- Gathermate가 설치된 폴더내의 `instance/config.py`
+- Gathermate가 설치된 폴더내의 `install/user_config.py`
+
+#### 사용자 정의 소스
+
+Gathermate의 소스를 유지(Git 레코드를 유지)하면서 템플릿이나 소스 파일을 변경하려면 설정 파일을 Gathermate가 설치된 폴더 밖으로 빼주세요. 데몬 스크립트의 `GATHERMATE_CONFIG`에 설정 파일의 경로를 입력하면 해당 경로 내의 소스를 사용하게 됩니다.
+
+Gathermate가 `/opt/apps/gathermate`에 설치되어 있고 실제 사용할 설정 파일을 `/home/my_id/config.py`라고 할 경우...
+
+데몬 스크립트의 `GATHERMATE_CONFIG`에 설정 파일의 경로를 입력합니다.
+```
+GATHERMATE_CONFIG=/home/my_id/config.py
+```
+
+Gatermate가 참조할 기본 Static 폴더와 Templates 폴더는 아래처럼 변경 됩니다.
+
+|기본 참조|변경된 참조|
+|-----|-----|
+|/opt/apps/gathermate/static|/home/my_id/static|
+|/opt/apps/gathermate/templates|/home/my_id/templates|
+
+기본 참조 경로의 파일 및 폴더를 변경된 참조 경로로 모두 복사 후 사용하세요.
+
+또한 설정 파일 경로내 파이썬 소스를 추가로 로딩하게 됩니다. 사용자가 정의한 사이트를 추가하거나 기존의 사이트를 변경할 때 유용합니다.
+
+|기본 로딩|추가 로딩|
+|-----|-----|
+|/opt/apps/gathermate/apps/scrapmate/boards|/home/my_id/boards|
+|/opt/apps/gathermate/apps/streamate/streamers|/home/my_id/streamers|
+|/opt/apps/gathermate/apps/streamate/epggrabbers|/home/my_id/epggrabbers|
+
+대상 사이트를 추가하거나 기본 소스의 내용을 변경할 때 추가 로딩되는 경로에 해당 소스 파일을 넣어주세요.
 
 사용법
 ------
