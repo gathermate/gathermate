@@ -110,6 +110,10 @@ def proxy():
         return r.content, r.status_code
     return render_template('proxy.html')
 
+@app.route('/myip')
+def myip():
+    return request.remote_addr
+
 @app.route('/404')
 def not_found_test():
     return page_not_found(Exception())
