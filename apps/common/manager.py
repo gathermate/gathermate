@@ -58,6 +58,4 @@ class Manager(object):
                     yield tuple_[1].__name__, tuple_[1]
 
     def _hire_fetcher(self):
-        fetcher_config = {k.lower(): v for k, v in self.config['FETCHER'].iteritems() if k != 'COOKIE_TO_FILE'}
-        cookie_path=os.path.join(self.config['CONFIG_DIR'], 'cookies') if self.config['FETCHER']['COOKIE_TO_FILE'] else None
-        return fetchers.hire_fetcher(cookie_path=cookie_path, **fetcher_config)
+        return fetchers.hire_by_config(self.config)

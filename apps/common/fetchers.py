@@ -22,6 +22,11 @@ def hire_fetcher(module='requests', deadline=30, cache_timeout=60, cookie_timeou
     mod = module.split('.')[-1]
     return globals()[mod.capitalize()](importlib.import_module(module), deadline, cache_timeout, cookie_timeout, cookie_path)
 
+def hire_by_config(config):
+    fetcher_config = {k.lower(): v for k, v in config['FETCHER'].iteritems() if k != 'COOKIE_TO_FILE'}
+    cookie_path=os.path.join(config['CONFIG_DIR'], 'cookies') if config['FETCHER']['COOKIE_TO_FILE'] else None
+    return hire_fetcher(cookie_path=cookie_path, **fetcher_config)
+
 
 class Response(object):
 

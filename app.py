@@ -54,6 +54,7 @@ def create_app():
         config_instance = 'LOCALHOST'
         cache_type = {'CACHE_TYPE': 'simple'}
     app.config.from_object(app.config.get(config_instance + '_INSTANCE'))
+    app.config['CONFIG_DIR'] = app.instance_path
     logger.config(software, app.config['LOG_LEVEL'])
     app.logger.setLevel(app.config['LOG_LEVEL'])
     app.logger.info('Server Software: %s', software)
@@ -105,7 +106,7 @@ def index(path):
 def proxy():
     url = request.args.get('url')
     if url:
-        fetcher = fetchers.hire_fetcher(**{k.lower(): v for k, v in app.config.get('FETCHER').iteritems()})
+        fetcher = fetchers.hire_by_config(app.config)
         r = fetcher.fetch(url, follow_redirects=True)
         return r.content, r.status_code
     return render_template('proxy.html')
