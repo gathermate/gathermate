@@ -249,14 +249,14 @@ Gathermate가 `/opt/apps/gathermate`에 설치되어 있고 실제 사용할 설
 export GATHERMATE_CONFIG=/home/my_id/config.py
 ```
 
-Gatermate가 참조할 기본 Static 폴더와 Templates 폴더는 아래처럼 변경 됩니다.
+만약 `GATHERMATE_CONFIG`에서 지정한 폴더 내에 `static`, `templates` 폴더가 존재한다면 Gatermate가 참조할 기본 `Static` 폴더와 `Templates` 폴더는 아래처럼 변경 됩니다.
 
 |기본 참조|변경된 참조|
 |-----|-----|
 |/opt/apps/gathermate/static|/home/my_id/static|
 |/opt/apps/gathermate/templates|/home/my_id/templates|
 
-기본 참조 경로의 파일 및 폴더를 변경된 참조 경로로 모두 복사 후 사용하세요.
+기본 참조 폴더가 대체되기 때문에 기본 참조 경로의 모든 파일 및 폴더를 복사 후 사용해야 합니다. 예를 들어 `templates` 폴더를 사용자 폴더에 생성한 경우 기본 참조 폴더인 `/opt/apps/gathermate/templates` 내의 모든 파일을 `/home/my_id/templates`로 복사해야 정상 작동합니다.
 
 또한 설정 파일 경로내 파이썬 소스를 추가로 로딩하게 됩니다. 사용자가 정의한 사이트를 추가하거나 기존의 사이트를 변경할 때 유용합니다.
 
@@ -266,7 +266,7 @@ Gatermate가 참조할 기본 Static 폴더와 Templates 폴더는 아래처럼 
 |/opt/apps/gathermate/apps/streamate/streamers|/home/my_id/streamers|
 |/opt/apps/gathermate/apps/streamate/epggrabbers|/home/my_id/epggrabbers|
 
-대상 사이트를 추가하거나 기본 소스의 내용을 변경할 때 추가 로딩되는 경로에 해당 소스 파일을 넣어주세요.
+`templates`, `static`폴더와 다르게 추가하거나 수정할 소스 파일만 넣어주면 됩니다.
 
 사용법
 ------
