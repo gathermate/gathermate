@@ -13,7 +13,7 @@ def register():
 
 
 class Wal(BoardScraper):
-    URL = 'https://torrentwal1.com/'
+    URL = 'https://torrentwal.com/'
     LIST_URL = ud.join(URL, '%s/torrent1.htm')
     ID_REGEXP = re.compile(r'(\d{2,8}).html')
     PAGE_QUERY = 'torrent%d.htm'
