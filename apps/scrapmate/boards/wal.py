@@ -1,6 +1,11 @@
 # -*- coding: utf-8 -*-
 import re
 import logging
+import time
+import base64
+import random
+import math
+import json
 
 from apps.scrapmate.scraper import BoardScraper
 from apps.common.exceptions import GathermateException
@@ -104,16 +109,64 @@ class Wal(BoardScraper):
                         location_match = self.LOCATION_REGEXP.search(magnet_r.content)
                         if location_match:
                             link = location_match.group(1)
-                            name = ud.split_qs(link)['dn']
-                            yield {'name': name, 'link': link, 'type': 'magnet'}
+                            sub_name = ud.split_qs(link)['dn']
+                            yield {'name': sub_name, 'link': link, 'type': 'magnet'}
                     else:
-                        name = matches[1]
-                        yield {'name': name, 'link': link, 'type': 'file'}
+                        if len(matches) > 1:
+                            yield {'name': matches[1], 'link': link, 'type': 'file'}
+                        else:
+                            yield {'name': name, 'link': link, 'type': 'file'}
                 else:
                     yield {'name': name, 'link': href, 'type': 'file'}
 
             except:
                 GathermateException.trace_error()
 
+
     def get_file(self, url, ticket):
         return self.fetch(url, referer=ticket['referer'])
+
+    FORM_XPATH = r'//form[@id="Down"]'
+    CAPTCHA_XPATH = r'//a[@id="TencentCaptcha"]'
+    NEWURL_REGEXP = re.compile(r'var.newUrl.=.\'(.+)\';')
+    def get_filetender(self, url, ticket):
+        r = self.fetch(url,
+                       referer=ticket['referer'])
+        tree = self.etree(r, self.encoding)
+        forms = tree.xpath(self.FORM_XPATH)
+        inputs = {inpt.get('name'): inpt.get('value') for form in forms for inpt in form.findall('.//input')}
+
+        down_url = self.NEWURL_REGEXP.search(r.content).group(1)
+        if not 'filetender' in down_url:
+            # If captcha exists...
+            payload = {
+                'aid': tree.xpath(self.CAPTCHA_XPATH)[0].get('data-appid'),
+                'accver': 1,
+                'showtype': 'popup',
+                'ua': base64.b64encode(self.fetcher.HEADERS['User-Agent']),
+                'noheader': 1,
+                'fb': 1,
+                'fpinfo': 'fpsig=undefined',
+                'grayscale': 1,
+                'clienttype': 2,
+                'cap_cd': '',
+                'uid': '',
+                'wxLang': '',
+                'subsid': 1,
+                'callback': '_aq_%d' % math.floor(1e6 * random.random()) ,
+                'sess': '',
+            }
+            captcha_url = ud.Url('https://ssl.captcha.qq.com/cap_union_prehandle').update_query(payload)
+            r  = self.fetch(captcha_url, referer=url.text)
+            match = re.search(r'_aq_\d+\((\{.+\})\)', r.content)
+            if match:
+                js = json.loads(match.group(1))
+                inputs['Ticket'] = js['ticket']
+                inputs['Randstr'] = js['randstr']
+            else:
+                raise GathermateException('Failed to pass captcha.')
+        down_url = ud.Url(down_url).update_query(inputs)
+        log.info("Wait for Linktender's countdown...")
+        time.sleep(3)
+        log.info('Start download on Linktender...')
+        return self.fetch(down_url, referer=url.text)
