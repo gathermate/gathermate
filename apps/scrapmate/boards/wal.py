@@ -22,15 +22,17 @@ class Wal(BoardScraper):
     LIST_URL = ud.join(URL, '%s/torrent1.htm')
     ID_REGEXP = re.compile(r'(\d{2,8}).html')
     PAGE_QUERY = 'torrent%d.htm'
+    SEARCH_PAGE_QUERY = 'page=%d'
 
     def handle_search(self, url, keyword):
         url.path = 'bbs/s.php'
         url.update_qs('k=%s' % keyword)
-        self.PAGE_QUERY = 'page=%d'
+        self.PAGE_QUERY = self.SEARCH_PAGE_QUERY
 
     def handle_page(self, url, num):
-        if url.path == 's.php':
-            url.update_qs(self.PAGE_QUERY % int(num))
+        log.debug('##########handle_page %s', url.path)
+        if 's.php' in url.path:
+            url.update_qs(self.SEARCH_PAGE_QUERY % int(num))
         elif len(url.path) < 1:
             pass
         else:

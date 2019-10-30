@@ -47,6 +47,15 @@ def list_by_alias(site, board):
     data = app.managers[name].request_board('list', request.args)
     return order_list(data)
 
+@scrapmate.route('/<path:site>/custom', methods=['GET'])
+@auth.requires_auth
+def custom_by_alias(site):
+  request.args['site'] = site
+  data = app.managers[name].request_board('custom', request.args)
+  if data is None:
+    return "No data returned."
+  return Response(stream_with_context(data), mimetype='text/plain')
+
 @scrapmate.route('/<path:order>', methods=['GET'])
 @auth.requires_auth
 def order(order):

@@ -21,7 +21,7 @@ from apps.streamate.streamer import Channel
 log = logging.getLogger()
 
 def register():
-    return 'Streamer_Disabled', Tving
+    return 'Streamer', Tving
 
 
 class Tving(HlsStreamer):

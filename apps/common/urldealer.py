@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import urllib
 import urlparse
+import logging
 
 from tld import get_fld
 
@@ -131,6 +132,8 @@ class Url(object):
         return self
 
     def update_query(self, post_dict):
+        for _tuple in post_dict.iteritems():
+            self.query_dict.poplist(_tuple[0])
         self.query_dict.update(post_dict)
         return self
 

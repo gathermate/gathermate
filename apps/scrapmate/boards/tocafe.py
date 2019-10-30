@@ -14,7 +14,7 @@ def register():
     return 'Scraper', Tocafe
 
 class Tocafe(BoardScraper):
-    URL = 'https://tocafe.net'
+    URL = 'https://tocafe.me'
     LIST_URL = ud.join(URL, 'bbs/board.php?bo_table=%s')
     ID_REGEXP = re.compile(r'wr_id=(\d{2,7})')
     SEARCH_QUERY = 'sca=&sop=and&sfl=wr_subject&stx=%s'

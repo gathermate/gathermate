@@ -94,6 +94,9 @@ class Scraper(object):
                               pretty_print=True,
                               encoding=self.encoding)
 
+    def get_custom(self, query):
+        raise NotImplementedError
+
 
 class BoardScraper(Scraper):
     def __init__(self,
@@ -182,6 +185,7 @@ class BoardScraper(Scraper):
         match = PAGE_REGEXP.search(url.text)
         self.current_page = int(match.group(1)) if match else 1
         log.debug('Current page number is %d' % self.current_page)
+        log.debug('self %s', self.PAGE_QUERY)
         result = PAGE_REGEXP.findall(content)
         pages = set([int(x) for x in result])
         if len(pages) > 0:
@@ -203,7 +207,7 @@ class BoardScraper(Scraper):
         self.check_length_count += 1
         if self.check_length_count > 5:
             log.error('Too many loops...')
-            return
+            #return
         log.debug("Articles of current page : %d", current)
         if not self.isRSS:
             return

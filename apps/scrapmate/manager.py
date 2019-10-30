@@ -101,6 +101,10 @@ class ScrapmateManager(Manager):
         board = self._hire_board(target)
         return board.get_page(board.fetch(target))
 
+    def _order_custom(self, target, query):
+        board = self._hire_board(target)
+        return board.get_custom(query)
+
     @tb.timeit
     def _get_data(self, order, target, query):
         data = getattr(self, '_order_{}'.format(order))(target, query)
