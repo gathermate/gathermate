@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import time
 import logging
 import re
 
@@ -14,7 +13,7 @@ def register():
 
 
 class Torrentzoa(Tfreeca):
-    URL = "https://www.torrentzoa.com/"
+    URL = "https://www.torrentzoa22.com/"
     LIST_URL = ud.join(URL, 'torrent-%s-p1.html')
     SEARCH_QUERY = 'search-%s-%s-p1.html'
     PAGE_QUERY = 'p%d.html'
