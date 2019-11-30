@@ -13,7 +13,7 @@ def register():
 
 
 class Torrentzoa(Tfreeca):
-    URL = "https://www.torrentzoa22.com/"
+    URL = "https://www.torrentzoa23.com/"
     LIST_URL = ud.join(URL, 'torrent-%s-p1.html')
     SEARCH_QUERY = 'search-%s-%s-p1.html'
     PAGE_QUERY = 'p%d.html'

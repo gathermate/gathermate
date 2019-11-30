@@ -14,7 +14,7 @@ def register():
     return 'Scraper', Torrentdal
 
 class Torrentdal(BoardScraper):
-    URL = 'https://torrentdal.com/'
+    URL = 'https://torrentdal5.net/'
     LIST_URL = ud.join(URL, 'bbs/board.php?bo_table=%s')
     ID_REGEXP = re.compile(r'wr_id=(\d{2,8})')
     PAGE_QUERY = 'page=%d'
